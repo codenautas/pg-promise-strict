@@ -6,7 +6,7 @@ var Promise = require('promise');
 var pgPromiseStrict={
 };
 
-pgPromiseStrict.Client = function(client, done){
+pgPromiseStrict.Client = function Client(client, done){
     var self = this;
     // existing functions
     this.done = function(){
@@ -21,10 +21,10 @@ pgPromiseStrict.Client = function(client, done){
     }
 }
 
-pgPromiseStrict.Query = function(query, client){
+pgPromiseStrict.Query = function Query(query, client){
     var self = this;
     var readRowsThenControlAndAdapt = function readRowsThenControlAndAdapt(controlAndAdapt, callbackForEachRow){
-        var thePromise = new Promise(function(resolve, reject){
+        return new Promise(function(resolve, reject){
             query.on('row',function(row, result){
                 if(callbackForEachRow){
                     callbackForEachRow(row, result);
@@ -40,41 +40,51 @@ pgPromiseStrict.Query = function(query, client){
                 reject(err);
             });
         });
-        return thePromise;
     };
-    // new functions
-    this.readOnlyRow = function readOnlyRow(){
-        return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
-            if(result.rows.length!=1){
-                reject(new Error('query expects one row and obtains '+result.rows.length));
-            }else{
-                result.row = result.rows[0];
-                delete result.rows;
-                resolve(result);
-            }
-        });
-    }
-    this.readOnlyValue = function readOnlyValue(){
-        return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
-            if(result.rows.length!=1){
-                reject(new Error('query expects one row and obtains '+result.rows.length));
-            }else{
-                var row = result.rows[0];
-                var fieldCount=0;
-                for(var fieldName in row){
-                    result.value = row[fieldName];
-                    fieldCount++;
-                }
-                if(fieldCount!=1){
-                    reject(new Error('query expects one field and obtains '+fieldCount));
+    // auxiliars
+    var controlAndAdaptRowCount=function(minCountRow, maxCountRow, expectText, callbackOtherControl){
+        return function(){
+            return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
+                if(result.rows.length<minCountRow || result.rows.length>maxCountRow ){
+                    reject(new Error('query expects '+expectText+' and obtains '+result.rows.length+' rows'));
                 }else{
-                    delete result.rows;
-                    resolve(result);
+                    if(callbackOtherControl){
+                        callbackOtherControl(result, resolve, reject);
+                    }else{
+                        result.row = result.rows[0];
+                        delete result.rows;
+                        resolve(result);
+                    }
                 }
-            }
+            });
+        }
+    }
+    // new functions
+    this.readOneRowIfExists = controlAndAdaptRowCount(0,1,'at least one row');
+    this.readUniqueRow = controlAndAdaptRowCount(1,1,'one row');
+    this.readUniqueValue = controlAndAdaptRowCount(1,1,'one row (with one field)',function(result, resolve, reject){
+        var row = result.rows[0];
+        var fieldCount=0;
+        for(var fieldName in row){
+            result.value = row[fieldName];
+            fieldCount++;
+        }
+        if(fieldCount!=1){
+            reject(new Error('query expects one field and obtains '+fieldCount));
+        }else{
+            delete result.rows;
+            resolve(result);
+        }
+    });
+    this.readAllRows = function readAllRows(){
+        return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
+            resolve(result);
         });
     }
     this.readByRow = function readByRow(callback){
+        if(!_.isFunction(callback)){
+            return Promise.reject(new Error('readByRow must recive a callback that executes for each row'));
+        }
         return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
             resolve(result);
         },callback);
