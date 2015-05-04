@@ -12,9 +12,11 @@ pgPromiseStrict.Client = function(client, done){
     this.done = function(){
         return done.call(client);
     }
-    this.query = function query(text){
+    this.query = function query(){
+        var queryArguments = arguments;
         return Promise.resolve().then(function(){
-            return new pgPromiseStrict.Query(client.query(text), self);
+            var returnedQuery = client.query.apply(client,queryArguments);
+            return new pgPromiseStrict.Query(returnedQuery, self);
         });
     }
 }
