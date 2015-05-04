@@ -13,18 +13,22 @@ var conOpts = {
 pg.connect(conOpts).then(function(client){
     return client.query('select count(*) from test.table1');
 }).then(function(query){
-    return query.readOnlyRow(); // se que hay una sola fila
+    return query.readOnlyValue(); // se que hay una sola fila
 }).then(function(result){
-    console.log('row count',result.allRowData);
+    console.log('row count',result.value);
     return result.client.query('select * from test.table1 order by id');
 }).then(function(query){
-    return query.readByRow(); // puede haber varias filas
-}).then(function(allRowData){
-    console.log(allRowData);
+    return query.readByRow(function(row){ // que tiene un único row
+        console.log('read one row',row);
+    });
+}).then(function(result){ // que ya no tiene las filas
+    console.log('done!');
+    result.client.done();
 }).catch(function(err){
     console.log('hubo un error en algun lugar', err);
     console.log(err.stack);
-    process.exit(1);
+}).then(function(){
+    process.exit();
 });
 
 /*
