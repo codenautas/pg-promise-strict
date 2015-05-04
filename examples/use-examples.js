@@ -23,8 +23,11 @@ pg.connect(conOpts).then(function(client){
     console.log(allRowData);
 }).catch(function(err){
     console.log('hubo un error en algun lugar', err);
+    console.log(err.stack);
+    process.exit(1);
 });
 
+/*
 pg.connect(conOpts).then(function(client){
     return client.query('select count(*) from test.table1');
 }).then(function(query){
@@ -34,3 +37,4 @@ pg.connect(conOpts).then(function(client){
 }).catch(function(err){
     console.log('hubo un error en algun lugar', err);
 });
+*/
