@@ -1,7 +1,16 @@
+<!-- multilang from README.md
+
+
+
+
+NO MODIFIQUE ESTE ARCHIVO. FUE GENERADO AUTOMÁTICAMENTE POR multilang.js
+
+
+
+
+-->
 # pg-promise-strict
 postgresql with strict interpretation of promises
-
-<!--multilang v0 en:README.md es:LEEME.md -->
 
 ![designing](https://img.shields.io/badge/stability-desgining-red.svg)
 [![version](https://img.shields.io/npm/v/tabulator.svg)](https://npmjs.org/package/tabulator)
@@ -12,22 +21,15 @@ postgresql with strict interpretation of promises
 [![dependencies](https://img.shields.io/david/codenautas/tabulator.svg)](https://david-dm.org/codenautas/tabulator)
 
 <!--multilang buttons-->
-language: ![English](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)
-also available in:
-[![Spanish](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-es.png)](LEEME.md) - 
+idioma: ![castellano](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-es.png)
+también disponible en:
+[![inglés](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)](README.md)
 
-<!--lang:es--]
 
 **postgresql** con **promesas** en el sentido estricto
 
-[!--lang:en-->
-
-## License
-
-<!--lang:es--]
 
 ## Licencias
 
-<!--lang:es-->
 
 [MIT](LICENSE)
