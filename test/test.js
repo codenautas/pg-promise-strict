@@ -1,9 +1,12 @@
+"use strict";
 
+var _ = require('lodash');
 var expect = require('expect.js');
 var expectCalled = require('expect-called');
 var pg0 = require('pg');
 var pg = require('..');
 var Promise = require('promise');
+var Events = require('events');
 pg.expect = expect;
 
 describe('pg-promise-strict', function(){
@@ -49,7 +52,7 @@ describe('pg-promise-strict', function(){
             });
         });
     });
-    describe('queries', function(){
+    describe('call queries', function(){
         var client;
         var pg0connectControl;
         before(function(done){
@@ -87,7 +90,166 @@ describe('pg-promise-strict', function(){
                 done();
             }).catch(done).then(function(){
                 pg.debug.Query=false;
+                clientInternalControl.stopControl();
             });
+        });
+    });
+    describe('call queries and fetch data', function(){
+        var client;
+        var pg0connectControl;
+        before(function(done){
+            pg0connectControl = expectCalled.control(pg0,'connect',{mocks:[
+                function(conn, callback){ callback(null,clientInternal,doneInternal); }
+            ]});
+            pg.debug.Client=true;
+            pg.connect(connectParams).then(function(returnedClient){
+                client = returnedClient;
+                pg.debug.Client=false;
+                done();
+            });
+        });
+        after(function(){
+            pg0connectControl.stopControl();
+        });
+        var queryWithEmitter=function(rows){
+            var remianingRows = _.clone(rows);
+            var emitter = new Events.EventEmitter();
+            var endListener=false;
+            var errorListener=false;
+            var emitEnd=function(){};
+            var result={
+                rows:[],
+                addRow:function addRow(row){
+                    this.rows.push(row);
+                }
+            }
+            var emitRows=function(){
+                remianingRows.forEach(function(row){
+                    emitter.emit('row',row,result);
+                });
+                remianingRows = [];
+                setImmediate(emitEnd);
+            }
+            emitter.on('newListener',function(name){
+                switch(name){
+                case 'row':
+                    return ;
+                case 'end':
+                    emitEnd=function(){
+                        if(!remianingRows.length){
+                            emitter.emit('end',result);
+                        }
+                    }
+                    return emitRows();
+                case 'error':
+                    errorListener=true;
+                    return;
+                default:
+                    throw new Error('queryWithEmitter: event not recognized');
+                }
+            });
+            return emitter;
+        }
+        function testData(data,fetchFunctionName,done,controlExpected){
+            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+                queryWithEmitter(data)
+            ]});
+            pg.debug.Query=true;
+            client.query().then(function(query){
+                return query[fetchFunctionName]();
+            }).then(function(result){
+                (controlExpected || function(result,data){
+                    expect(result.rows).to.eql(data);
+                })(result,data);
+                done();
+            }).catch(done).then(function(){
+                pg.debug.Query=false;
+                clientInternalControl.stopControl();
+            });
+        }
+        it('read all for 2 rows', function(done){
+            var data = [{one:1, two:2}, {one:'uno', two:'dos'}];
+            testData(data,'fetchAll',done);
+        });
+        it('read all for 1 row', function(done){
+            var data = [{one:1, two:2}];
+            testData(data,'fetchAll',done);
+        });
+        it('read all for 0 rows', function(done){
+            var data = [];
+            testData(data,'fetchAll',done);
+        });
+        it('read unique row success', function(done){
+            var data = [{one:11, two:22}];
+            testData(data,'fetchUniqueRow',done,function(result,data){
+                expect(result.row).to.eql(data[0]);
+            });
+        });
+        it('read unique value success', function(done){
+            var data = [{one:1111}];
+            testData(data,'fetchUniqueValue',done,function(result,data){
+                expect(result.value).to.eql(data[0].one);
+            });
+        });
+        it('read zero or one row for 1 row', function(done){
+            var data = [{one:1.1, two:2.2, three:3.3}];
+            testData(data,'fetchOneRowIfExists',done,function(result,data){
+                expect(result.row).to.eql(data[0]);
+            });
+        });
+        it('read zero or one row for 0 row', function(done){
+            var data = [];
+            testData(data,'fetchOneRowIfExists',done,function(result,data){
+                expect(result.row).to.not.be.ok();
+            });
+        });
+        function testException(data,fetchFunctionName,done,messagePart){
+            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+                queryWithEmitter(data)
+            ]});
+            pg.debug.Query=true;
+            client.query().then(function(query){
+                return query[fetchFunctionName]();
+            }).then(function(result){
+                console.log('obtengo',result);
+                done(new Error('call to '+fetchFunctionName+' must raise an error'));
+            }).catch(function(err){
+                expect(err).to.be.a(Error);
+                var r=messagePart instanceof RegExp?messagePart:new RegExp(_.escapeRegExp(messagePart));
+                expect(err.message).to.match(r);
+                done();
+            }).catch(done).then(function(){
+                pg.debug.Query=false;
+                clientInternalControl.stopControl();
+            });
+        }
+        it('try to read unique row with no data', function(done){
+            var data = [];
+            testException(data,'fetchUniqueRow',done,'query expects one row and obtains 0 rows');
+        });
+        it('try to read unique row with more than 1 row', function(done){
+            var data = [{one:11, two:22}, {one:11, two:22}];
+            testException(data,'fetchUniqueRow',done,/query expects one row and obtains [^0].* row/);
+        });
+        it('try to read zero or one row with many row', function(done){
+            var data = [{one:1.1, two:2.2, three:3.3},{one:1.1, two:2.2, three:3.3}];
+            testException(data,'fetchOneRowIfExists',done,/query expects at least one row and obtains [^0].* row/);
+        });
+        it('try to read unique value with no data', function(done){
+            var data = [];
+            testException(data,'fetchUniqueValue',done,'query expects one row (with one field) and obtains 0 rows');
+        });
+        it('try to read unique value with many data', function(done){
+            var data = [{x:1}, {x:2}];
+            testException(data,'fetchUniqueValue',done,/query expects one row \(with one field\) and obtains [^0].* rows/);
+        });
+        it('try to read unique value with one row with many fields', function(done){
+            var data = [{x:1, y:2}];
+            testException(data,'fetchUniqueValue',done,'query expects one field and obtains');
+        });
+        it('try to read unique value with one row with no fields', function(done){
+            var data = [{}];
+            testException(data,'fetchUniqueValue',done,'query expects one field and obtains');
         });
     });
 });
