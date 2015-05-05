@@ -9,6 +9,7 @@
     "name": "Emilio Platzer", "email": "emilioplatzer@gmail.com"
   }],
   "dependencies": {
+    "lodash": "~3.8.0",
     "pg": "~4.3.0",
     "promise": "~7.0.1"
   },

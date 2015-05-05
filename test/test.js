@@ -111,7 +111,7 @@ describe('pg-promise-strict', function(){
         after(function(){
             pg0connectControl.stopControl();
         });
-        var queryWithEmitter=function(rows){
+        var queryWithEmitter=function(rows,finishWithThisError){
             var remianingRows = _.clone(rows);
             var emitter = new Events.EventEmitter();
             var endListener=false;
@@ -128,7 +128,11 @@ describe('pg-promise-strict', function(){
                     emitter.emit('row',row,result);
                 });
                 remianingRows = [];
-                setImmediate(emitEnd);
+                if(finishWithThisError){
+                    setImmediate(emitter.emit('error',finishWithThisError));
+                }else{
+                    setImmediate(emitEnd);
+                }
             }
             emitter.on('newListener',function(name){
                 switch(name){
@@ -203,6 +207,26 @@ describe('pg-promise-strict', function(){
                 expect(result.row).to.not.be.ok();
             });
         });
+        it('read row by row', function(done){
+            var data = [{alfa:'a1', betha:'b1'},{alfa:'a2', betha:'b2'},{alfa:'a3', betha:'b3'}];
+            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+                queryWithEmitter(data)
+            ]});
+            pg.debug.Query=true;
+            var accumulate=[];
+            client.query().then(function(query){
+                return query.fetchRowByRow(function(row){
+                    accumulate.unshift(row);
+                });
+            }).then(function(result){
+                accumulate.reverse();
+                expect(accumulate).to.eql(data);
+                done();
+            }).catch(done).then(function(){
+                pg.debug.Query=false;
+                clientInternalControl.stopControl();
+            });
+        });
         function testException(data,fetchFunctionName,done,messagePart){
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
                 queryWithEmitter(data)
@@ -250,6 +274,46 @@ describe('pg-promise-strict', function(){
         it('try to read unique value with one row with no fields', function(done){
             var data = [{}];
             testException(data,'fetchUniqueValue',done,'query expects one field and obtains');
+        });
+        it('mismatch use of fecthRowByRow', function(done){
+            var data = [];
+            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+                queryWithEmitter(data)
+            ]});
+            client.query("select 1").then(function(query){
+                return query.fetchRowByRow();
+            }).then(function(result){
+                done(new Error('must throw error because the callback is mandatory'));
+            }).catch(function(err){
+                expect(err.message).to.match(/fetchRowByRow must recive a callback/);
+                done();
+            }).catch(done).then(function(){
+                pg.debug.Query=false;
+                clientInternalControl.stopControl();
+            });
+        });
+        it('read row by row with error', function(done){
+            var emulatePartialData = [{alfa:'a1', betha:'b1'},{alfa:'a2', betha:'b2'},{alfa:'a3', betha:'b3'}];
+            var errorPassed = new Error('this ocurrs inside de fetch');
+            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+                queryWithEmitter(emulatePartialData,errorPassed)
+            ]});
+            pg.debug.Query=true;
+            var accumulate=[];
+            client.query().then(function(query){
+                return query.fetchRowByRow(function(row){
+                    accumulate.push(row);
+                });
+            }).then(function(result){
+                done(new Error('must reject with the error emited internaly'));
+            }).catch(function(err){
+                expect(err).to.be(errorPassed);
+                expect(accumulate).to.eql(emulatePartialData); 
+                done();
+            }).catch(done).then(function(){
+                pg.debug.Query=false;
+                clientInternalControl.stopControl();
+            });
         });
     });
 });

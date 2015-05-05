@@ -8,7 +8,7 @@ var pgPromiseStrict={
 
 pgPromiseStrict.debug={};
 
-pgPromiseStrict.allowAccessInternalIfAllowed = function allowAccessInternalIfAllowed(self, internals){
+pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfDebugging(self, internals){
     if(pgPromiseStrict.debug[self.constructor.name]){
         self.internals = internals;
     }
@@ -16,7 +16,7 @@ pgPromiseStrict.allowAccessInternalIfAllowed = function allowAccessInternalIfAll
 
 pgPromiseStrict.Client = function Client(client, done){
     var self = this;
-    pgPromiseStrict.allowAccessInternalIfAllowed(self, {client:client, done:done});
+    pgPromiseStrict.allowAccessInternalIfDebugging(self, {client:client, done:done});
     // existing functions
     this.done = function(){
         return done.call(client);
@@ -32,9 +32,12 @@ pgPromiseStrict.Client = function Client(client, done){
 
 pgPromiseStrict.Query = function Query(query, client){
     var self = this;
-    pgPromiseStrict.allowAccessInternalIfAllowed(self, {query: query, client:client});
+    pgPromiseStrict.allowAccessInternalIfDebugging(self, {query: query, client:client});
     var readRowsThenControlAndAdapt = function readRowsThenControlAndAdapt(controlAndAdapt, callbackForEachRow){
         return new Promise(function(resolve, reject){
+            query.on('error',function(err){
+                reject(err);
+            });
             query.on('row',function(row, result){
                 if(callbackForEachRow){
                     callbackForEachRow(row, result);
@@ -45,9 +48,6 @@ pgPromiseStrict.Query = function Query(query, client){
             query.on('end',function(result){
                 result.client = client;
                 controlAndAdapt(result, resolve, reject);
-            });
-            query.on('error',function(err){
-                reject(err);
             });
         });
     };
@@ -70,9 +70,9 @@ pgPromiseStrict.Query = function Query(query, client){
         }
     }
     // new functions
-    this.readOneRowIfExists = controlAndAdaptRowCount(0,1,'at least one row');
-    this.readUniqueRow = controlAndAdaptRowCount(1,1,'one row');
-    this.readUniqueValue = controlAndAdaptRowCount(1,1,'one row (with one field)',function(result, resolve, reject){
+    this.fetchOneRowIfExists = controlAndAdaptRowCount(0,1,'at least one row');
+    this.fetchUniqueRow = controlAndAdaptRowCount(1,1,'one row');
+    this.fetchUniqueValue = controlAndAdaptRowCount(1,1,'one row (with one field)',function(result, resolve, reject){
         var row = result.rows[0];
         var fieldCount=0;
         for(var fieldName in row){
@@ -86,14 +86,14 @@ pgPromiseStrict.Query = function Query(query, client){
             resolve(result);
         }
     });
-    this.readAllRows = function readAllRows(){
+    this.fetchAll = function fetchAll(){
         return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
             resolve(result);
         });
     };
-    this.readByRow = function readByRow(callback){
+    this.fetchRowByRow = function fetchRowByRow(callback){
         if(!(callback instanceof Function)){
-            return Promise.reject(new Error('readByRow must recive a callback that executes for each row'));
+            return Promise.reject(new Error('fetchRowByRow must recive a callback that executes for each row'));
         }
         return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
             resolve(result);
