@@ -6,8 +6,17 @@ var Promise = require('promise');
 var pgPromiseStrict={
 };
 
+pgPromiseStrict.debug={};
+
+pgPromiseStrict.allowAccessInternalIfAllowed = function allowAccessInternalIfAllowed(self, internals){
+    if(pgPromiseStrict.debug[self.constructor.name]){
+        self.internals = internals;
+    }
+}
+
 pgPromiseStrict.Client = function Client(client, done){
     var self = this;
+    pgPromiseStrict.allowAccessInternalIfAllowed(self, {client:client, done:done});
     // existing functions
     this.done = function(){
         return done.call(client);
@@ -19,15 +28,11 @@ pgPromiseStrict.Client = function Client(client, done){
             return new pgPromiseStrict.Query(returnedQuery, self);
         });
     }
-    // for test
-    this.expectInternalToBe = function expectInternalToBe(internalExpected,doneExpected){
-        pgPromiseStrict.expect(client).to.be(internalExpected);
-        pgPromiseStrict.expect(done).to.be(doneExpected);
-    };
 }
 
 pgPromiseStrict.Query = function Query(query, client){
     var self = this;
+    pgPromiseStrict.allowAccessInternalIfAllowed(self, {query: query, client:client});
     var readRowsThenControlAndAdapt = function readRowsThenControlAndAdapt(controlAndAdapt, callbackForEachRow){
         return new Promise(function(resolve, reject){
             query.on('row',function(row, result){
@@ -87,7 +92,7 @@ pgPromiseStrict.Query = function Query(query, client){
         });
     };
     this.readByRow = function readByRow(callback){
-        if(!_.isFunction(callback)){
+        if(!(callback instanceof Function)){
             return Promise.reject(new Error('readByRow must recive a callback that executes for each row'));
         }
         return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
