@@ -2,6 +2,8 @@
 
 var pg = require('..');
 
+pg.debug.pool={};
+
 var conOpts = {
     user: 'test_user',
     password: 'test_pass',

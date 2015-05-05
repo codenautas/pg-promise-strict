@@ -15,11 +15,23 @@ pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfD
 }
 
 pgPromiseStrict.Client = function Client(client, done){
+    if(pgPromiseStrict.debug.pool){
+        if(!(client.secretKey in pgPromiseStrict.debug.pool)){
+            pgPromiseStrict.debug.pool[client.secretKey] = {client:client, count:0};
+        }
+        pgPromiseStrict.debug.pool[client.secretKey].count++;
+    }
     var self = this;
     pgPromiseStrict.allowAccessInternalIfDebugging(self, {client:client, done:done});
     // existing functions
     this.done = function(){
-        return done.call(client);
+        if(pgPromiseStrict.debug.pool){
+            if(!(pgPromiseStrict.debug.pool[client.secretKey]||{}).count){
+                throw new Error("releasing a pool that doesn't exists");
+            }
+            pgPromiseStrict.debug.pool[client.secretKey].count--;
+        }
+        return done.apply(client,arguments);
     }
     this.query = function query(){
         var queryArguments = arguments;
@@ -112,5 +124,16 @@ pgPromiseStrict.connect = function connect(connectParameters){
         });
     });
 }
+
+process.on('exit',function(){
+    if(pgPromiseStrict.debug.pool){
+        for(var key in pgPromiseStrict.debug.pool){
+            if(pgPromiseStrict.debug.pool[key].count || true){
+                console.log('pgPromiseStrict.debug.pool unbalanced connection',pgPromiseStrict.debug.pool[key]);
+            }
+        }
+    }
+});
+
 
 module.exports = pgPromiseStrict;

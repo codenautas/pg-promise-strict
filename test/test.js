@@ -11,8 +11,9 @@ pg.expect = expect;
 
 describe('pg-promise-strict', function(){
     var connectParams = {mockConnection: 'example'};
-    var clientInternal = {mockClient: 'example of client', query:function(){ throw new Error('you must mock this!');} };
-    var doneInternal = function doneInternal(){ return 'example of done' };
+    var lastDoneValuePassedToDone = null;
+    var clientInternal = {mockClient: 'example of client', query:function(){ throw new Error('you must mock this!');}};
+    var doneInternal = function doneInternal(){ lastDoneValuePassedToDone=arguments; };
     describe('connections', function(){
         it('sucsefull connection', function(done){
             var pg0connectControl = expectCalled.control(pg0,'connect',{mocks:[
@@ -27,6 +28,9 @@ describe('pg-promise-strict', function(){
                 expect(client.internals.done).to.be(doneInternal);
                 expect(pg0connectControl.calls.length).to.be(1);
                 expect(pg0connectControl.calls[0][0]).to.be(connectParams);
+                client.done(1);
+                expect(lastDoneValuePassedToDone[0]).to.eql(1);
+                expect(lastDoneValuePassedToDone.length).to.eql(1);
                 done();
             }).catch(done).then(function(){
                 pg0connectControl.stopControl();
@@ -68,6 +72,7 @@ describe('pg-promise-strict', function(){
         });
         after(function(){
             pg0connectControl.stopControl();
+            client.done();
         });
         it('sucsefull query', function(done){
             var queryText = {mockQueryText: 'example of query text'};
@@ -110,6 +115,7 @@ describe('pg-promise-strict', function(){
         });
         after(function(){
             pg0connectControl.stopControl();
+            client.done();
         });
         var queryWithEmitter=function(rows,finishWithThisError){
             var remianingRows = _.clone(rows);
