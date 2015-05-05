@@ -19,6 +19,11 @@ pgPromiseStrict.Client = function Client(client, done){
             return new pgPromiseStrict.Query(returnedQuery, self);
         });
     }
+    // for test
+    this.expectInternalToBe = function expectInternalToBe(internalExpected,doneExpected){
+        pgPromiseStrict.expect(client).to.be(internalExpected);
+        pgPromiseStrict.expect(done).to.be(doneExpected);
+    };
 }
 
 pgPromiseStrict.Query = function Query(query, client){
@@ -80,7 +85,7 @@ pgPromiseStrict.Query = function Query(query, client){
         return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
             resolve(result);
         });
-    }
+    };
     this.readByRow = function readByRow(callback){
         if(!_.isFunction(callback)){
             return Promise.reject(new Error('readByRow must recive a callback that executes for each row'));
@@ -88,8 +93,8 @@ pgPromiseStrict.Query = function Query(query, client){
         return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
             resolve(result);
         },callback);
-    }
-}
+    };
+};
 
 pgPromiseStrict.connect = function connect(connectParameters){
     return new Promise(function(resolve, reject){
