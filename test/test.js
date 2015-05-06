@@ -18,7 +18,7 @@ describe('pg-promise-strict', function(){
     var clientInternal = {mockClient: 'example of client', query:function(){ throw new Error('you must mock this!');}};
     var doneInternal = function doneInternal(){ lastDoneValuePassedToDone=arguments; };
     describe('connections', function(){
-        it('sucsefull connection', function(done){
+        it('successful connection', function(done){
             var pg0connectControl = expectCalled.control(pg0,'connect',{mocks:[
                 function(conn, callback){ callback(null,clientInternal,doneInternal); }
             ]});
@@ -84,7 +84,7 @@ describe('pg-promise-strict', function(){
             client.done();
             pg.debug.pool = poolLog;
         });
-        it('sucsefull query', function(done){
+        it('successful query', function(done){
             var queryText = {mockQueryText: 'example of query text'};
             var queryInternal = {mockQuery: 'example of query mock'};
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
