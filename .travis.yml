@@ -10,5 +10,5 @@ after_script: "npm install coveralls@2.10.0 && cat ./coverage/lcov.info | covera
 addons:
   postgresql: "9.3"
 before_script:
-  - psql -c 'create user test_user password 'test_pass';' -U postgres
+  - psql -c 'create user test_user password $$test_pass$$;' -U postgres
   - psql -c 'create database test_db owner test_user;' -U postgres

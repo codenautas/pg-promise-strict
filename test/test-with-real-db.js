@@ -69,7 +69,7 @@ describe('pg-promise-strict with real database', function(){
         });
         it("successful query that doesn't return rows", function(done){
             pg.debug.Query=true;
-            client.query("create schema if not exists test_pgps;").then(function(query){
+            client.query("drop schema if exists test_pgps cascade;").then(function(query){
                 expect(query).to.be.a(pg.Query);
                 expect(query.internals.query).to.be.a(pg0.Query);
                 return query.fetchAll();
@@ -80,15 +80,27 @@ describe('pg-promise-strict with real database', function(){
                 pg.debug.Query=false;
             });
         });
-        it.skip("call execute directly", function(done){
+        it("call execute directly", function(done){
             pg.debug.Query=true;
-            client.query("create schema if not exists test_pgps;").execute.then(function(result){
+            client.query("create schema if not exists test_pgps;").execute().then(function(result){
                 expect(result.rowCount).to.not.be.ok();
-                expect(result.command).to.not.be('create');
+                expect(result.command).to.be('CREATE');
                 done();
             }).catch(done).then(function(){
                 pg.debug.Query=false;
             });
         });
+        it("failed call", function(done){
+            client.query("create schema test_pgps;").execute().then(function(result){
+                done(new Error("Must fail because the schema exists"));
+            }).catch(function(err){
+                expect(err).to.be.a(Error);
+                expect(err.code).to.be('42P06');
+                expect(err).to.match(/exist.*test_pgps/);
+                done();
+            }).catch(done).then(function(){
+            });
+        });
+            // client.query("create table test_pgps.table1(id integer primary key, text1 text);").execute().then(function(result){
     });
 });

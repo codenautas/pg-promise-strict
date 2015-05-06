@@ -82,6 +82,7 @@ pgPromiseStrict.Query = function Query(query, client){
     }
     // new functions
     this.fetchOneRowIfExists = controlAndAdaptRowCount(0,1,'at least one row');
+    this.execute = controlAndAdaptRowCount(0,1,'at least one result row');
     this.fetchUniqueRow = controlAndAdaptRowCount(1,1,'one row');
     this.fetchUniqueValue = controlAndAdaptRowCount(1,1,'one row (with one field)',function(result, resolve, reject){
         var row = result.rows[0];
