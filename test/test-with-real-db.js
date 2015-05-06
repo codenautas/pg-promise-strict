@@ -80,5 +80,15 @@ describe('pg-promise-strict with real database', function(){
                 pg.debug.Query=false;
             });
         });
+        it.skip("call execute directly", function(done){
+            pg.debug.Query=true;
+            client.query("create schema if not exists test_pgps;").execute.then(function(result){
+                expect(result.rowCount).to.not.be.ok();
+                expect(result.command).to.not.be('create');
+                done();
+            }).catch(done).then(function(){
+                pg.debug.Query=false;
+            });
+        });
     });
 });

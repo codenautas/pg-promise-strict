@@ -36,10 +36,8 @@ pgPromiseStrict.Client = function Client(client, done){
     }
     this.query = function query(){
         var queryArguments = arguments;
-        return Promise.resolve().then(function(){
-            var returnedQuery = client.query.apply(client,queryArguments);
-            return new pgPromiseStrict.Query(returnedQuery, self);
-        });
+        var returnedQuery = client.query.apply(client,queryArguments);
+        return new pgPromiseStrict.Query(returnedQuery, self);
     }
 }
 
@@ -112,6 +110,15 @@ pgPromiseStrict.Query = function Query(query, client){
             resolve(result);
         },callback);
     };
+    /* why this then function is needed?
+     *   pg.Client.query is synchronic (not need to recive a callback function) then not need to return a Promise
+     *   but pg-promise-strict always returns a "theneable". Then "then" is here. 
+     */
+    this.then = function then(callback,callbackE){
+        delete this.then;
+        delete this.catch;
+        return Promise.resolve(this).then(callback,callbackE);
+    }
 };
 
 pgPromiseStrict.connect = function connect(connectParameters){
