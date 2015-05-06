@@ -7,7 +7,10 @@ var pg0 = require('pg');
 var pg = require('..');
 var Promise = require('promise');
 var Events = require('events');
-pg.expect = expect;
+
+console.warn(pg.poolBalanceControl());
+
+pg.debug.pool=true;
 
 describe('pg-promise-strict', function(){
     var connectParams = {mockConnection: 'example'};
@@ -28,9 +31,11 @@ describe('pg-promise-strict', function(){
                 expect(client.internals.done).to.be(doneInternal);
                 expect(pg0connectControl.calls.length).to.be(1);
                 expect(pg0connectControl.calls[0][0]).to.be(connectParams);
+                expect(pg.poolBalanceControl().length>0).to.be.ok();
                 client.done(1);
                 expect(lastDoneValuePassedToDone[0]).to.eql(1);
                 expect(lastDoneValuePassedToDone.length).to.eql(1);
+                expect(pg.poolBalanceControl().length==0).to.be.ok();
                 done();
             }).catch(done).then(function(){
                 pg0connectControl.stopControl();
@@ -59,12 +64,16 @@ describe('pg-promise-strict', function(){
     describe('call queries', function(){
         var client;
         var pg0connectControl;
+        var poolLog;
         before(function(done){
+            poolLog = pg.debug.pool; // for test connection without pool control
+            pg.debug.pool=false;
             pg0connectControl = expectCalled.control(pg0,'connect',{mocks:[
                 function(conn, callback){ callback(null,clientInternal,doneInternal); }
             ]});
             pg.debug.Client=true;
             pg.connect(connectParams).then(function(returnedClient){
+                if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
                 client = returnedClient;
                 pg.debug.Client=false;
                 done();
@@ -73,6 +82,7 @@ describe('pg-promise-strict', function(){
         after(function(){
             pg0connectControl.stopControl();
             client.done();
+            pg.debug.pool = poolLog;
         });
         it('sucsefull query', function(done){
             var queryText = {mockQueryText: 'example of query text'};
