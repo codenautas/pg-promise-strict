@@ -80,15 +80,23 @@ describe('pg-promise-strict with real database', function(){
                 pg.debug.Query=false;
             });
         });
-        it("call execute directly", function(done){
-            pg.debug.Query=true;
-            client.query("create schema if not exists test_pgps;").execute().then(function(result){
-                expect(result.rowCount).to.not.be.ok();
-                expect(result.command).to.be('CREATE');
+        function tipicalExecuteWay(queryText,done,commandExpected,resultExpected){
+            client.query(queryText).execute().then(function(result){
+                if(resultExpected){
+                    for(var attr in resultExpected){
+                        expect([attr,result[attr]]).to.eql([attr,resultExpected[attr]]);
+                    }
+                }else{
+                    expect(result.rowCount).to.not.be.ok();
+                }
+                expect(result.command).to.be(commandExpected);
                 done();
             }).catch(done).then(function(){
                 pg.debug.Query=false;
             });
+        }
+        it("call execute directly", function(done){
+            tipicalExecuteWay("create schema if not exists test_pgps;",done,'CREATE');
         });
         it("failed call", function(done){
             client.query("create schema test_pgps;").execute().then(function(result){
@@ -101,6 +109,20 @@ describe('pg-promise-strict with real database', function(){
             }).catch(done).then(function(){
             });
         });
-            // client.query("create table test_pgps.table1(id integer primary key, text1 text);").execute().then(function(result){
+        it("call a compound", function(done){
+            tipicalExecuteWay(
+                "do $$ begin "+
+                "create table test_pgps.table1(id integer primary key, text1 text); "+
+                "create table test_pgps.table2(text2 text primary key, int2 integer); "+
+                "end$$;",
+                done,
+                "DO"
+            )
+        });
+        it("call multiple insert with returning clausule", function(done){
+            tipicalExecuteWay("insert into test_pgps.table1 values (1,'one'), (2,'two');",done,"INSERT",{
+                rowCount:2
+            })
+        });
     });
 });
