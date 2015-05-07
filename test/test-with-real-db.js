@@ -1,13 +1,14 @@
 "use strict";
 
 // IN TRAVIS-CI ONLY TEST WITH REAL DB IN ONE VERSION 0.12
-if(process.versions.node.substr(0,4)==="0.12" || !process.env.TRAVIS) return;
+if(process.versions.node.substr(0,4)!=="0.12" && process.env.TRAVIS) return;
 
 var _ = require('lodash');
 var expect = require('expect.js');
 var pg0 = require('pg');
 var pg = require('..');
 var Promise = require('promise');
+var colors = require('colors'); 
 
 console.warn(pg.poolBalanceControl());
 
@@ -31,7 +32,12 @@ describe('pg-promise-strict with real database', function(){
                 expect(client.internals.client).to.be.a(pg0.Client);
                 client.done();
                 done();
-            }).catch(done).then(function(){
+            }).catch(function(err){
+                console.log('Check your postgresql 9.3 instalation. Then be sure to create the user and db with:');
+                console.log("create user test_user password 'test_pass';".cyan);
+                console.log("create database test_db owner test_user;".cyan);
+                done(err);
+            }).then(function(){
                 pg.debug.Client=false;
             });
         });
@@ -104,7 +110,7 @@ describe('pg-promise-strict with real database', function(){
             });
         }
         it("call execute directly", function(done){
-            tipicalExecuteWay("create schema if not exists test_pgps;",done,'CREATE');
+            tipicalExecuteWay("create schema test_pgps;",done,'CREATE');
         });
         it("failed call", function(done){
             client.query("create schema test_pgps;").execute().then(function(result){
