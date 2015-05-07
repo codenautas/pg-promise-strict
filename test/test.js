@@ -1,5 +1,8 @@
 "use strict";
 
+// WHEN COVER with ONLY DB ONLY DB
+if(process.env.COVER==="odb") return;
+
 var _ = require('lodash');
 var expect = require('expect.js');
 var expectCalled = require('expect-called');
@@ -31,6 +34,7 @@ describe('pg-promise-strict', function(){
                 expect(client.internals.done).to.be(doneInternal);
                 expect(pg0connectControl.calls.length).to.be(1);
                 expect(pg0connectControl.calls[0][0]).to.be(connectParams);
+                console.log('pg.poolBalanceControl',pg.poolBalanceControl());
                 expect(pg.poolBalanceControl().length>0).to.be.ok();
                 client.done(1);
                 expect(lastDoneValuePassedToDone[0]).to.eql(1);

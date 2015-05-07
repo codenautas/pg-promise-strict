@@ -3,6 +3,9 @@
 // IN TRAVIS-CI ONLY TEST WITH REAL DB IN ONE VERSION 0.12
 if(process.versions.node.substr(0,4)!=="0.12" && process.env.TRAVIS) return;
 
+// WHEN COVER with NO DB NO DB
+if(process.env.COVER==="ndb") return;
+
 var _ = require('lodash');
 var expect = require('expect.js');
 var pg0 = require('pg');
@@ -94,8 +97,8 @@ describe('pg-promise-strict with real database', function(){
                 pg.debug.Query=false;
             });
         });
-        function tipicalExecuteWay(queryText,done,commandExpected,resultExpected){
-            client.query(queryText).execute().then(function(result){
+        function tipicalExecuteWay(queryText,done,commandExpected,resultExpected,functionName,params){
+            client.query(queryText,params)[functionName||"execute"]().then(function(result){
                 if(resultExpected){
                     for(var attr in resultExpected){
                         expect([attr,result[attr]]).to.eql([attr,resultExpected[attr]]);
@@ -133,10 +136,20 @@ describe('pg-promise-strict with real database', function(){
                 "DO"
             )
         });
-        it("call multiple insert with returning clausule", function(done){
+        it("call multiple insert with returning clause", function(done){
             tipicalExecuteWay("insert into test_pgps.table1 values (1,'one'), (2,'two');",done,"INSERT",{
                 rowCount:2
             })
+        });
+        it("query unique value", function(done){
+            tipicalExecuteWay("select 3+$1",done,"SELECT",{
+                value:8
+            },"fetchUniqueValue",[5])
+        });
+        it("query unique row", function(done){
+            tipicalExecuteWay("select * from test_pgps.table1 order by id limit 1",done,"SELECT",{
+                row:{id:1, text1:'one'}
+            },"fetchUniqueRow")
         });
     });
 });
