@@ -1,8 +1,7 @@
 "use strict";
 
 // IN TRAVIS-CI ONLY TEST WITH REAL DB IN ONE VERSION 0.12
-if(process.versions.node.substr(0,4)==="0.12" || !process.env.TRAVIS){
-// BEGIN BIG-IF
+if(process.versions.node.substr(0,4)==="0.12" || !process.env.TRAVIS) return;
 
 var _ = require('lodash');
 var expect = require('expect.js');
@@ -135,6 +134,3 @@ describe('pg-promise-strict with real database', function(){
         });
     });
 });
-
-// END BIG-IF
-}
