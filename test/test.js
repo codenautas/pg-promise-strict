@@ -291,7 +291,7 @@ describe('pg-promise-strict', function(){
         });
         it('try to read unique value with one row with many fields', function(done){
             var data = [{x:1, y:2}];
-            testException(data,'fetchUniqueValue',done,'query expects one field and obtains',[{name:'x'},{name:'y'}]);
+            testException(data,'fetchUniqueValue',done,/query expects.*one field.*and obtains/,[{name:'x'},{name:'y'}]);
         });
         it('try to read unique value with one row with no fields', function(done){
             var data = [{}];
@@ -334,19 +334,6 @@ describe('pg-promise-strict', function(){
                 done();
             }).catch(done).then(function(){
                 pg.debug.Query=false;
-                clientInternalControl.stopControl();
-            });
-        });
-        it('control the parameters of the execute function',function(done){
-            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
-                queryWithEmitter([{x:1}])
-            ]});
-            client.query().execute('one value', 'other value').then(function(result){
-                done(new Error('must reject the parameters'));
-            }).catch(function(err){
-                expect(err.message).to.match(/must recive/);
-                done();
-            }).catch(done).then(function(){
                 clientInternalControl.stopControl();
             });
         });

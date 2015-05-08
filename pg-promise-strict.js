@@ -20,6 +20,7 @@ pgPromiseStrict.Client = function Client(client, done){
         if(pgPromiseStrict.debug.pool===true){
             pgPromiseStrict.debug.pool={};
         }
+        console.log('client.secretKey', client.secretKey);
         if(!(client.secretKey in pgPromiseStrict.debug.pool)){
             pgPromiseStrict.debug.pool[client.secretKey] = {client:client, count:0};
         }
@@ -44,7 +45,9 @@ pgPromiseStrict.Client = function Client(client, done){
 function buildQueryCounterAdapter(minCountRow, maxCountRow, expectText, callbackOtherControl){
     return function queryCounterAdapter(result, resolve, reject){ 
         if(result.rows.length<minCountRow || result.rows.length>maxCountRow ){
-            reject(new Error('query expects '+expectText+' and obtains '+result.rows.length+' rows'));
+            var err=new Error('query expects '+expectText+' and obtains '+result.rows.length+' rows');
+            err.code='54011!';
+            reject(err);
         }else{
             if(callbackOtherControl){
                 callbackOtherControl(result, resolve, reject);
@@ -66,7 +69,7 @@ pgPromiseStrict.queryAdapters = {
     value: buildQueryCounterAdapter(1,1,'one row (with one field)',function(result, resolve, reject){
         if(result.fields.length!=1){
             var err=new Error('query expects one field and obtains '+result.fields.length);
-            err.code='54011!';
+            err.code='54U11!';
             reject(err);
         }else{
             var row = result.rows[0];

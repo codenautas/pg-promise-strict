@@ -15,8 +15,6 @@ var colors = require('colors');
 
 console.warn(pg.poolBalanceControl());
 
-pg.debug.pool=true;
-
 describe('pg-promise-strict with real database', function(){
     var connectParams = {
         user: 'test_user',
@@ -26,24 +24,6 @@ describe('pg-promise-strict with real database', function(){
         port: 5432
     }
     describe('connections', function(){
-        it('successful connection', function(done){
-            pg.debug.Client=true;
-            Promise.resolve().then(function(){
-                return pg.connect(connectParams);
-            }).then(function(client){
-                expect(client).to.be.a(pg.Client);
-                expect(client.internals.client).to.be.a(pg0.Client);
-                client.done();
-                done();
-            }).catch(function(err){
-                console.log('Check your postgresql 9.3 instalation. Then be sure to create the user and db with:');
-                console.log("create user test_user password 'test_pass';".cyan);
-                console.log("create database test_db owner test_user;".cyan);
-                done(err);
-            }).then(function(){
-                pg.debug.Client=false;
-            });
-        });
         it('failed connection', function(done){
             Promise.resolve().then(function(){
                 return pg.connect({
@@ -72,24 +52,43 @@ describe('pg-promise-strict with real database', function(){
                 expect(err.code).to.be('28P01');
                 expect(err.message).to.match(/aut.*password/);
                 done();
-            }).catch(done);
+            }).catch(done).then(function(){
+            });
+        });
+        it('successful connection', function(done){
+            pg.debug.Client=true;
+            pg.debug.pool=true;
+            Promise.resolve().then(function(){
+                return pg.connect(connectParams);
+            }).then(function(client){
+                expect(client).to.be.a(pg.Client);
+                expect(client.internals.client).to.be.a(pg0.Client);
+                expect(pg.poolBalanceControl().length>0).to.be.ok();
+                client.done();
+                expect(pg.poolBalanceControl().length==0).to.be.ok();
+                done();
+            }).catch(function(err){
+                console.log('Check your postgresql 9.3 instalation. Then be sure to create the user and db with:');
+                console.log("create user test_user password 'test_pass';".cyan);
+                console.log("create database test_db owner test_user;".cyan);
+                done(err);
+            }).then(function(){
+                pg.debug.Client=false;
+            });
         });
     });
     describe('call queries', function(){
         var client;
         var poolLog;
         before(function(done){
-            poolLog = pg.debug.pool; // for test connection without pool control
-            pg.debug.pool=false;
             pg.connect(connectParams).then(function(returnedClient){
-                if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
+                // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
                 client = returnedClient;
                 done();
             });
         });
         after(function(){
             client.done();
-            pg.debug.pool = poolLog;
         });
         it("successful query that doesn't return rows", function(done){
             pg.debug.Query=true;
@@ -158,12 +157,15 @@ describe('pg-promise-strict with real database', function(){
             },"fetchUniqueValue",[5])
         });
         it("fail to query unique value", function(done){
-            tipicalFail("select 1, 2",done,"returns 2 columns","54011!",/query expects one field and obtains 2/,"fetchUniqueValue")
+            tipicalFail("select 1, 2",done,"returns 2 columns","54U11!",/query expects.*one field.*and obtains 2/,"fetchUniqueValue")
         });
         it("query unique row", function(done){
             tipicalExecuteWay("select * from test_pgps.table1 order by id limit 1",done,"SELECT",{
                 row:{id:1, text1:'one'}
             },"fetchUniqueRow")
+        });
+        it("fail to query unique row", function(done){
+            tipicalFail("select * from test_pgps.table1",done,"returns 2 rows","54011!",/query expects.*one row.*and obtains 2/,"fetchUniqueRow")
         });
         it("query row by row", function(done){
             var accumulate=[];
@@ -180,5 +182,10 @@ describe('pg-promise-strict with real database', function(){
         it("control not call query row by row without callback", function(done){
             tipicalFail("select 1, 2",done,"no callback provide","39004!",/fetchRowByRow must recive a callback/,"fetchRowByRow")
         });
+        it("view debug", function(done){
+            console.log('pg.poolBalanceControl()',pg.poolBalanceControl());
+            done();
+        });
     });
 });
+
