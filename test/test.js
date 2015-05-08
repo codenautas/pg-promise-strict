@@ -34,11 +34,12 @@ describe('pg-promise-strict', function(){
                 expect(client.internals.done).to.be(doneInternal);
                 expect(pg0connectControl.calls.length).to.be(1);
                 expect(pg0connectControl.calls[0][0]).to.be(connectParams);
-                console.log('pg.poolBalanceControl',pg.poolBalanceControl());
                 expect(pg.poolBalanceControl().length>0).to.be.ok();
                 client.done(1);
                 expect(lastDoneValuePassedToDone[0]).to.eql(1);
                 expect(lastDoneValuePassedToDone.length).to.eql(1);
+                console.log('LENGH',pg.poolBalanceControl().length);
+                console.log('pg.poolBalanceControl',pg.poolBalanceControl());
                 expect(pg.poolBalanceControl().length==0).to.be.ok();
                 done();
             }).catch(done).then(function(){

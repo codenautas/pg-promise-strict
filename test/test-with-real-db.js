@@ -56,7 +56,13 @@ describe('pg-promise-strict with real database', function(){
             }).then(function(client){
                 if(process.env.TRAVIS){
                     console.log('**************** MAY BE AN ERROR. I MUST STUDY MORE THIS ISSUE ************** ');
-                    done();
+                    client.query("SELECT 1").execute().then(function(result){
+                        console.log('**************** MMM. NO ERROR DETECTED **************',result);
+                        done();
+                    }).catch(function(err){
+                        console.log("ok. error detected when execute");
+                        done();
+                    });
                 }else{
                     done(new Error('must raise error'));
                 }
@@ -150,6 +156,19 @@ describe('pg-promise-strict with real database', function(){
             tipicalExecuteWay("select * from test_pgps.table1 order by id limit 1",done,"SELECT",{
                 row:{id:1, text1:'one'}
             },"fetchUniqueRow")
+        });
+        it("query row by row", function(done){
+            console.log("q rbr");
+            var accumulate=[];
+            client.query("select * from test_pgps.table1 order by id").fetchRowByRow(function(row){
+                accumulate.unshift(row);
+            }).then(function(){
+                expect(accumulate).to.eql([
+                    {id:2, text1:'two'},
+                    {id:1, text1:'one'},
+                ]);
+                done();
+            }).catch(done);
         });
     });
 });
