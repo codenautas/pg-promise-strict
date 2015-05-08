@@ -57,7 +57,8 @@ describe('pg-promise-strict with real database', function(){
                 if(process.env.TRAVIS){
                     console.log('**************** MAY BE AN ERROR. I MUST STUDY MORE THIS ISSUE ************** ');
                     client.query("SELECT 1").execute().then(function(result){
-                        console.log('**************** MMM. NO ERROR DETECTED **************',result);
+                        console.log('** SOMETHING IS WRONG IN TRAVIS WITH PG PASSs ***',result);
+                        client.done();
                         done();
                     }).catch(function(err){
                         console.log("ok. error detected when execute");
@@ -121,16 +122,20 @@ describe('pg-promise-strict with real database', function(){
         it("call execute directly", function(done){
             tipicalExecuteWay("create schema test_pgps;",done,'CREATE');
         });
-        it("failed call", function(done){
-            client.query("create schema test_pgps;").execute().then(function(result){
-                done(new Error("Must fail because the schema exists"));
+        function tipicalFail(textQuery,done,reason,code,msg,functionName){
+            client.query(textQuery)[functionName||"execute"]().then(function(result){
+                console.log("EXPECT FAIL BUT OBTAINS",result);
+                done(new Error("Must fail because "+reason));
             }).catch(function(err){
                 expect(err).to.be.a(Error);
-                expect(err.code).to.be('42P06');
-                expect(err).to.match(/(exist.*|test_pgps.*){2}/);
+                expect(err.code).to.be(code);
+                expect(err).to.match(msg);
                 done();
             }).catch(done).then(function(){
             });
+        }
+        it("failed call", function(done){
+            tipicalFail("create schema test_pgps;",done,"the schema exists",'42P06',/(exist.*|test_pgps.*){2}/);
         });
         it("call a compound", function(done){
             tipicalExecuteWay(
@@ -152,13 +157,15 @@ describe('pg-promise-strict with real database', function(){
                 value:8
             },"fetchUniqueValue",[5])
         });
+        it("fail to query unique value", function(done){
+            tipicalFail("select 1, 2",done,"returns 2 columns","54011!",/query expects one field and obtains 2/,"fetchUniqueValue")
+        });
         it("query unique row", function(done){
             tipicalExecuteWay("select * from test_pgps.table1 order by id limit 1",done,"SELECT",{
                 row:{id:1, text1:'one'}
             },"fetchUniqueRow")
         });
         it("query row by row", function(done){
-            console.log("q rbr");
             var accumulate=[];
             client.query("select * from test_pgps.table1 order by id").fetchRowByRow(function(row){
                 accumulate.unshift(row);

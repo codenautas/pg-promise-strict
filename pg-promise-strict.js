@@ -85,15 +85,13 @@ pgPromiseStrict.Query = function Query(query, client){
     this.execute = controlAndAdaptRowCount(0,1,'at least one result row');
     this.fetchUniqueRow = controlAndAdaptRowCount(1,1,'one row');
     this.fetchUniqueValue = controlAndAdaptRowCount(1,1,'one row (with one field)',function(result, resolve, reject){
-        var row = result.rows[0];
-        var fieldCount=0;
-        for(var fieldName in row){
-            result.value = row[fieldName];
-            fieldCount++;
-        }
-        if(fieldCount!=1){
-            reject(new Error('query expects one field and obtains '+fieldCount));
+        if(result.fields.length!=1){
+            var err=new Error('query expects one field and obtains '+result.fields.length);
+            err.code='54011!';
+            reject(err);
         }else{
+            var row = result.rows[0];
+            result.value = row[result.fields[0].name];
             delete result.rows;
             resolve(result);
         }

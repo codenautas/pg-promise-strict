@@ -132,7 +132,7 @@ describe('pg-promise-strict', function(){
             pg0connectControl.stopControl();
             client.done();
         });
-        var queryWithEmitter=function(rows,finishWithThisError){
+        var queryWithEmitter=function(rows,fields,finishWithThisError){
             var remianingRows = _.clone(rows);
             var emitter = new Events.EventEmitter();
             var endListener=false;
@@ -140,6 +140,7 @@ describe('pg-promise-strict', function(){
             var emitEnd=function(){};
             var result={
                 rows:[],
+                fields:fields,
                 addRow:function addRow(row){
                     this.rows.push(row);
                 }
@@ -175,9 +176,9 @@ describe('pg-promise-strict', function(){
             });
             return emitter;
         }
-        function testData(data,fetchFunctionName,done,controlExpected){
+        function testData(data,fetchFunctionName,done,controlExpected,fields){
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
-                queryWithEmitter(data)
+                queryWithEmitter(data,fields)
             ]});
             pg.debug.Query=true;
             client.query().then(function(query){
@@ -214,7 +215,7 @@ describe('pg-promise-strict', function(){
             var data = [{one:1111}];
             testData(data,'fetchUniqueValue',done,function(result,data){
                 expect(result.value).to.eql(data[0].one);
-            });
+            },[{name:'one'}]);
         });
         it('read zero or one row for 1 row', function(done){
             var data = [{one:1.1, two:2.2, three:3.3}];
@@ -248,9 +249,9 @@ describe('pg-promise-strict', function(){
                 clientInternalControl.stopControl();
             });
         });
-        function testException(data,fetchFunctionName,done,messagePart){
+        function testException(data,fetchFunctionName,done,messagePart,fields){
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
-                queryWithEmitter(data)
+                queryWithEmitter(data,fields)
             ]});
             pg.debug.Query=true;
             client.query().then(function(query){
@@ -282,19 +283,19 @@ describe('pg-promise-strict', function(){
         });
         it('try to read unique value with no data', function(done){
             var data = [];
-            testException(data,'fetchUniqueValue',done,'query expects one row (with one field) and obtains 0 rows');
+            testException(data,'fetchUniqueValue',done,'query expects one row (with one field) and obtains 0 rows',[{name:'x'}]);
         });
         it('try to read unique value with many data', function(done){
             var data = [{x:1}, {x:2}];
-            testException(data,'fetchUniqueValue',done,/query expects one row \(with one field\) and obtains [^0].* rows/);
+        testException(data,'fetchUniqueValue',done,/query expects one row \(with one field\) and obtains [^0].* rows/,[{name:'x'}]);
         });
         it('try to read unique value with one row with many fields', function(done){
             var data = [{x:1, y:2}];
-            testException(data,'fetchUniqueValue',done,'query expects one field and obtains');
+            testException(data,'fetchUniqueValue',done,'query expects one field and obtains',[{name:'x'},{name:'y'}]);
         });
         it('try to read unique value with one row with no fields', function(done){
             var data = [{}];
-            testException(data,'fetchUniqueValue',done,'query expects one field and obtains');
+            testException(data,'fetchUniqueValue',done,'query expects one field and obtains',[]);
         });
         it('mismatch use of fecthRowByRow', function(done){
             var data = [];
@@ -317,7 +318,7 @@ describe('pg-promise-strict', function(){
             var emulatePartialData = [{alfa:'a1', betha:'b1'},{alfa:'a2', betha:'b2'},{alfa:'a3', betha:'b3'}];
             var errorPassed = new Error('this ocurrs inside de fetch');
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
-                queryWithEmitter(emulatePartialData,errorPassed)
+                queryWithEmitter(emulatePartialData,[],errorPassed)
             ]});
             pg.debug.Query=true;
             var accumulate=[];
