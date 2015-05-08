@@ -103,7 +103,9 @@ pgPromiseStrict.Query = function Query(query, client){
     };
     this.fetchRowByRow = function fetchRowByRow(callback){
         if(!(callback instanceof Function)){
-            return Promise.reject(new Error('fetchRowByRow must recive a callback that executes for each row'));
+            var err=new Error('fetchRowByRow must recive a callback that executes for each row');
+            err.code='39004!';
+            return Promise.reject(err);
         }
         return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
             resolve(result);
