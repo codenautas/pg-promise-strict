@@ -279,7 +279,7 @@ describe('pg-promise-strict', function(){
         });
         it('try to read zero or one row with many row', function(done){
             var data = [{one:1.1, two:2.2, three:3.3},{one:1.1, two:2.2, three:3.3}];
-            testException(data,'fetchOneRowIfExists',done,/query expects at least one row and obtains [^0].* row/);
+            testException(data,'fetchOneRowIfExists',done,/query expects up to one row and obtains [^0].* row/);
         });
         it('try to read unique value with no data', function(done){
             var data = [];
@@ -334,6 +334,19 @@ describe('pg-promise-strict', function(){
                 done();
             }).catch(done).then(function(){
                 pg.debug.Query=false;
+                clientInternalControl.stopControl();
+            });
+        });
+        it('control the parameters of the execute function',function(done){
+            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+                queryWithEmitter([{x:1}])
+            ]});
+            client.query().execute('one value', 'other value').then(function(result){
+                done(new Error('must reject the parameters'));
+            }).catch(function(err){
+                expect(err.message).to.match(/must recive/);
+                done();
+            }).catch(done).then(function(){
                 clientInternalControl.stopControl();
             });
         });

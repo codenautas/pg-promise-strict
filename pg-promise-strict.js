@@ -41,10 +41,54 @@ pgPromiseStrict.Client = function Client(client, done){
     }
 }
 
+function buildQueryCounterAdapter(minCountRow, maxCountRow, expectText, callbackOtherControl){
+    return function queryCounterAdapter(result, resolve, reject){ 
+        if(result.rows.length<minCountRow || result.rows.length>maxCountRow ){
+            reject(new Error('query expects '+expectText+' and obtains '+result.rows.length+' rows'));
+        }else{
+            if(callbackOtherControl){
+                callbackOtherControl(result, resolve, reject);
+            }else{
+                result.row = result.rows[0];
+                delete result.rows;
+                resolve(result);
+            }
+        }
+    }
+}
+
+pgPromiseStrict.queryAdapters = {
+    normal: function normalQueryAdapter(result, resolve, reject){ 
+        resolve(result);
+    },
+    upto1:buildQueryCounterAdapter(0,1,'up to one row'),
+    row:buildQueryCounterAdapter(1,1,'one row'),
+    value: buildQueryCounterAdapter(1,1,'one row (with one field)',function(result, resolve, reject){
+        if(result.fields.length!=1){
+            var err=new Error('query expects one field and obtains '+result.fields.length);
+            err.code='54011!';
+            reject(err);
+        }else{
+            var row = result.rows[0];
+            result.value = row[result.fields[0].name];
+            delete result.rows;
+            resolve(result);
+        }
+    })
+}
+
 pgPromiseStrict.Query = function Query(query, client){
     var self = this;
     pgPromiseStrict.allowAccessInternalIfDebugging(self, {query: query, client:client});
-    var readRowsThenControlAndAdapt = function readRowsThenControlAndAdapt(controlAndAdapt, callbackForEachRow){
+    this.execute = function execute(callbackForEachRow, adapterName){
+        if(callbackForEachRow && !(callbackForEachRow instanceof Function)){
+            if(adapterName){
+                return Promise.reject(new Error("Query.execute() must recive optional callback function and optional adapterName"));
+            }
+            adapterName=callbackForEachRow;
+            callbackForEachRow=null;
+        }
+        var adapter = pgPromiseStrict.queryAdapters[adapterName||'normal'];
         return new Promise(function(resolve, reject){
             query.on('error',function(err){
                 reject(err);
@@ -58,58 +102,22 @@ pgPromiseStrict.Query = function Query(query, client){
             });
             query.on('end',function(result){
                 result.client = client;
-                controlAndAdapt(result, resolve, reject);
+                adapter(result, resolve, reject);
             });
         });
-    };
-    // auxiliars
-    var controlAndAdaptRowCount=function(minCountRow, maxCountRow, expectText, callbackOtherControl){
-        return function(){
-            return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
-                if(result.rows.length<minCountRow || result.rows.length>maxCountRow ){
-                    reject(new Error('query expects '+expectText+' and obtains '+result.rows.length+' rows'));
-                }else{
-                    if(callbackOtherControl){
-                        callbackOtherControl(result, resolve, reject);
-                    }else{
-                        result.row = result.rows[0];
-                        delete result.rows;
-                        resolve(result);
-                    }
-                }
-            });
-        }
     }
     // new functions
-    this.fetchOneRowIfExists = controlAndAdaptRowCount(0,1,'at least one row');
-    this.execute = controlAndAdaptRowCount(0,1,'at least one result row');
-    this.fetchUniqueRow = controlAndAdaptRowCount(1,1,'one row');
-    this.fetchUniqueValue = controlAndAdaptRowCount(1,1,'one row (with one field)',function(result, resolve, reject){
-        if(result.fields.length!=1){
-            var err=new Error('query expects one field and obtains '+result.fields.length);
-            err.code='54011!';
-            reject(err);
-        }else{
-            var row = result.rows[0];
-            result.value = row[result.fields[0].name];
-            delete result.rows;
-            resolve(result);
-        }
-    });
-    this.fetchAll = function fetchAll(){
-        return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
-            resolve(result);
-        });
-    };
-    this.fetchRowByRow = function fetchRowByRow(callback){
+    this.fetchOneRowIfExists = this.execute.bind(this,'upto1');
+    this.fetchUniqueRow      = this.execute.bind(this,'row');
+    this.fetchUniqueValue    = this.execute.bind(this,'value');
+    this.fetchAll            = this.execute.bind(this,'normal');
+    this.fetchRowByRow       = function fetchRowByRow(callback){
         if(!(callback instanceof Function)){
             var err=new Error('fetchRowByRow must recive a callback that executes for each row');
             err.code='39004!';
             return Promise.reject(err);
         }
-        return readRowsThenControlAndAdapt(function(result, resolve, reject){ 
-            resolve(result);
-        },callback);
+        return this.execute(callback);
     };
     /* why this then function is needed?
      *   pg.Client.query is synchronic (not need to recive a callback function) then not need to return a Promise
