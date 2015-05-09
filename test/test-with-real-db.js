@@ -23,7 +23,11 @@ describe('pg-promise-strict with real database', function(){
         host: 'localhost',
         port: 5432
     }
-    describe('connections', function(){
+    var expectedTable1Data = [
+        {id:1, text1:'one'},
+        {id:2, text1:'two'},
+    ];
+    describe('pool connections', function(){
         it('failed connection', function(done){
             Promise.resolve().then(function(){
                 return pg.connect({
@@ -160,7 +164,7 @@ describe('pg-promise-strict with real database', function(){
         });
         it("query unique row", function(done){
             tipicalExecuteWay("select * from test_pgps.table1 order by id limit 1",done,"SELECT",{
-                row:{id:1, text1:'one'}
+                row:expectedTable1Data[0]
             },"fetchUniqueRow")
         });
         it("fail to query unique row", function(done){
@@ -171,15 +175,31 @@ describe('pg-promise-strict with real database', function(){
             client.query("select * from test_pgps.table1 order by id").fetchRowByRow(function(row){
                 accumulate.unshift(row);
             }).then(function(){
-                expect(accumulate).to.eql([
-                    {id:2, text1:'two'},
-                    {id:1, text1:'one'},
-                ]);
+                accumulate.reverse();
+                expect(accumulate).to.eql(expectedTable1Data);
                 done();
             }).catch(done);
         });
         it("control not call query row by row without callback", function(done){
             tipicalFail("select 1, 2",done,"no callback provide","39004!",/fetchRowByRow must recive a callback/,"fetchRowByRow")
+        });
+    });
+    describe('pool-less connections', function(){
+        describe('call queries', function(){
+            var client;
+            before(function(){
+                client = new pg.Client(connectParams);
+            });
+            it("successful query", function(done){
+                pg.easy=true;
+                client.connect().then(function(){
+                    return client.query("select * from test_pgps.table1 order by id;");
+                }).then(function(result){
+                    expect(result.rows).to.eql(expectedTable1Data);
+                    done();
+                }).catch(done).then(function(){
+                });
+            });
         });
     });
 });

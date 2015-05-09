@@ -101,7 +101,7 @@ The first easy example. One simple query that returns all rows. Example based in
 
 El primer ejemplo. Trae todas las filas de una consulta a la vez. Ejemplo basado en [PG](https://www.npmjs.com/package/pg#client-pooling)
 
-<!--lang:*-->
+[!--lang:*-->
 
 ```js
 var pg = require('pg-promise-strict');
@@ -166,12 +166,56 @@ pg.connect({user: 'brianc', database: 'test'}).then(function(client){
 
 <!--lang:en-->
 
-## License
+# Running tests
 
+Clone the repository and install the developer dependencies in then normal way. 
+You must provide a *postgresql-9.3* instalation for create a *test_db*.
+Then you can test pg-promise-strict
+ 
 <!--lang:es--]
 
-## Licencias
+# Corriendo los tests
+
+Para correr los test, además de clonar el repositorio e instalar con npm
+tenemos que proveer una conexión a la base de datos *postgresql-9.3* para
+poder crear el usuario *test_user* y la base *test_db*.
 
 [!--lang:*-->
 
+```sh
+$ git clone git://github.com/codenautas/pg-promise-strict.git pg-promise-strict
+$ cd pg-promise-strict 
+$ npm install
+$ psql --file test/create_db.sql
+$ npm test
+```
+
+<!--lang:en-->
+
+Then you can also check coverage separadly: with only real db or with no-db (with mock functions). 
+
+<!--lang:es--]
+
+Luego se puede verificar la covertura de código probarndo por separado los test con conexion a la base de datos (odb) 
+o sin conexión (ndb, usando funciones sustitutas *mock functions* en vez de llamadas reales). 
+
+[!--lang:*-->
+
+```js
+$ npm run-script test-cov-odb
+$ npm run-script test-cov-ndb
+```
+
+<!--lang:en-->
+
+## License
+
 [MIT](LICENSE)
+
+<!--lang:es--]
+
+## Licencia
+
+[MIT](LICENSE)
+
+[!--lang:*-->

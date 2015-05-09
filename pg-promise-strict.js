@@ -15,29 +15,53 @@ pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfD
     }
 }
 
-pgPromiseStrict.Client = function Client(client, done){
-    if(pgPromiseStrict.debug.pool){
-        if(pgPromiseStrict.debug.pool===true){
-            pgPromiseStrict.debug.pool={};
-        }
-        if(!(client.secretKey in pgPromiseStrict.debug.pool)){
-            pgPromiseStrict.debug.pool[client.secretKey] = {client:client, count:0};
-        }
-        pgPromiseStrict.debug.pool[client.secretKey].count++;
-    }
+pgPromiseStrict.Client = function Client(connOpts, client, done){
+    this.fromPool = connOpts=='pool';
     var self = this;
-    pgPromiseStrict.allowAccessInternalIfDebugging(self, {client:client, done:done});
-    // existing functions
-    this.done = function(){
-        if(pgPromiseStrict.debug.pool){
-            pgPromiseStrict.debug.pool[client.secretKey].count--;
-        }
-        return done.apply(client,arguments);
+    var assignFunctionsPostConnect = function assignFunctionsPostConnect(){
+        // existing functions
+        self.done = function(){
+            if(pgPromiseStrict.debug.pool){
+                pgPromiseStrict.debug.pool[client.secretKey].count--;
+            }
+            return done.apply(client,arguments);
+        };
+        self.query = function query(){
+            var queryArguments = arguments;
+            var returnedQuery = client.query.apply(client,queryArguments);
+            return new pgPromiseStrict.Query(returnedQuery, self);
+        };
     }
-    this.query = function query(){
-        var queryArguments = arguments;
-        var returnedQuery = client.query.apply(client,queryArguments);
-        return new pgPromiseStrict.Query(returnedQuery, self);
+    if(this.fromPool){
+        pgPromiseStrict.allowAccessInternalIfDebugging(self, {client:client, pool:true, done:done});
+        if(pgPromiseStrict.debug.pool){
+            if(pgPromiseStrict.debug.pool===true){
+                pgPromiseStrict.debug.pool={};
+            }
+            if(!(client.secretKey in pgPromiseStrict.debug.pool)){
+                pgPromiseStrict.debug.pool[client.secretKey] = {client:client, count:0};
+            }
+            pgPromiseStrict.debug.pool[client.secretKey].count++;
+        }
+        assignFunctionsPostConnect();
+    }else{
+        client = new pg.Client(connOpts);
+        pgPromiseStrict.allowAccessInternalIfDebugging(self, {client:client, pool:false});
+        this.connect = function connect(){
+            if(arguments.length){
+                return Promise.reject(new Error('client.connect must no recive parameters, it returns a Promise'));
+            }
+            return new Promise(function(resolve, reject){
+                client.connect(function(err){
+                    if(err){
+                        reject(err);
+                    }else{
+                        assignFunctionsPostConnect();
+                        resolve(self);
+                    }
+                })
+            });
+        }
     }
 }
 
@@ -140,7 +164,7 @@ pgPromiseStrict.connect = function connect(connectParameters){
             if(err){
                 reject(err);
             }else{
-                resolve(new pgPromiseStrict.Client(client, done));
+                resolve(new pgPromiseStrict.Client('pool', client, done));
             }
         });
     });

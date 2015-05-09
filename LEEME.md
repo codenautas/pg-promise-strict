@@ -126,7 +126,33 @@ pg.connect({user: 'brianc', database: 'test'}).then(function(client){
 ```
 
 
-## Licencias
+# Corriendo los tests
 
+Para correr los test, además de clonar el repositorio e instalar con npm
+tenemos que proveer una conexión a la base de datos *postgresql-9.3* para
+poder crear el usuario *test_user* y la base *test_db*.
+
+
+```sh
+$ git clone git://github.com/codenautas/pg-promise-strict.git pg-promise-strict
+$ cd pg-promise-strict 
+$ npm install
+$ psql --file test/create_db.sql
+$ npm test
+```
+
+
+Luego se puede verificar la covertura de código probarndo por separado los test con conexion a la base de datos (odb) 
+o sin conexión (ndb, usando funciones sustitutas *mock functions* en vez de llamadas reales). 
+
+
+```js
+$ npm run-script test-cov-odb
+$ npm run-script test-cov-ndb
+```
+
+
+## Licencia
 
 [MIT](LICENSE)
+

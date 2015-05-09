@@ -338,4 +338,38 @@ describe('pg-promise-strict', function(){
             });
         });
     });
+    describe('pool-less connections', function(){
+        describe('call queries', function(){
+            var client;
+            var pg0ClientConstructor;
+            var pg0ClientConnect;
+            before(function(){
+                pg.debug.Client=true;
+                pg0ClientConstructor = expectCalled.control(pg0,'Client',{returns:[
+                    clientInternal
+                ]});
+                client = new pg.Client(connectParams);
+                clientInternal.connect = function(){};
+                pg0ClientConnect = expectCalled.control(clientInternal,'connect',{mocks:[
+                    function(callback){ callback(null); }
+                ]});
+            });
+            after(function(){
+                pg0ClientConstructor.stopControl();
+                pg.debug.Client=false;
+                pg0ClientConnect.stopControl();
+            });
+            it("successful query", function(done){
+                pg.easy=true;
+                expect(client.internals.client).to.be(clientInternal);
+                expect(client.internals.pool).to.not.be.ok();
+                client.connect().then(function(client){
+                    expect(client).to.be.a(pg.Client);
+                    expect(client.query).to.be.a(Function);
+                    done();
+                }).catch(done).then(function(){
+                });
+            });
+        });
+    });
 });
