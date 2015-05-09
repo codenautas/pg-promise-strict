@@ -346,12 +346,13 @@ describe('pg-promise-strict', function(){
             before(function(){
                 pg.debug.Client=true;
                 pg0ClientConstructor = expectCalled.control(pg0,'Client',{returns:[
-                    clientInternal
+                    clientInternal, clientInternal,
                 ]});
                 client = new pg.Client(connectParams);
                 clientInternal.connect = function(){};
                 pg0ClientConnect = expectCalled.control(clientInternal,'connect',{mocks:[
-                    function(callback){ callback(null); }
+                    function(callback){ callback(null); return this; },
+                    function(callback){ callback(new Error("example error to connect")); return this; },
                 ]});
             });
             after(function(){
@@ -363,9 +364,34 @@ describe('pg-promise-strict', function(){
                 pg.easy=true;
                 expect(client.internals.client).to.be(clientInternal);
                 expect(client.internals.pool).to.not.be.ok();
+                expect(pg0ClientConstructor.calls).to.eql([[connectParams]]);
                 client.connect().then(function(client){
                     expect(client).to.be.a(pg.Client);
                     expect(client.query).to.be.a(Function);
+                    done();
+                }).catch(done).then(function(){
+                });
+            });
+            it("connect with error", function(done){
+                pg.easy=true;
+                expect(client.internals.client).to.be(clientInternal);
+                expect(client.internals.pool).to.not.be.ok();
+                client.connect().then(function(client){
+                    done(new Error("must raise error because connect reject with error"));
+                }).catch(function(err){
+                    expect(err).to.match(/example error to connect/);
+                    done();
+                }).catch(done).then(function(){
+                });
+            });
+            it("connect with parameters", function(done){
+                pg.easy=true;
+                expect(client.internals.client).to.be(clientInternal);
+                expect(client.internals.pool).to.not.be.ok();
+                client.connect("something").then(function(client){
+                    done(new Error("must raise error because connect doesn't admint parameters"));
+                }).catch(function(err){
+                    expect(err).to.match(/client.connect must no recive parameters/);
                     done();
                 }).catch(done).then(function(){
                 });

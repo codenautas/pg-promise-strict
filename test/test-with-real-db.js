@@ -200,6 +200,26 @@ describe('pg-promise-strict with real database', function(){
                 }).catch(done).then(function(){
                 });
             });
+            it("unsuccessful query", function(done){
+                this.timeout(5000);
+                pg.easy=true;
+                pg.debug.Client=true;
+                Promise.resolve().then(function(){
+                    return new pg.Client("mysql:sarasa@sarasa");
+                }).then(function(client){
+                    expect(client).to.be.a(pg.Client);
+                    expect(client.internals.client).to.be.a(pg0.Client);
+                    var obtained=client.connect();
+                    expect(obtained).to.be.a(Promise);
+                    return obtained;
+                }).then(function(){
+                    done(new Error("must raise error"));
+                }).catch(function(err){
+                    expect(err.message).to.match(/getaddrinfo ENOTFOUND/);
+                    done();
+                }).catch(done).then(function(){
+                });
+            });
         });
     });
 });

@@ -59,7 +59,7 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
                         assignFunctionsPostConnect();
                         resolve(self);
                     }
-                })
+                });
             });
         }
     }
