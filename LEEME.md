@@ -118,6 +118,9 @@ Esta es la manera de procesar fila por fila
 pg.connect({user: 'brianc', database: 'test'}).then(function(client){
     client.query("SELECT name FROM users").execute(function(row){
         console.log(row.name);
+    }).then(function(result){
+        console.log('ready.',result.rowCount,'rows processed');
+        client.done();
     });
 });
 ```
