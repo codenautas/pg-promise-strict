@@ -125,10 +125,12 @@ pgPromiseStrict.Query = function Query(query, client){
      *   pg.Client.query is synchronic (not need to recive a callback function) then not need to return a Promise
      *   but pg-promise-strict always returns a "theneable". Then "then" is here. 
      */
-    this.then = function then(callback,callbackE){
-        delete this.then;
-        delete this.catch;
-        return Promise.resolve(this).then(callback,callbackE);
+    if(pgPromiseStrict.easy){
+        this.then = function then(callback,callbackE){
+            delete this.then;
+            delete this.catch;
+            return this.execute().then(callback,callbackE);
+        }
     }
 };
 

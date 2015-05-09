@@ -71,6 +71,7 @@ describe('pg-promise-strict', function(){
         before(function(done){
             poolLog = pg.debug.pool; // for test connection without pool control
             pg.debug.pool=false;
+            pg.easy=true;
             pg0connectControl = expectCalled.control(pg0,'connect',{mocks:[
                 function(conn, callback){ callback(null,clientInternal,doneInternal); }
             ]});
@@ -86,8 +87,9 @@ describe('pg-promise-strict', function(){
             pg0connectControl.stopControl();
             client.done();
             pg.debug.pool = poolLog;
+            pg.easy=false;
         });
-        it('successful query', function(done){
+        it('successful query', function(){
             var queryText = {mockQueryText: 'example of query text'};
             var queryInternal = {mockQuery: 'example of query mock'};
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
@@ -95,21 +97,17 @@ describe('pg-promise-strict', function(){
                 {other: 'query'}
             ]});
             pg.debug.Query=true;
-            client.query(queryText).then(function(obtained){
-                expect(obtained).to.be.a(pg.Query);
-                expect(obtained.internals.query).to.be(queryInternal);
-                return client.query(queryText,['more', 'parameters', 'may be arguments']);
-            }).then(function(obtained){
-                expect(obtained.internals.query).to.eql({other: 'query'});
-                expect(clientInternalControl.calls).to.eql([
-                    [queryText],
-                    [queryText,['more', 'parameters', 'may be arguments']]
-                ]);
-                done();
-            }).catch(done).then(function(){
-                pg.debug.Query=false;
-                clientInternalControl.stopControl();
-            });
+            var obtained=client.query(queryText);
+            expect(obtained).to.be.a(pg.Query);
+            expect(obtained.internals.query).to.be(queryInternal);
+            obtained=client.query(queryText,['more', 'parameters', 'may be arguments']);
+            expect(obtained.internals.query).to.eql({other: 'query'});
+            expect(clientInternalControl.calls).to.eql([
+                [queryText],
+                [queryText,['more', 'parameters', 'may be arguments']]
+            ]);
+            pg.debug.Query=false;
+            clientInternalControl.stopControl();
         });
     });
     describe('call queries and fetch data', function(){
@@ -179,9 +177,7 @@ describe('pg-promise-strict', function(){
                 queryWithEmitter(data,fields)
             ]});
             pg.debug.Query=true;
-            client.query().then(function(query){
-                return query[fetchFunctionName]();
-            }).then(function(result){
+            client.query()[fetchFunctionName]().then(function(result){
                 (controlExpected || function(result,data){
                     expect(result.rows).to.eql(data);
                 })(result,data);
@@ -234,10 +230,8 @@ describe('pg-promise-strict', function(){
             ]});
             pg.debug.Query=true;
             var accumulate=[];
-            client.query().then(function(query){
-                return query.fetchRowByRow(function(row){
-                    accumulate.unshift(row);
-                });
+            client.query().fetchRowByRow(function(row){
+                accumulate.unshift(row);
             }).then(function(result){
                 accumulate.reverse();
                 expect(accumulate).to.eql(data);
@@ -247,14 +241,27 @@ describe('pg-promise-strict', function(){
                 clientInternalControl.stopControl();
             });
         });
+        it('easy execute', function(done){
+            var data = [{alfa:'a1', betha:'b1'},{alfa:'a2', betha:'b2'},{alfa:'a3', betha:'b3'}];
+            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+                queryWithEmitter(data)
+            ]});
+            pg.easy=true;
+            client.query().then(function(result){
+                expect(result.rows).to.eql(data);
+                done();
+            }).catch(done).then(function(){
+                pg.debug.Query=false;
+                clientInternalControl.stopControl();
+                pg.easy=false;
+            });
+        });
         function testException(data,fetchFunctionName,done,messagePart,fields){
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
                 queryWithEmitter(data,fields)
             ]});
             pg.debug.Query=true;
-            client.query().then(function(query){
-                return query[fetchFunctionName]();
-            }).then(function(result){
+            client.query()[fetchFunctionName]().then(function(result){
                 done(new Error('call to '+fetchFunctionName+' must raise an error'));
             }).catch(function(err){
                 expect(err).to.be.a(Error);
@@ -299,9 +306,7 @@ describe('pg-promise-strict', function(){
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
                 queryWithEmitter(data)
             ]});
-            client.query("select 1").then(function(query){
-                return query.fetchRowByRow();
-            }).then(function(result){
+            client.query("select 1").fetchRowByRow().then(function(result){
                 done(new Error('must throw error because the callback is mandatory'));
             }).catch(function(err){
                 expect(err.message).to.match(/fetchRowByRow must recive a callback/);
@@ -319,10 +324,8 @@ describe('pg-promise-strict', function(){
             ]});
             pg.debug.Query=true;
             var accumulate=[];
-            client.query().then(function(query){
-                return query.fetchRowByRow(function(row){
-                    accumulate.push(row);
-                });
+            client.query().fetchRowByRow(function(row){
+                accumulate.push(row);
             }).then(function(result){
                 done(new Error('must reject with the error emited internaly'));
             }).catch(function(err){

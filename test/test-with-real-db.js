@@ -91,12 +91,10 @@ describe('pg-promise-strict with real database', function(){
             client.done();
         });
         it("successful query that doesn't return rows", function(done){
+            pg.easy=true;
             pg.debug.Query=true;
-            client.query("drop schema if exists test_pgps cascade;").then(function(query){
-                expect(query).to.be.a(pg.Query);
-                expect(query.internals.query).to.be.a(pg0.Query);
-                return query.fetchAll();
-            }).then(function(result){
+            client.query("drop schema if exists test_pgps cascade;").then(function(result){
+                expect(result.command).to.be("DROP");
                 expect(result.rowCount).to.not.be.ok();
                 done();
             }).catch(done).then(function(){
@@ -104,6 +102,7 @@ describe('pg-promise-strict with real database', function(){
             });
         });
         function tipicalExecuteWay(queryText,done,commandExpected,resultExpected,functionName,params){
+            pg.easy=false;
             client.query(queryText,params)[functionName||"execute"]().then(function(result){
                 if(resultExpected){
                     for(var attr in resultExpected){
