@@ -38,8 +38,6 @@ describe('pg-promise-strict', function(){
                 client.done(1);
                 expect(lastDoneValuePassedToDone[0]).to.eql(1);
                 expect(lastDoneValuePassedToDone.length).to.eql(1);
-                console.log('LENGH',pg.poolBalanceControl().length);
-                console.log('pg.poolBalanceControl',pg.poolBalanceControl());
                 expect(pg.poolBalanceControl().length==0).to.be.ok();
                 done();
             }).catch(done).then(function(){
@@ -257,7 +255,6 @@ describe('pg-promise-strict', function(){
             client.query().then(function(query){
                 return query[fetchFunctionName]();
             }).then(function(result){
-                console.log('obtengo',result);
                 done(new Error('call to '+fetchFunctionName+' must raise an error'));
             }).catch(function(err){
                 expect(err).to.be.a(Error);

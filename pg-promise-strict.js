@@ -20,7 +20,6 @@ pgPromiseStrict.Client = function Client(client, done){
         if(pgPromiseStrict.debug.pool===true){
             pgPromiseStrict.debug.pool={};
         }
-        console.log('client.secretKey', client.secretKey);
         if(!(client.secretKey in pgPromiseStrict.debug.pool)){
             pgPromiseStrict.debug.pool[client.secretKey] = {client:client, count:0};
         }

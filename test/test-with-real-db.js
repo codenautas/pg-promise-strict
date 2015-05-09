@@ -182,10 +182,6 @@ describe('pg-promise-strict with real database', function(){
         it("control not call query row by row without callback", function(done){
             tipicalFail("select 1, 2",done,"no callback provide","39004!",/fetchRowByRow must recive a callback/,"fetchRowByRow")
         });
-        it("view debug", function(done){
-            console.log('pg.poolBalanceControl()',pg.poolBalanceControl());
-            done();
-        });
     });
 });
 
