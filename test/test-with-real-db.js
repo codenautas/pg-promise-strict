@@ -196,6 +196,7 @@ describe('pg-promise-strict with real database', function(){
                     return client.query("select * from test_pgps.table1 order by id;");
                 }).then(function(result){
                     expect(result.rows).to.eql(expectedTable1Data);
+                    result.client.end();
                     done();
                 }).catch(done).then(function(){
                 });
@@ -210,7 +211,7 @@ describe('pg-promise-strict with real database', function(){
                 client.connect().then(function(){
                     done(new Error("must raise error"));
                 }).catch(function(err){
-                    expect(err.message).to.match(/(aut.*|pass.*){2}/);
+                    expect(err.message).to.match(/(aut.*|pass.*){2}|database.*does not exist/);
                     done();
                 }).catch(done).then(function(){
                 });

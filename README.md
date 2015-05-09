@@ -154,6 +154,7 @@ client.connect().then(function(client){
 }).then(function(result){
     console.log(result.rows[0].theTime);
     console.log(row.name);
+    client.end();
 }).catch(function(err){
     return console.error('error connecting or running query', err);
 });

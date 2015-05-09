@@ -366,8 +366,13 @@ describe('pg-promise-strict', function(){
                 expect(client.internals.pool).to.not.be.ok();
                 expect(pg0ClientConstructor.calls).to.eql([[connectParams]]);
                 client.connect().then(function(client){
+                    clientInternal.end = function(){};
+                    var pg0ClientEnd = expectCalled.control(clientInternal,'end',{returns:[null]});
                     expect(client).to.be.a(pg.Client);
                     expect(client.query).to.be.a(Function);
+                    client.end();
+                    expect(pg0ClientEnd.calls).to.eql([[]]);
+                    pg0ClientEnd.stopControl();
                     done();
                 }).catch(done).then(function(){
                 });

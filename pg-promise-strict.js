@@ -3,9 +3,17 @@
 var pg = require('pg');
 var Promise = require('promise');
 var util = require('util');
+var colors = require('colors');
 
 var pgPromiseStrict={
 };
+
+// pgPromiseStrict.log = function(messages){
+//     var toLog=['PG'.magenta].concat(messages)
+//     console.log.apply(console,toLog);
+// }
+
+// pgPromiseStrict.log = function(){};
 
 pgPromiseStrict.debug={};
 
@@ -21,12 +29,14 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
     var assignFunctionsPostConnect = function assignFunctionsPostConnect(){
         // existing functions
         self.done = function(){
+            // pgPromiseStrict.log('Client.done');
             if(pgPromiseStrict.debug.pool){
                 pgPromiseStrict.debug.pool[client.secretKey].count--;
             }
             return done.apply(client,arguments);
         };
         self.query = function query(){
+            // pgPromiseStrict.log('Client.query');
             var queryArguments = arguments;
             var returnedQuery = client.query.apply(client,queryArguments);
             return new pgPromiseStrict.Query(returnedQuery, self);
@@ -45,9 +55,11 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
         }
         assignFunctionsPostConnect();
     }else{
+        // pgPromiseStrict.log('new Client');
         client = new pg.Client(connOpts);
         pgPromiseStrict.allowAccessInternalIfDebugging(self, {client:client, pool:false});
         this.connect = function connect(){
+            // pgPromiseStrict.log('Client.connect');
             if(arguments.length){
                 return Promise.reject(new Error('client.connect must no recive parameters, it returns a Promise'));
             }
@@ -55,9 +67,14 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
                 client.connect(function(err){
                     if(err){
                         reject(err);
+                        // pgPromiseStrict.log('Client.end ERR');
                     }else{
                         assignFunctionsPostConnect();
+                        self.end = function end(){
+                            client.end();
+                        }
                         resolve(self);
+                        // pgPromiseStrict.log('Client.end');
                     }
                 });
             });
@@ -107,6 +124,7 @@ pgPromiseStrict.Query = function Query(query, client){
     var self = this;
     pgPromiseStrict.allowAccessInternalIfDebugging(self, {query: query, client:client});
     this.execute = function execute(callbackForEachRow, adapterName){
+        // pgPromiseStrict.log('Query.execute');
         if(callbackForEachRow && !(callbackForEachRow instanceof Function)){
             if(adapterName){
                 return Promise.reject(new Error("Query.execute() must recive optional callback function and optional adapterName"));
@@ -138,6 +156,7 @@ pgPromiseStrict.Query = function Query(query, client){
     this.fetchUniqueValue    = this.execute.bind(this,'value');
     this.fetchAll            = this.execute.bind(this,'normal');
     this.fetchRowByRow       = function fetchRowByRow(callback){
+        // pgPromiseStrict.log('Query.onRow');
         if(!(callback instanceof Function)){
             var err=new Error('fetchRowByRow must recive a callback that executes for each row');
             err.code='39004!';
@@ -160,6 +179,7 @@ pgPromiseStrict.Query = function Query(query, client){
 };
 
 pgPromiseStrict.connect = function connect(connectParameters){
+    // pgPromiseStrict.log('pg.connect');
     return new Promise(function(resolve, reject){
         pg.connect(connectParameters,function(err, client, done){
             if(err){
