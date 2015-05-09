@@ -204,18 +204,28 @@ describe('pg-promise-strict with real database', function(){
                 this.timeout(5000);
                 pg.easy=true;
                 pg.debug.Client=true;
-                Promise.resolve().then(function(){
-                    return new pg.Client("mysql:sarasa@sarasa");
-                }).then(function(client){
-                    expect(client).to.be.a(pg.Client);
-                    expect(client.internals.client).to.be.a(pg0.Client);
-                    var obtained=client.connect();
-                    expect(obtained).to.be.a(Promise);
-                    return obtained;
-                }).then(function(){
+                client = new pg.Client("this_user@xxxx");
+                expect(client).to.be.a(pg.Client);
+                expect(client.internals.client).to.be.a(pg0.Client);
+                client.connect().then(function(){
                     done(new Error("must raise error"));
                 }).catch(function(err){
-                    expect(err.message).to.match(/getaddrinfo ENOTFOUND/);
+                    expect(err.message).to.match(/(aut.*|pass.*){2}/);
+                    done();
+                }).catch(done).then(function(){
+                });
+            });
+            it("connect with extra parameter", function(done){
+                this.timeout(5000);
+                pg.easy=true;
+                pg.debug.Client=true;
+                client = new pg.Client("this_user@xxxx");
+                expect(client).to.be.a(pg.Client);
+                expect(client.internals.client).to.be.a(pg0.Client);
+                client.connect("extra parameter").then(function(){
+                    done(new Error("must raise error because must not have parameters"));
+                }).catch(function(err){
+                    expect(err.message).to.match(/must no recive parameters/);
                     done();
                 }).catch(done).then(function(){
                 });
