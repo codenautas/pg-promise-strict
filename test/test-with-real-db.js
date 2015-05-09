@@ -172,7 +172,7 @@ describe('pg-promise-strict with real database', function(){
         });
         it("query row by row", function(done){
             var accumulate=[];
-            client.query("select * from test_pgps.table1 order by id").fetchRowByRow(function(row){
+            client.query("select * from test_pgps.table1 order by id").onRow(function(row){
                 accumulate.unshift(row);
             }).then(function(){
                 accumulate.reverse();

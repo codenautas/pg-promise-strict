@@ -128,6 +128,39 @@ In this example you see:
  * parameters passed to *libpq* in the query function
  * `.then(function(result)` is the equivalent callback passed to query
 
+### Example without connection pool
+
+Corresponds to calls to [PG](https://github.com/brianc/node-postgres#client-instance) 
+direct client instance
+
+<!--lang:es--]
+
+### Ejemplo sin el pool de conexiones
+
+Corresponde al ejemplo de llamada a [PG](https://github.com/brianc/node-postgres#client-instance)
+con conexión directa del cliente
+
+<!--lang:*-->
+
+```js
+var pg = require('pg-promise-strict');
+
+var conString = "postgres://username:password@localhost/database";
+
+var client = new pg.Client(conString);
+
+client.connect().then(function(client){
+    return client.query('SELECT NOW() AS "theTime"');
+}).then(function(result){
+    console.log(result.rows[0].theTime);
+    console.log(row.name);
+}).catch(function(err){
+    return console.error('error connecting or running query', err);
+});
+```
+
+<!--lang:en-->
+
 ### Example with fetch row by row
 
 Corresponds to calls to [PG](https://github.com/brianc/node-postgres/wiki/Client#simple-query-without-callback).query 
@@ -137,11 +170,6 @@ without callback. In [PG](https://github.com/brianc/node-postgres/wiki/Client#pa
 This is the way for process data row by row
  
 <!--lang:es--]
-
-En este ejemplo se pueden apreciar:
- * la cadena de ejecución de las Promesas
- * parámetros pasados a *libpq* en la llamada a la función query
- * la llamada a `.then(function(result)` que es el equivalente a la función callback que se le pasa a la función query
 
 ### Ejemplo procesando de a una fila a la vez
 
@@ -155,7 +183,7 @@ Esta es la manera de procesar fila por fila
 
 ```js
 pg.connect({user: 'brianc', database: 'test'}).then(function(client){
-    client.query("SELECT name FROM users").execute(function(row){
+    client.query("SELECT name FROM users").onRow(function(row){
         console.log(row.name);
     }).then(function(result){
         console.log('ready.',result.rowCount,'rows processed');

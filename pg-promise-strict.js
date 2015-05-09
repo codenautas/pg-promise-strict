@@ -145,6 +145,7 @@ pgPromiseStrict.Query = function Query(query, client){
         }
         return this.execute(callback);
     };
+    this.onRow = this.fetchRowByRow;
     /* why this then function is needed?
      *   pg.Client.query is synchronic (not need to recive a callback function) then not need to return a Promise
      *   but pg-promise-strict always returns a "theneable". Then "then" is here. 

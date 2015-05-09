@@ -20,7 +20,7 @@ pg.connect(conOpts).then(function(client){
     console.log('row count',result.value);
     return result.client.query('select * from test_pgps.table1 order by id');
 }).then(function(query){
-    return query.fetchRowByRow(function(row){ // que tiene un único row
+    return query.onRow(function(row){ // que tiene un único row
         console.log('read one row',row);
     });
 }).then(function(result){ // que ya no tiene las filas
