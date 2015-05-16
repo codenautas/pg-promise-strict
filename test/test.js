@@ -256,51 +256,65 @@ describe('pg-promise-strict', function(){
                 pg.easy=false;
             });
         });
-        function testException(data,fetchFunctionName,done,messagePart,fields){
-            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
-                queryWithEmitter(data,fields)
-            ]});
-            pg.debug.Query=true;
-            client.query()[fetchFunctionName]().then(function(result){
-                done(new Error('call to '+fetchFunctionName+' must raise an error'));
-            }).catch(function(err){
-                expect(err).to.be.a(Error);
-                var r=messagePart instanceof RegExp?messagePart:new RegExp(_.escapeRegExp(messagePart));
-                expect(err.message).to.match(r);
-                done();
-            }).catch(done).then(function(){
-                pg.debug.Query=false;
-                clientInternalControl.stopControl();
+        var tests=[{
+            name: 'try to read unique row with no data', 
+            data: [], 
+            fetchFunctionName: 'fetchUniqueRow',
+            messagePart: 'query expects one row and obtains 0 rows'
+        }, {
+            name: 'try to read unique row with more than 1 row', 
+            data: [{one:11, two:22}, {one:11, two:22}],
+            fetchFunctionName: 'fetchUniqueRow',
+            messagePart: /query expects one row and obtains [^0].* row/
+        }, {
+            name: 'try to read zero or one row with many row',
+            data: [{one:1.1, two:2.2, three:3.3},{one:1.1, two:2.2, three:3.3}],
+            fetchFunctionName: 'fetchOneRowIfExists',
+            messagePart: /query expects up to one row and obtains [^0].* row/
+        }, {
+            name: 'try to read unique value with no data', 
+            data: [],
+            fetchFunctionName: 'fetchUniqueValue',
+            messagePart: 'query expects one row (with one field) and obtains 0 rows',
+            fields: [{name:'x'}]
+        }, {
+            name: 'try to read unique value with many data', 
+            data: [{x:1}, {x:2}],
+            fetchFunctionName: 'fetchUniqueValue',
+            messagePart: /query expects one row \(with one field\) and obtains [^0].* rows/,
+            fields: [{name:'x'}]
+        }, {
+            name: 'try to read unique value with one row with many fields', 
+            data: [{x:1, y:2}],
+            fetchFunctionName: 'fetchUniqueValue',
+            messagePart: /query expects.*one field.*and obtains/,
+            fields: [{name:'x'},{name:'y'}]
+        }, {
+            name: 'try to read unique value with one row with no fields', 
+            data: [{}],
+            fetchFunctionName: 'fetchUniqueValue',
+            messagePart: 'query expects one field and obtains',
+            fields: []
+        }];
+        tests.forEach(function(test){
+            it('try to read '+test.name,function(done){
+                var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+                    queryWithEmitter(test.data,test.fields)
+                ]});
+                pg.debug.Query=true;
+                client.query()[test.fetchFunctionName]().then(function(result){
+                    done(new Error('call to '+test.fetchFunctionName+' must raise an error'));
+                }).catch(function(err){
+                    expect(err).to.be.a(Error);
+                    var r=test.messagePart instanceof RegExp?test.messagePart:new RegExp(_.escapeRegExp(test.messagePart));
+                    expect(err.message).to.match(r);
+                    done();
+                }).catch(done).then(function(){
+                    pg.debug.Query=false;
+                    clientInternalControl.stopControl();
+                });
             });
-        }
-        it('try to read unique row with no data', function(done){
-            var data = [];
-            testException(data,'fetchUniqueRow',done,'query expects one row and obtains 0 rows');
-        });
-        it('try to read unique row with more than 1 row', function(done){
-            var data = [{one:11, two:22}, {one:11, two:22}];
-            testException(data,'fetchUniqueRow',done,/query expects one row and obtains [^0].* row/);
-        });
-        it('try to read zero or one row with many row', function(done){
-            var data = [{one:1.1, two:2.2, three:3.3},{one:1.1, two:2.2, three:3.3}];
-            testException(data,'fetchOneRowIfExists',done,/query expects up to one row and obtains [^0].* row/);
-        });
-        it('try to read unique value with no data', function(done){
-            var data = [];
-            testException(data,'fetchUniqueValue',done,'query expects one row (with one field) and obtains 0 rows',[{name:'x'}]);
-        });
-        it('try to read unique value with many data', function(done){
-            var data = [{x:1}, {x:2}];
-        testException(data,'fetchUniqueValue',done,/query expects one row \(with one field\) and obtains [^0].* rows/,[{name:'x'}]);
-        });
-        it('try to read unique value with one row with many fields', function(done){
-            var data = [{x:1, y:2}];
-            testException(data,'fetchUniqueValue',done,/query expects.*one field.*and obtains/,[{name:'x'},{name:'y'}]);
-        });
-        it('try to read unique value with one row with no fields', function(done){
-            var data = [{}];
-            testException(data,'fetchUniqueValue',done,'query expects one field and obtains',[]);
-        });
+        })
         it('mismatch use of fecthRowByRow', function(done){
             var data = [];
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
