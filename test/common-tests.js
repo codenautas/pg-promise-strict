@@ -5,7 +5,7 @@ var expect = require('expect.js');
 var expectCalled = require('expect-called');
 var pg0 = require('pg');
 var pg = require('..');
-var Promise = require('promise');
+var Promise = require('best-promise');
 
 describe('pg-promise-strict common tests', function(){
     var connectParams = {mockConnection: 'example'};

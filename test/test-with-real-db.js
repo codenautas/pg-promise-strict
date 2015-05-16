@@ -10,7 +10,7 @@ var _ = require('lodash');
 var expect = require('expect.js');
 var pg0 = require('pg');
 var pg = require('..');
-var Promise = require('promise');
+var Promise = require('best-promise');
 var colors = require('colors'); 
 
 console.warn(pg.poolBalanceControl());
