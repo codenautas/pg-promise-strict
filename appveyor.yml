@@ -1,0 +1,23 @@
+environment:
+  matrix:
+    - nodejs_version: "0.10"
+    - nodejs_version: "0.12"
+matrix:
+  fast_finish: true
+install:
+  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
+  - npm install
+build: off
+test_script:
+  - node --version
+  - npm --version
+  - npm run test-ci
+version: "{build}"
+before_build:
+  - SET PGUSER=postgres
+  - SET PGPASSWORD=Password12!
+  - PATH=C:\Program Files\PostgreSQL\9.3\bin\;%PATH%
+  - psql -c 'create user test_user password $$test_pass$$;' 
+  - psql -c 'create database test_db owner test_user;' 
+services: 
+  - postgresql
