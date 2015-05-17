@@ -3,7 +3,6 @@
 var pg = require('pg');
 var Promise = require('best-promise');
 var util = require('util');
-var colors = require('colors');
 
 var pgPromiseStrict={
 };

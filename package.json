@@ -1,7 +1,7 @@
 {
   "name": "pg-promise-strict",
   "description": "postgresql with strict interpretation of promises",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/pg-promise-strict",
@@ -24,7 +24,7 @@
     "rsvp": "~3.0.18",
     "bluebird": "~2.9.25",
     "when": "~3.7.3",
-    "q": "~1.4.0",
+    "q": "~1.4.1",
     "native-promise-only": "~0.7.8-a"
   },
   "main": "pg-promise-strict.js",
