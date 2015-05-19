@@ -141,7 +141,7 @@ direct client instance
 Corresponde al ejemplo de llamada a [PG](https://github.com/brianc/node-postgres#client-instance)
 con conexión directa del cliente
 
-<!--lang:*-->
+[!--lang:*-->
 
 ```js
 var pg = require('pg-promise-strict');
@@ -181,7 +181,7 @@ sin función callback. En la documentación de [PG](https://github.com/brianc/no
  
 Esta es la manera de procesar fila por fila
 
-<!--lang:*-->
+[!--lang:*-->
 
 ```js
 pg.connect({user: 'brianc', database: 'test'}).then(function(client){
