@@ -9,10 +9,10 @@
     "name": "Emilio Platzer", "email": "emilioplatzer@gmail.com"
   }],
   "dependencies": {
-    "lodash": "~3.8.0",
+    "lodash": "~3.9.1",
     "pg": "~4.3.0",
     "promise": "~7.0.1",
-    "best-promise": ">=0.1.0"
+    "best-promise": ">=0.1.2"
   },
   "devDependencies": {
     "istanbul": "~0.3.14",
