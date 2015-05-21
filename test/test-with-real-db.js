@@ -54,7 +54,7 @@ describe('pg-promise-strict with real database', function(){
             }).catch(function(err){
                 expect(err).to.be.a(Error);
                 expect(err.code).to.be('28P01');
-                expect(err.message).to.match(/aut.*password/);
+                expect(err.message).to.match(/(aut.*|pass.*){2}/);
                 done();
             }).catch(done).then(function(){
             });
