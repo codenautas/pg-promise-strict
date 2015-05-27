@@ -6,6 +6,7 @@ var expectCalled = require('expect-called');
 var pg0 = require('pg');
 var pg = require('..');
 var Promise = require('best-promise');
+var queryWithEmitter = require('./query-with-emitter.js');
 
 describe('pg-promise-strict common tests', function(){
     var connectParams = {mockConnection: 'example'};
@@ -42,6 +43,41 @@ describe('pg-promise-strict common tests', function(){
                 done();
             }).catch(done).then(function(){
                 clientInternalControl.stopControl();
+            });
+        });
+        it('control the log',function(done){
+            var resultExpected = [["the result"]];
+            var queryInternal = {execute: function(){ return Promise.resolve(resultExpected); }};
+            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+                queryWithEmitter(resultExpected),
+                queryWithEmitter(resultExpected)
+            ]});
+            var messages=[];
+            pg.log=function(message){
+                messages.push(message);
+            };
+            Promise.resolve().then(function(){
+                return client.query('select $1, $2, $3, $4', [1, "one's", true, null]).execute();
+            }).then(function(result){
+                expect(messages).to.eql([
+                    '------',
+                    '-- select $1, $2, $3, $4',
+                    '-- [1,"one\'s",true,null]',
+                    "select 1, 'one\'\'s', true, null;",
+                    // '-- '+JSON.stringify(resultExpected)
+                ]);
+                messages=[];
+                return client.query("select 'exit'").execute();
+            }).then(function(result){
+                expect(messages).to.eql([
+                    '------',
+                    "select 'exit';",
+                    // '-- '+JSON.stringify(resultExpected)
+                ]);
+                done();
+            }).catch(done).then(function(){
+                clientInternalControl.stopControl();
+                pg.log=null;
             });
         });
     });

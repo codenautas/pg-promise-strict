@@ -7,13 +7,6 @@ var util = require('util');
 var pgPromiseStrict={
 };
 
-// pgPromiseStrict.log = function(messages){
-//     var toLog=['PG'.magenta].concat(messages)
-//     console.log.apply(console,toLog);
-// }
-
-// pgPromiseStrict.log = function(){};
-
 pgPromiseStrict.debug={};
 
 pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfDebugging(self, internals){
@@ -35,7 +28,22 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
             return done.apply(client,arguments);
         };
         self.query = function query(){
-            // pgPromiseStrict.log('Client.query');
+            if(pgPromiseStrict.log){
+                var sql=arguments[0];
+                pgPromiseStrict.log('------');
+                if(arguments[1]){
+                    pgPromiseStrict.log('-- '+sql);
+                    pgPromiseStrict.log('-- '+JSON.stringify(arguments[1]));
+                    for(var i=1; i<=arguments[1].length; i++){
+                        var valor=arguments[1][i-1];
+                        if(typeof valor === 'string'){
+                            valor="'"+valor.replace(/'/g,"''")+"'";
+                        }
+                        sql=sql.replace(new RegExp('\\$'+i+'\\b'), valor);
+                    }
+                }
+                pgPromiseStrict.log(sql+';');
+            }
             var queryArguments = arguments;
             var returnedQuery = client.query.apply(client,queryArguments);
             return new pgPromiseStrict.Query(returnedQuery, self);

@@ -9,7 +9,8 @@ var expectCalled = require('expect-called');
 var pg0 = require('pg');
 var pg = require('..');
 var Promise = require('best-promise');
-var Events = require('events');
+var queryWithEmitter = require('./query-with-emitter.js');
+// var queryWithEmitter = require('../auxiliars/query-with-emitter.js');
 
 console.warn(pg.poolBalanceControl());
 
@@ -128,50 +129,6 @@ describe('pg-promise-strict', function(){
             pg0connectControl.stopControl();
             client.done();
         });
-        var queryWithEmitter=function(rows,fields,finishWithThisError){
-            var remianingRows = _.clone(rows);
-            var emitter = new Events.EventEmitter();
-            var endListener=false;
-            var errorListener=false;
-            var emitEnd=function(){};
-            var result={
-                rows:[],
-                fields:fields,
-                addRow:function addRow(row){
-                    this.rows.push(row);
-                }
-            }
-            var emitRows=function(){
-                remianingRows.forEach(function(row){
-                    emitter.emit('row',row,result);
-                });
-                remianingRows = [];
-                if(finishWithThisError){
-                    setImmediate(emitter.emit('error',finishWithThisError));
-                }else{
-                    setImmediate(emitEnd);
-                }
-            }
-            emitter.on('newListener',function(name){
-                switch(name){
-                case 'row':
-                    return ;
-                case 'end':
-                    emitEnd=function(){
-                        if(!remianingRows.length){
-                            emitter.emit('end',result);
-                        }
-                    }
-                    return emitRows();
-                case 'error':
-                    errorListener=true;
-                    return;
-                default:
-                    throw new Error('queryWithEmitter: event not recognized');
-                }
-            });
-            return emitter;
-        }
         function testData(data,fetchFunctionName,done,controlExpected,fields){
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
                 queryWithEmitter(data,fields)
