@@ -153,6 +153,9 @@ pgPromiseStrict.Query = function Query(query, client){
             });
             query.on('end',function(result){
                 result.client = client;
+                if(pgPromiseStrict.log){
+                    pgPromiseStrict.log('-- '+JSON.stringify(result.rows));
+                }
                 adapter(result, resolve, reject);
             });
         });

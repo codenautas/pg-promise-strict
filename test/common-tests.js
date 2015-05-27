@@ -64,7 +64,7 @@ describe('pg-promise-strict common tests', function(){
                     '-- select $1, $2, $3, $4',
                     '-- [1,"one\'s",true,null]',
                     "select 1, 'one\'\'s', true, null;",
-                    // '-- '+JSON.stringify(resultExpected)
+                    '-- '+JSON.stringify(resultExpected)
                 ]);
                 messages=[];
                 return client.query("select 'exit'").execute();
@@ -72,7 +72,7 @@ describe('pg-promise-strict common tests', function(){
                 expect(messages).to.eql([
                     '------',
                     "select 'exit';",
-                    // '-- '+JSON.stringify(resultExpected)
+                    '-- '+JSON.stringify(resultExpected)
                 ]);
                 done();
             }).catch(done).then(function(){
