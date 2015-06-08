@@ -9,8 +9,8 @@
     "name": "Emilio Platzer", "email": "emilioplatzer@gmail.com"
   }],
   "dependencies": {
-    "lodash": "~3.9.1",
-    "pg": "~4.3.0",
+    "lodash": "~3.9.3",
+    "pg": "^4.4.0",
     "promise": "~7.0.1",
     "best-promise": ">=0.1.2"
   },
@@ -20,9 +20,9 @@
     "expect.js": "^0.3.1",
     "expect-called": ">=0.4.0",
     "colors": ">=1.1.0",
-    "es6-promise": "~2.1.1",
+    "es6-promise": "~2.2.0",
     "rsvp": "~3.0.18",
-    "bluebird": "~2.9.25",
+    "bluebird": "~2.9.27",
     "when": "~3.7.3",
     "q": "~1.4.1",
     "native-promise-only": "~0.7.8-a"
