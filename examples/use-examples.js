@@ -1,4 +1,4 @@
-"use strict";
+﻿"use strict";
 
 var pg = require('..');
 
@@ -10,7 +10,7 @@ var conOpts = {
     database: 'test_db',
     host: 'localhost',
     port: 5432
-}
+};
 
 pg.connect(conOpts).then(function(client){
     return client.query('select count(*) from test_pgps.table1');
@@ -20,7 +20,7 @@ pg.connect(conOpts).then(function(client){
     console.log('row count',result.value);
     return result.client.query('select * from test_pgps.table1 order by id');
 }).then(function(query){
-    return query.onRow(function(row){ // que tiene un �nico row
+    return query.onRow(function(row){ // que tiene un único row
         console.log('read one row',row);
     });
 }).then(function(result){ // que ya no tiene las filas

@@ -1,4 +1,7 @@
 "use strict";
+/*jshint eqnull:true */
+/*jshint globalstrict:true */
+/*jshint node:true */
 
 var pg = require('pg');
 var Promise = require('best-promise');
@@ -218,9 +221,4 @@ process.on('exit',function(){
     console.warn(pgPromiseStrict.poolBalanceControl());
 });
 
-
 module.exports = pgPromiseStrict;
-
-if( module.exports == null){
-    sarasa("log");
-}

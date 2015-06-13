@@ -40,8 +40,12 @@
     "start": "node examples/use-examples.js"
   },
   "jshintConfig": {
-    "eqnull": true,
-    "globalstrict": true,
-    "node": true
+    "asi": false,
+    "forin": true,
+    "curly": true
+  },
+  "codenautas": {
+    "run-in": "server",
+    "test-appveyor": true
   }
 }
