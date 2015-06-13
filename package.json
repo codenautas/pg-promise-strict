@@ -41,8 +41,8 @@
   },
   "jshintConfig": {
     "asi": false,
-    "forin": true,
-    "curly": true
+    "curly": true,
+    "forin": true
   },
   "codenautas": {
     "run-in": "server",

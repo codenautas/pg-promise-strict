@@ -1,4 +1,8 @@
 ﻿"use strict";
+/*jshint eqnull:true */
+/*jshint globalstrict:true */
+/*jshint node:true */
+/*jshint -W100 */
 
 var pg = require('..');
 
