@@ -13,10 +13,10 @@ pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfD
     if(pgPromiseStrict.debug[self.constructor.name]){
         self.internals = internals;
     }
-}
+};
 
 pgPromiseStrict.Client = function Client(connOpts, client, done){
-    this.fromPool = connOpts=='pool';
+    this.fromPool = connOpts==='pool';
     var self = this;
     var assignFunctionsPostConnect = function assignFunctionsPostConnect(){
         // existing functions
@@ -48,7 +48,7 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
             var returnedQuery = client.query.apply(client,queryArguments);
             return new pgPromiseStrict.Query(returnedQuery, self);
         };
-    }
+    };
     if(this.fromPool){
         pgPromiseStrict.allowAccessInternalIfDebugging(self, {client:client, pool:true, done:done});
         if(pgPromiseStrict.debug.pool){
@@ -79,15 +79,15 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
                         assignFunctionsPostConnect();
                         self.end = function end(){
                             client.end();
-                        }
+                        };
                         resolve(self);
                         // pgPromiseStrict.log('Client.end');
                     }
                 });
             });
-        }
+        };
     }
-}
+};
 
 function buildQueryCounterAdapter(minCountRow, maxCountRow, expectText, callbackOtherControl){
     return function queryCounterAdapter(result, resolve, reject){ 
@@ -104,17 +104,17 @@ function buildQueryCounterAdapter(minCountRow, maxCountRow, expectText, callback
                 resolve(result);
             }
         }
-    }
+    };
 }
 
 pgPromiseStrict.queryAdapters = {
-    normal: function normalQueryAdapter(result, resolve, reject){ 
+    normal: function normalQueryAdapter(result, resolve/*, reject*/){ 
         resolve(result);
     },
     upto1:buildQueryCounterAdapter(0,1,'up to one row'),
     row:buildQueryCounterAdapter(1,1,'one row'),
     value: buildQueryCounterAdapter(1,1,'one row (with one field)',function(result, resolve, reject){
-        if(result.fields.length!=1){
+        if(result.fields.length!==1){
             var err=new Error('query expects one field and obtains '+result.fields.length);
             err.code='54U11!';
             reject(err);
@@ -125,7 +125,7 @@ pgPromiseStrict.queryAdapters = {
             resolve(result);
         }
     })
-}
+};
 
 pgPromiseStrict.Query = function Query(query, client){
     var self = this;
@@ -159,7 +159,7 @@ pgPromiseStrict.Query = function Query(query, client){
                 adapter(result, resolve, reject);
             });
         });
-    }
+    };
     // new functions
     this.fetchOneRowIfExists = this.execute.bind(this,'upto1');
     this.fetchUniqueRow      = this.execute.bind(this,'row');
@@ -184,7 +184,7 @@ pgPromiseStrict.Query = function Query(query, client){
             delete this.then;
             delete this.catch;
             return this.execute().then(callback,callbackE);
-        }
+        };
     }
 };
 
@@ -199,9 +199,9 @@ pgPromiseStrict.connect = function connect(connectParameters){
             }
         });
     });
-}
+};
 
-pgPromiseStrict.poolBalanceControl = function poolBalanceControl(connectParameters){
+pgPromiseStrict.poolBalanceControl = function poolBalanceControl(){
     var rta=[];
     if(pgPromiseStrict.debug.pool){
         for(var key in pgPromiseStrict.debug.pool){
@@ -211,7 +211,7 @@ pgPromiseStrict.poolBalanceControl = function poolBalanceControl(connectParamete
         }
     }
     return rta.join('\n');
-}
+};
 
 /* istanbul ignore next */
 process.on('exit',function(){
@@ -220,3 +220,7 @@ process.on('exit',function(){
 
 
 module.exports = pgPromiseStrict;
+
+if( module.exports == null){
+    sarasa("log");
+}
