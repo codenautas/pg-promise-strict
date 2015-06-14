@@ -26,12 +26,6 @@ describe('intensive tests', function(){
         host: 'localhost',
         port: 5432
     }
-    /* istanbul ignore */
-    if(process.env.APPVEYOR){
-        console.log('process.env.APPVEYOR',process.env.APPVEYOR);
-        connectParams.user='postgres';
-        connectParams.password='Password12!';
-    }
     for(var iClient=1; iClient<=MAX_CLIENTS; iClient++){
         describe('pool connection '+iClient, function(){
             var client;
