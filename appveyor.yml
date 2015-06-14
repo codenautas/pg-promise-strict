@@ -17,7 +17,8 @@ before_build:
   - SET PGUSER=postgres
   - SET PGPASSWORD=Password12!
   - PATH=C:\Program Files\PostgreSQL\9.3\bin\;%PATH%
-  - psql -c "create user test_user password 'test_pass';"
-  - psql -c "create database test_db owner test_user;"
+  - createuser test_user
+  - createdb --owner=test_user test_db
+  - psql -c "alter user test_user unencrypted password 'test_pass';"
 services: 
   - postgresql
