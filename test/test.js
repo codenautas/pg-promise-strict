@@ -8,7 +8,7 @@ var expect = require('expect.js');
 var expectCalled = require('expect-called');
 var pg0 = require('pg');
 var pg = require('..');
-var Promise = require('best-promise');
+var Promises = require('best-promise');
 var queryWithEmitter = require('./query-with-emitter.js');
 // var queryWithEmitter = require('../auxiliars/query-with-emitter.js');
 
@@ -27,7 +27,7 @@ describe('pg-promise-strict', function(){
                 function(conn, callback){ callback(null,clientInternal,doneInternal); }
             ]});
             pg.debug.Client=true;
-            Promise.resolve().then(function(){
+            Promises.start(function(){
                 return pg.connect(connectParams);
             }).then(function(client){
                 expect(client).to.be.a(pg.Client);
@@ -50,7 +50,7 @@ describe('pg-promise-strict', function(){
             var pg0connectControl = expectCalled.control(pg0,'connect',{mocks:[
                 function(conn, callback){ callback(new Error('example error')); }
             ]});
-            Promise.resolve().then(function(){
+            Promises.start(function(){
                 return pg.connect(connectParams);
             }).then(function(client){
                 done(new Error('must raise error'));

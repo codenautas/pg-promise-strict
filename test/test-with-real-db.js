@@ -10,7 +10,7 @@ var _ = require('lodash');
 var expect = require('expect.js');
 var pg0 = require('pg');
 var pg = require('..');
-var Promise = require('best-promise');
+var Promises = require('best-promise');
 var colors = require('colors'); 
 
 console.warn(pg.poolBalanceControl());
@@ -29,7 +29,7 @@ describe('pg-promise-strict with real database', function(){
     ];
     describe('pool connections', function(){
         it('failed connection', function(done){
-            Promise.resolve().then(function(){
+            Promises.start(function(){
                 return pg.connect({
                     user: 'test_user',
                     password: 'bad_pass',
@@ -62,7 +62,7 @@ describe('pg-promise-strict with real database', function(){
         it('successful connection', function(done){
             pg.debug.Client=true;
             pg.debug.pool=true;
-            Promise.resolve().then(function(){
+            Promises.start().then(function(){
                 return pg.connect(connectParams);
             }).then(function(client){
                 expect(client).to.be.a(pg.Client);

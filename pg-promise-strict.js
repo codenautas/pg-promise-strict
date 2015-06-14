@@ -4,7 +4,7 @@
 /*jshint node:true */
 
 var pg = require('pg');
-var Promise = require('best-promise');
+var Promises = require('best-promise');
 var util = require('util');
 
 var pgPromiseStrict={
@@ -71,9 +71,9 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
         this.connect = function connect(){
             // pgPromiseStrict.log('Client.connect');
             if(arguments.length){
-                return Promise.reject(new Error('client.connect must no recive parameters, it returns a Promise'));
+                return Promises.reject(new Error('client.connect must no recive parameters, it returns a Promise'));
             }
-            return new Promise(function(resolve, reject){
+            return Promises.make(function(resolve, reject){
                 client.connect(function(err){
                     if(err){
                         reject(err);
@@ -137,13 +137,13 @@ pgPromiseStrict.Query = function Query(query, client){
         // pgPromiseStrict.log('Query.execute');
         if(callbackForEachRow && !(callbackForEachRow instanceof Function)){
             if(adapterName){
-                return Promise.reject(new Error("Query.execute() must recive optional callback function and optional adapterName"));
+                return Promises.reject(new Error("Query.execute() must recive optional callback function and optional adapterName"));
             }
             adapterName=callbackForEachRow;
             callbackForEachRow=null;
         }
         var adapter = pgPromiseStrict.queryAdapters[adapterName||'normal'];
-        return new Promise(function(resolve, reject){
+        return Promises.make(function(resolve, reject){
             query.on('error',function(err){
                 reject(err);
             });
@@ -173,7 +173,7 @@ pgPromiseStrict.Query = function Query(query, client){
         if(!(callback instanceof Function)){
             var err=new Error('fetchRowByRow must recive a callback that executes for each row');
             err.code='39004!';
-            return Promise.reject(err);
+            return Promises.reject(err);
         }
         return this.execute(callback);
     };
@@ -193,7 +193,7 @@ pgPromiseStrict.Query = function Query(query, client){
 
 pgPromiseStrict.connect = function connect(connectParameters){
     // pgPromiseStrict.log('pg.connect');
-    return new Promise(function(resolve, reject){
+    return Promises.make(function(resolve, reject){
         pg.connect(connectParameters,function(err, client, done){
             if(err){
                 reject(err);

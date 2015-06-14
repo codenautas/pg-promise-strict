@@ -14,7 +14,7 @@ var _ = require('lodash');
 var expect = require('expect.js');
 var pg0 = require('pg');
 var pg = require('..');
-var Promise = require('best-promise');
+var Promises = require('best-promise');
 var colors = require('colors'); 
 console.warn(pg.poolBalanceControl());
 
@@ -30,7 +30,7 @@ describe('intensive tests', function(){
         describe('pool connection '+iClient, function(){
             var client;
             before(function(done){
-                Promise.resolve().then(function(){
+                Promises.start(function(){
                     return pg.connect(connectParams);
                 }).then(function(clientFromPool){
                     client=clientFromPool;
@@ -41,7 +41,7 @@ describe('intensive tests', function(){
             });
             for(var iCicle=0; iCicle<(iClient==MAX_CLIENTS?MAX_CICLES:1); iCicle++){
                 it('call queries '+MAX_QUERIES+': '+(iCicle||''), function(done){
-                    var p=Promise.resolve();
+                    var p=Promises.start();
                     for(var iQuery=1; iQuery<=MAX_QUERIES; iQuery++){
                         p=p.then(function(){
                             return client.query("SELECT $1::integer c, $2::integer q, $3::integer i",[iClient, iQuery, iCicle]).execute();
