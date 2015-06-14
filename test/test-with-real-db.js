@@ -25,6 +25,7 @@ describe('pg-promise-strict with real database', function(){
     }
     /* istanbul ignore */
     if(process.env.APPVEYOR){
+        console.log('process.env.APPVEYOR',process.env.APPVEYOR);
         connectParams.user='postgres';
         connectParams.password='Password12!';
     }
