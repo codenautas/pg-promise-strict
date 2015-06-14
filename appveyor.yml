@@ -13,7 +13,7 @@ test_script:
   - npm --version
   - npm run test-ci
 version: "{build}"
-before_script:
+before_build:
   - SET PGUSER=postgres
   - SET PGPASSWORD=Password12!
   - PATH=C:\Program Files\PostgreSQL\9.3\bin\;%PATH%

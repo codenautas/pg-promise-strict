@@ -23,6 +23,11 @@ describe('pg-promise-strict with real database', function(){
         host: 'localhost',
         port: 5432
     }
+    /* istanbul ignore */
+    if(process.env.APPVEYOR){
+        connectParams.user='postgres';
+        connectParams.password='Password12!';
+    }
     var expectedTable1Data = [
         {id:1, text1:'one'},
         {id:2, text1:'two'},
