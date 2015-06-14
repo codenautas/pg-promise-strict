@@ -12,7 +12,7 @@
     "lodash": "^3.9.3",
     "pg": "^4.4.0",
     "promise": "^7.0.1",
-    "best-promise": "~0.2.0"
+    "best-promise": "~0.2.2"
   },
   "devDependencies": {
     "istanbul": "~0.3.15",
