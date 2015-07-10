@@ -39,7 +39,8 @@ podría pasar desapersibido el hecho de que se está haciendo un `fetchAll`)
 
 function   | min | max | return
 -----------|-----|-----|--------------
-execute    |  0  | inf | result.rows, result.rowCount
+execute    |  -  |  -  | result.rowCount
+fetchAll   |  0  | inf | result.rows, result.rowCount
 fetchUniqueValue | 1 | 1 | result.value
 fetchUniqueRow | 1 | 1 | result.row
 fetchOneRowIfExists | 0 | 1 | result.row, result.rowCount
