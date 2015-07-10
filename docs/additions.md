@@ -26,8 +26,6 @@ Addings:
 
 <!--lang:es--]
 
-[!--lang:es--]
-
 Si bien el objetivo de ***pg-promise-strict*** es ser neutro respecto de la librería [pg](//npmjs.com/package/pg)
 es conveniente hacer algunos agregados que persiguen los siguientes objetivos:
 * indicar explícitamente (cuando *se sabe*) cuántas líneas se esperan en el resultado, 
@@ -38,3 +36,12 @@ pero como el equivalente en pg-promise-strict es esperar una promesa con la func
 podría pasar desapersibido el hecho de que se está haciendo un `fetchAll`)
 
 [!--lang:*-->
+
+function   | min | max | return
+-----------|-----|-----|--------------
+execute    |  0  | inf | result.rows, result.rowCount
+fetchUniqueValue | 1 | 1 | result.value
+fetchUniqueRow | 1 | 1 | result.row
+fetchOneRowIfExists | 0 | 1 | result.row, result.rowCount
+
+
