@@ -15,28 +15,31 @@
     "best-promise": "~0.2.2"
   },
   "devDependencies": {
-    "istanbul": "~0.3.17",
-    "mocha": "^2.2.5",
-    "expect.js": "^0.3.1",
-    "expect-called": "~0.4.0",
+    "bluebird": "~2.9.33",
     "colors": "^1.1.2",
     "es6-promise": "~2.3.0",
-    "rsvp": "~3.0.18",
-    "bluebird": "~2.9.33",
-    "when": "~3.7.3",
+    "expect.js": "^0.3.1",
+    "istanbul": "~0.3.17",
+    "mocha": "^2.2.5",
+    "native-promise-only": "~0.8.0-a",
     "q": "~1.4.1",
-    "native-promise-only": "~0.8.0-a"
+    "rsvp": "~3.0.18",
+    "when": "~3.7.3",
+
+    "expect-called": "~0.4.0",
+    "sql-promise": "~0.0.1"
   },
   "main": "pg-promise-strict.js",
   "engines": {
     "node": ">= 0.10.0"
   },
   "scripts": {
-    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test": "set COVER=all&& mocha --reporter spec --bail --check-leaks test/",
     "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
     "test-cov":     "set COVER=all&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "test-cov-odb": "set COVER=odb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "test-cov-ndb": "set COVER=ndb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "test-cov-sdb": "set COVER=sdb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter spec --check-leaks test/",
     "start": "node examples/use-examples.js"
   },
   "jshintConfig": {

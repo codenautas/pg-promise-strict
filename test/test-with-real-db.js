@@ -4,7 +4,7 @@
 if(process.versions.node.substr(0,4)!=="0.12" && process.env.TRAVIS) return;
 
 // WHEN COVER with NO DB NO DB
-if(process.env.COVER==="ndb") return;
+if(process.env.COVER!=="odb" && process.env.COVER!=="all") return;
 
 var _ = require('lodash');
 var expect = require('expect.js');

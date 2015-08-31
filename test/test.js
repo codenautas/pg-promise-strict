@@ -1,7 +1,7 @@
 "use strict";
 
 // WHEN COVER with ONLY DB ONLY DB
-if(process.env.COVER==="odb") return;
+if(process.env.COVER!=="ndb" && process.env.COVER!=="all") return;
 
 var _ = require('lodash');
 var expect = require('expect.js');

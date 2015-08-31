@@ -3,14 +3,15 @@
 /*jshint globalstrict:true */
 /*jshint node:true */
 
+var pgPromiseStrict = {};
+
 var pg = require('pg');
 var Promises = require('best-promise');
 var util = require('util');
 
-var pgPromiseStrict={
-};
-
 pgPromiseStrict.debug={};
+
+pgPromiseStrict.defaultPort=5432;
 
 pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfDebugging(self, internals){
     if(pgPromiseStrict.debug[self.constructor.name]){
