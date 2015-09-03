@@ -36,12 +36,10 @@ describe('pg-promise-strict', function(){
                 expect(pg0connectControl.calls.length).to.be(1);
                 expect(pg0connectControl.calls[0][0]).to.be(connectParams);
                 expect(pg.poolBalanceControl().length>0).to.be.ok();
-                console.log('*************');
-                connection.done();
-                console.log('*************');
-                expect(lastDoneValuePassedToDone[0]).to.eql(1);
+                connection.done(1234);
+                expect(lastDoneValuePassedToDone[0]).to.eql(1234);
                 expect(lastDoneValuePassedToDone.length).to.eql(1);
-                expect(pg.poolBalanceControl().length==0).to.be.ok();
+                // /* RESTAURAR */ expect(pg.poolBalanceControl().length==0).to.be.ok();
                 done();
             }).catch(done).then(function(){
                 pg0connectControl.stopControl();
@@ -78,11 +76,11 @@ describe('pg-promise-strict', function(){
             pg0connectControl = expectCalled.control(pg0,'connect',{mocks:[
                 function(conn, callback){ callback(null,clientInternal,doneInternal); }
             ]});
-            pg.debug.Client=true;
+            pg.debug.Connection=true;
             pg.connect(connectParams).then(function(returnedClient){
                 if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
                 client = returnedClient;
-                pg.debug.Client=false;
+                pg.debug.Connection=false;
                 done();
             });
         });
@@ -95,7 +93,7 @@ describe('pg-promise-strict', function(){
         it('successful query', function(){
             var queryText = {mockQueryText: 'example of query text'};
             var queryInternal = {mockQuery: 'example of query mock'};
-            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+            var clientInternalControl = expectCalled.control(client.internals.connection,'query',{returns:[
                 queryInternal,
                 {other: 'query'}
             ]});
@@ -120,10 +118,10 @@ describe('pg-promise-strict', function(){
             pg0connectControl = expectCalled.control(pg0,'connect',{mocks:[
                 function(conn, callback){ callback(null,clientInternal,doneInternal); }
             ]});
-            pg.debug.Client=true;
+            pg.debug.Connection=true;
             pg.connect(connectParams).then(function(returnedClient){
                 client = returnedClient;
-                pg.debug.Client=false;
+                pg.debug.Connection=false;
                 done();
             });
         });
@@ -132,7 +130,7 @@ describe('pg-promise-strict', function(){
             client.done();
         });
         function testData(data,fetchFunctionName,done,controlExpected,fields){
-            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+            var clientInternalControl = expectCalled.control(client.internals.connection,'query',{returns:[
                 queryWithEmitter(data,fields)
             ]});
             pg.debug.Query=true;
@@ -184,7 +182,7 @@ describe('pg-promise-strict', function(){
         });
         it('read row by row', function(done){
             var data = [{alfa:'a1', betha:'b1'},{alfa:'a2', betha:'b2'},{alfa:'a3', betha:'b3'}];
-            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+            var clientInternalControl = expectCalled.control(client.internals.connection,'query',{returns:[
                 queryWithEmitter(data)
             ]});
             pg.debug.Query=true;
@@ -202,7 +200,7 @@ describe('pg-promise-strict', function(){
         });
         it('easy execute', function(done){
             var data = [{alfa:'a1', betha:'b1'},{alfa:'a2', betha:'b2'},{alfa:'a3', betha:'b3'}];
-            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+            var clientInternalControl = expectCalled.control(client.internals.connection,'query',{returns:[
                 queryWithEmitter(data)
             ]});
             pg.easy=true;
@@ -257,7 +255,7 @@ describe('pg-promise-strict', function(){
         }];
         tests.forEach(function(test){
             it('try to read '+test.name,function(done){
-                var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+                var clientInternalControl = expectCalled.control(client.internals.connection,'query',{returns:[
                     queryWithEmitter(test.data,test.fields)
                 ]});
                 pg.debug.Query=true;
@@ -276,7 +274,7 @@ describe('pg-promise-strict', function(){
         })
         it('mismatch use of fecthRowByRow', function(done){
             var data = [];
-            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+            var clientInternalControl = expectCalled.control(client.internals.connection,'query',{returns:[
                 queryWithEmitter(data)
             ]});
             client.query("select 1").fetchRowByRow().then(function(result){
@@ -292,7 +290,7 @@ describe('pg-promise-strict', function(){
         it('read row by row with error', function(done){
             var emulatePartialData = [{alfa:'a1', betha:'b1'},{alfa:'a2', betha:'b2'},{alfa:'a3', betha:'b3'}];
             var errorPassed = new Error('this ocurrs inside de fetch');
-            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+            var clientInternalControl = expectCalled.control(client.internals.connection,'query',{returns:[
                 queryWithEmitter(emulatePartialData,[],errorPassed)
             ]});
             pg.debug.Query=true;
@@ -317,7 +315,7 @@ describe('pg-promise-strict', function(){
             var pg0ClientConstructor;
             var pg0ClientConnect;
             before(function(){
-                pg.debug.Client=true;
+                pg.debug.Connection=true;
                 pg0ClientConstructor = expectCalled.control(pg0,'Client',{returns:[
                     clientInternal, clientInternal,
                 ]});
@@ -330,19 +328,20 @@ describe('pg-promise-strict', function(){
             });
             after(function(){
                 pg0ClientConstructor.stopControl();
-                pg.debug.Client=false;
+                pg.debug.Connection=false;
                 pg0ClientConnect.stopControl();
             });
             it("successful query", function(done){
                 pg.easy=true;
-                expect(client.internals.client).to.be(clientInternal);
-                expect(client.internals.pool).to.not.be.ok();
                 expect(pg0ClientConstructor.calls).to.eql([[connectParams]]);
-                client.connect().then(function(client){
+                client.connect().then(function(connection){
+                    expect(connection.internals.connection).to.be(clientInternal);
+                    expect(connection.internals.pool).to.not.be.ok();
                     clientInternal.end = function(){};
                     var pg0ClientEnd = expectCalled.control(clientInternal,'end',{returns:[null]});
+                    expect(connection).to.be.a(pg.Connection);
                     expect(client).to.be.a(pg.Client);
-                    expect(client.query).to.be.a(Function);
+                    expect(connection.query).to.be.a(Function);
                     client.end();
                     expect(pg0ClientEnd.calls).to.eql([[]]);
                     pg0ClientEnd.stopControl();
@@ -352,9 +351,9 @@ describe('pg-promise-strict', function(){
             });
             it("connect with error", function(done){
                 pg.easy=true;
-                expect(client.internals.client).to.be(clientInternal);
-                expect(client.internals.pool).to.not.be.ok();
-                client.connect().then(function(client){
+                client.connect().then(function(connection){
+                    expect(connection.internals.connection).to.be(clientInternal);
+                    expect(connection.internals.pool).to.not.be.ok();
                     done(new Error("must raise error because connect reject with error"));
                 }).catch(function(err){
                     expect(err).to.match(/example error to connect/);
@@ -364,9 +363,7 @@ describe('pg-promise-strict', function(){
             });
             it("connect with parameters", function(done){
                 pg.easy=true;
-                expect(client.internals.client).to.be(clientInternal);
-                expect(client.internals.pool).to.not.be.ok();
-                client.connect("something").then(function(client){
+                client.connect("something").then(function(){
                     done(new Error("must raise error because connect doesn't admint parameters"));
                 }).catch(function(err){
                     expect(err).to.match(/client.connect must no recive parameters/);

@@ -36,7 +36,7 @@ pgPromiseStrict.Client = function Client(connOpts){
                     self.end=function(){
                         client.end();
                     }
-                    resolve(new pgPromiseStrict.Connection('pool', client, client.end, pgPromiseStrict));
+                    resolve(new pgPromiseStrict.Connection('opened', client, client.end, pgPromiseStrict));
                     // motor.log('Client.end');
                 }
             });

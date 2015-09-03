@@ -10,7 +10,7 @@ var queryWithEmitter = require('./query-with-emitter.js');
 
 if(process.env.COVER==="sdb") return;
 
-// return ;
+return ;
 
 describe('pg-promise-strict common tests', function(){
     var connectParams = {mockConnection: 'example'};
