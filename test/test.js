@@ -39,7 +39,7 @@ describe('pg-promise-strict', function(){
                 connection.done(1234);
                 expect(lastDoneValuePassedToDone[0]).to.eql(1234);
                 expect(lastDoneValuePassedToDone.length).to.eql(1);
-                // /* RESTAURAR */ expect(pg.poolBalanceControl().length==0).to.be.ok();
+                expect(pg.poolBalanceControl().length==0).to.be.ok();
                 done();
             }).catch(done).then(function(){
                 pg0connectControl.stopControl();

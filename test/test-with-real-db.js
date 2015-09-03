@@ -60,13 +60,13 @@ describe('pg-promise-strict with real database', function(){
             });
         });
         it('successful connection', function(done){
-            pg.debug.Client=true;
+            pg.debug.Connection=true;
             pg.debug.pool=true;
             Promises.start().then(function(){
                 return pg.connect(connectParams);
             }).then(function(connection){
                 expect(connection).to.be.a(pg.Connection);
-                // RESTAURAR expect(connection.internals.client).to.be.a(pg0.Client);
+                expect(connection.internals.connection).to.be.a(pg0.Client);
                 expect(pg.poolBalanceControl().length>0).to.be.ok();
                 connection.done();
                 expect(pg.poolBalanceControl().length==0).to.be.ok();
@@ -77,7 +77,7 @@ describe('pg-promise-strict with real database', function(){
                 console.log("create database test_db owner test_user;".cyan);
                 done(err);
             }).then(function(){
-                pg.debug.Client=false;
+                pg.debug.Connection=false;
             });
         });
     });
@@ -214,7 +214,6 @@ describe('pg-promise-strict with real database', function(){
                 pg.debug.Client=true;
                 client = new pg.Client("this_user@xxxx");
                 expect(client).to.be.a(pg.Client);
-                // RESTAURAR expect(client.internals.client).to.be.a(pg0.Client);
                 client.connect().then(function(){
                     done(new Error("must raise error"));
                 }).catch(function(err){
@@ -229,7 +228,6 @@ describe('pg-promise-strict with real database', function(){
                 pg.debug.Client=true;
                 client = new pg.Client("this_user@xxxx");
                 expect(client).to.be.a(pg.Client);
-                // RESTAURAR expect(client.internals.client).to.be.a(pg0.Client);
                 client.connect("extra parameter").then(function(){
                     done(new Error("must raise error because must not have parameters"));
                 }).catch(function(err){

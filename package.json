@@ -1,7 +1,7 @@
 {
   "name": "pg-promise-strict",
   "description": "postgresql with strict interpretation of promises",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/pg-promise-strict",
@@ -9,27 +9,27 @@
     "name": "Emilio Platzer", "email": "emilioplatzer@gmail.com"
   }],
   "dependencies": {
-    "lodash": "^3.10.1",
-    "pg": "^4.4.1",
-    "promise": "^7.0.4",
+    "lodash": "3.10.1",
+    "pg": "4.4.1",
+    "promise": "7.0.4",
     
-    "best-promise": "~0.2.3",
-    "sql-promise": "~0.0.6"    
+    "best-promise": "0.2.3",
+    "sql-promise": "0.0.8"    
   },
   "devDependencies": {
-    "bluebird": "~2.9.34",
-    "colors": "^1.1.2",
-    "es6-promise": "~3.0.2",
-    "expect.js": "^0.3.1",
-    "istanbul": "~0.3.19",
-    "mocha": "^2.3.0",
-    "native-promise-only": "~0.8.1",
-    "q": "~1.4.1",
-    "rsvp": "~3.1.0",
-    "when": "~3.7.3",
+    "bluebird": "2.9.34",
+    "colors": "1.1.2",
+    "es6-promise": "3.0.2",
+    "expect.js": "0.3.1",
+    "istanbul": "0.3.19",
+    "mocha": "2.3.0",
+    "native-promise-only": "0.8.1",
+    "q": "1.4.1",
+    "rsvp": "3.1.0",
+    "when": "3.7.3",
 
-    "expect-called": "~0.4.0",
-    "sql-promise-tester": "~0.0.1"
+    "expect-called": "0.4.0",
+    "sql-promise-tester": "0.0.2"
   },
   "main": "pg-promise-strict.js",
   "engines": {
@@ -43,6 +43,7 @@
     "test-cov-ndb": "set COVER=ndb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "test-cov-sdb": "set COVER=sdb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter spec --check-leaks test/",
     "testc-sdb": "export COVER=sdb && istanbul cover node_modules/mocha/bin/_mocha -- --reporter spec --check-leaks test/test-sql-promise.js",
+    "test-intensive": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter spec --check-leaks test/intensive-tests.js",
     "start": "node examples/use-examples.js"
   },
   "jshintConfig": {
