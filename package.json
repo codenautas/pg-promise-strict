@@ -10,9 +10,11 @@
   }],
   "dependencies": {
     "lodash": "^3.10.1",
-    "pg": "^4.4.0",
+    "pg": "^4.4.1",
     "promise": "^7.0.4",
-    "best-promise": "~0.2.3"
+    
+    "best-promise": "~0.2.3",
+    "sql-promise": "~0.0.6"    
   },
   "devDependencies": {
     "bluebird": "~2.9.34",
@@ -27,7 +29,7 @@
     "when": "~3.7.3",
 
     "expect-called": "~0.4.0",
-    "sql-promise": "~0.0.4"
+    "sql-promise-tester": "~0.0.1"
   },
   "main": "pg-promise-strict.js",
   "engines": {

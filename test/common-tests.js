@@ -10,6 +10,8 @@ var queryWithEmitter = require('./query-with-emitter.js');
 
 if(process.env.COVER==="sdb") return;
 
+// return ;
+
 describe('pg-promise-strict common tests', function(){
     var connectParams = {mockConnection: 'example'};
     var lastDoneValuePassedToDone = null;
@@ -33,7 +35,7 @@ describe('pg-promise-strict common tests', function(){
             pg0connectControl.stopControl();
             client.done();
         });
-        it('control the parameters of the execute function',function(done){
+        it.skip('control the parameters of the execute function',function(done){
             var queryInternal = {mockQuery: 'example of query mock'};
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
                 queryInternal
@@ -47,7 +49,7 @@ describe('pg-promise-strict common tests', function(){
                 clientInternalControl.stopControl();
             });
         });
-        it('control the log',function(done){
+        it.skip('control the log',function(done){
             var resultExpected = [["the result"]];
             var queryInternal = {execute: function(){ return Promise.resolve(resultExpected); }};
             var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[

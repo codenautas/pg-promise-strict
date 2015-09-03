@@ -26,17 +26,19 @@ describe('pg-promise-strict', function(){
             var pg0connectControl = expectCalled.control(pg0,'connect',{mocks:[
                 function(conn, callback){ callback(null,clientInternal,doneInternal); }
             ]});
-            pg.debug.Client=true;
+            pg.debug.Connection=true;
             Promises.start(function(){
                 return pg.connect(connectParams);
-            }).then(function(client){
-                expect(client).to.be.a(pg.Client);
-                expect(client.internals.client).to.be(clientInternal);
-                expect(client.internals.done).to.be(doneInternal);
+            }).then(function(connection){
+                expect(connection).to.be.a(pg.Connection);
+                expect(connection.internals.connection).to.be(clientInternal);
+                expect(connection.internals.done).to.be(doneInternal);
                 expect(pg0connectControl.calls.length).to.be(1);
                 expect(pg0connectControl.calls[0][0]).to.be(connectParams);
                 expect(pg.poolBalanceControl().length>0).to.be.ok();
-                client.done(1);
+                console.log('*************');
+                connection.done();
+                console.log('*************');
                 expect(lastDoneValuePassedToDone[0]).to.eql(1);
                 expect(lastDoneValuePassedToDone.length).to.eql(1);
                 expect(pg.poolBalanceControl().length==0).to.be.ok();

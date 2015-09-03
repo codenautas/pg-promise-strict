@@ -4,7 +4,7 @@ if(process.env.COVER!=="sdb") return;
 
 var Promises = require('best-promise');
 
-var tester=require('sql-promise').tester;
+var tester=require('sql-promise-tester');
 
 var defaultConnOpts={
     user:'test_user',

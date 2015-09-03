@@ -64,11 +64,11 @@ describe('pg-promise-strict with real database', function(){
             pg.debug.pool=true;
             Promises.start().then(function(){
                 return pg.connect(connectParams);
-            }).then(function(client){
-                expect(client).to.be.a(pg.Client);
-                expect(client.internals.client).to.be.a(pg0.Client);
+            }).then(function(connection){
+                expect(connection).to.be.a(pg.Connection);
+                // RESTAURAR expect(connection.internals.client).to.be.a(pg0.Client);
                 expect(pg.poolBalanceControl().length>0).to.be.ok();
-                client.done();
+                connection.done();
                 expect(pg.poolBalanceControl().length==0).to.be.ok();
                 done();
             }).catch(function(err){
@@ -82,22 +82,22 @@ describe('pg-promise-strict with real database', function(){
         });
     });
     describe('call queries', function(){
-        var client;
+        var connection;
         var poolLog;
         before(function(done){
             pg.connect(connectParams).then(function(returnedClient){
-                // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
-                client = returnedClient;
+                // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced connections"));
+                connection = returnedClient;
                 done();
             });
         });
         after(function(){
-            client.done();
+            connection.done();
         });
         it("successful query that doesn't return rows", function(done){
             pg.easy=true;
             pg.debug.Query=true;
-            client.query("drop schema if exists test_pgps cascade;").then(function(result){
+            connection.query("drop schema if exists test_pgps cascade;").then(function(result){
                 expect(result.command).to.be("DROP");
                 expect(result.rowCount).to.not.be.ok();
                 done();
@@ -107,7 +107,7 @@ describe('pg-promise-strict with real database', function(){
         });
         function tipicalExecuteWay(queryText,done,commandExpected,resultExpected,functionName,params){
             pg.easy=false;
-            client.query(queryText,params)[functionName||"execute"]().then(function(result){
+            connection.query(queryText,params)[functionName||"execute"]().then(function(result){
                 if(resultExpected){
                     for(var attr in resultExpected){
                         expect([attr,result[attr]]).to.eql([attr,resultExpected[attr]]);
@@ -130,7 +130,7 @@ describe('pg-promise-strict with real database', function(){
             tipicalExecuteWay("create schema test_pgps;",done,'CREATE');
         });
         function tipicalFail(textQuery,done,reason,code,msg,functionName){
-            client.query(textQuery)[functionName||"execute"]().then(function(result){
+            connection.query(textQuery)[functionName||"execute"]().then(function(result){
                 console.log("EXPECT FAIL BUT OBTAINS",result);
                 done(new Error("Must fail because "+reason));
             }).catch(function(err){
@@ -177,7 +177,7 @@ describe('pg-promise-strict with real database', function(){
         });
         it("query row by row", function(done){
             var accumulate=[];
-            client.query("select * from test_pgps.table1 order by id").onRow(function(row){
+            connection.query("select * from test_pgps.table1 order by id").onRow(function(row){
                 accumulate.unshift(row);
             }).then(function(){
                 accumulate.reverse();
@@ -192,16 +192,18 @@ describe('pg-promise-strict with real database', function(){
     describe('pool-less connections', function(){
         describe('call queries', function(){
             var client;
+            var connection;
             before(function(){
                 client = new pg.Client(connectParams);
             });
             it("successful query", function(done){
                 pg.easy=true;
-                client.connect().then(function(){
-                    return client.query("select * from test_pgps.table1 order by id;");
+                client.connect().then(function(obtainedConnection){
+                    connection=obtainedConnection;
+                    return connection.query("select * from test_pgps.table1 order by id;");
                 }).then(function(result){
                     expect(result.rows).to.eql(expectedTable1Data);
-                    result.client.end();
+                    client.end();
                     done();
                 }).catch(done).then(function(){
                 });
@@ -212,7 +214,7 @@ describe('pg-promise-strict with real database', function(){
                 pg.debug.Client=true;
                 client = new pg.Client("this_user@xxxx");
                 expect(client).to.be.a(pg.Client);
-                expect(client.internals.client).to.be.a(pg0.Client);
+                // RESTAURAR expect(client.internals.client).to.be.a(pg0.Client);
                 client.connect().then(function(){
                     done(new Error("must raise error"));
                 }).catch(function(err){
@@ -227,7 +229,7 @@ describe('pg-promise-strict with real database', function(){
                 pg.debug.Client=true;
                 client = new pg.Client("this_user@xxxx");
                 expect(client).to.be.a(pg.Client);
-                expect(client.internals.client).to.be.a(pg0.Client);
+                // RESTAURAR expect(client.internals.client).to.be.a(pg0.Client);
                 client.connect("extra parameter").then(function(){
                     done(new Error("must raise error because must not have parameters"));
                 }).catch(function(err){
