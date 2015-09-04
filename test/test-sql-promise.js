@@ -42,7 +42,7 @@ function prepareSchema(){
     });
 }
 
-tester.test(pg, {
+tester(pg, {
     connOpts:defaultConnOpts,
     prepare:prepareSchema
 });

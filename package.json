@@ -42,6 +42,7 @@
     "test-cov-odb": "set COVER=odb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "test-cov-ndb": "set COVER=ndb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "test-cov-sdb": "set COVER=sdb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter spec --check-leaks test/",
+    "test-sdb": "set COVER=sdb&& mocha --reporter spec --check-leaks test/test-sql-promise.js",
     "testc-sdb": "export COVER=sdb && istanbul cover node_modules/mocha/bin/_mocha -- --reporter spec --check-leaks test/test-sql-promise.js",
     "test-intensive": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter spec --check-leaks test/intensive-tests.js",
     "start": "node examples/use-examples.js"
