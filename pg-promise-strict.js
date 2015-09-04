@@ -48,6 +48,23 @@ pgPromiseStrict.Client = function Client(connOpts){
     };
 }
 
+
+pgPromiseStrict.makePromiseFetcher = function makePromiseFetcher(internalQuery, callbackForEachRow, ender){
+    return Promises.make(function(resolve, reject){
+        internalQuery.on('error',function(err){
+            reject(err);
+        });
+        internalQuery.on('row',function(row, result){
+            if(callbackForEachRow){
+                callbackForEachRow(row, result);
+            }else{
+                result.addRow(row);
+            }
+        });
+        internalQuery.on('end',ender(resolve, reject));
+    });
+};
+
 function buildQueryCounterAdapter(minCountRow, maxCountRow, expectText, callbackOtherControl){
     return function queryCounterAdapter(result, resolve, reject){ 
         if(result.rows.length<minCountRow || result.rows.length>maxCountRow ){
