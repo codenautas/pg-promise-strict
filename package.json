@@ -9,23 +9,24 @@
     "name": "Emilio Platzer", "email": "emilioplatzer@gmail.com"
   }],
   "dependencies": {
-    "lodash": "^3.10.0",
-    "pg": "^4.4.0",
-    "promise": "^7.0.3",
-    "best-promise": "~0.2.2"
+    "lodash": "3.10.1",
+    "pg": "4.4.1",
+    "promise": "7.0.4",
+    
+    "best-promise": "0.2.3"
   },
   "devDependencies": {
-    "istanbul": "~0.3.17",
-    "mocha": "^2.2.5",
-    "expect.js": "^0.3.1",
-    "expect-called": "~0.4.0",
-    "colors": "^1.1.2",
-    "es6-promise": "~2.3.0",
-    "rsvp": "~3.0.18",
-    "bluebird": "~2.9.33",
-    "when": "~3.7.3",
-    "q": "~1.4.1",
-    "native-promise-only": "~0.8.0-a"
+    "bluebird": "2.9.34",
+    "colors": "1.1.2",
+    "es6-promise": "3.0.2",
+    "expect-called": "0.4.0",
+    "expect.js": "0.3.1",
+    "istanbul": "0.3.19",
+    "mocha": "2.3.0",
+    "native-promise-only": "0.8.1",
+    "q": "1.4.1",
+    "rsvp": "3.1.0",
+    "when": "3.7.3"
   },
   "main": "pg-promise-strict.js",
   "engines": {
