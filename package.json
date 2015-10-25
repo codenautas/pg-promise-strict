@@ -45,7 +45,7 @@
     "curly": true,
     "forin": true
   },
-  "codenautas": {
+  "qa-control": {
     "package-version": "0.0.1",
     "run-in": "server",
     "test-appveyor": true,

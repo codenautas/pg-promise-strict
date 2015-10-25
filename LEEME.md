@@ -1,17 +1,15 @@
-<!-- multilang from README.md
-
-
-
-
-NO MODIFIQUE ESTE ARCHIVO. FUE GENERADO AUTOMÁTICAMENTE POR multilang.js
-
-
-
-
--->
+<!--multilang v0 es:LEEME.md en:README.md -->
 # pg-promise-strict
+
+<!--lang:es-->
 **postgresql** con **promesas** en el sentido estricto
 
+<!--lang:en-->
+postgresql with strict interpretation of promises
+
+[!--lang:*-->
+
+<!-- cucardas -->
 ![extending](https://img.shields.io/badge/stability-extending-orange.svg)
 [![version](https://img.shields.io/npm/v/pg-promise-strict.svg)](https://npmjs.org/package/pg-promise-strict)
 [![downloads](https://img.shields.io/npm/dm/pg-promise-strict.svg)](https://npmjs.org/package/pg-promise-strict)
@@ -24,9 +22,10 @@ NO MODIFIQUE ESTE ARCHIVO. FUE GENERADO AUTOMÁTICAMENTE POR multilang.js
 <!--multilang buttons-->
 
 idioma: ![castellano](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-es.png)
-también disponible en:
+also available in:
 [![inglés](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)](README.md)
 
+<!--lang:es-->
 
 # Características
 
@@ -36,17 +35,39 @@ pg-strict-promise implementa una versión con Promise/A+ en el sentido estricto 
  * No se reimplementa nada de lo que PG ya implementa
  * Algunos [agregados](docs/agregados.md) mínimos para mayor comodidad
 
+<!--lang:en--]
+
+# Features
+
+PG Promise/A+ in the strict way:
+ * The same functions, with the same name and same retunrs that in PG, but without callbacks
+ * covers 100% by test in two groups: test with real database (postgresql 9.3) and test with mock functions. Each group covers 100% the code. It means that we have **2 × 100% of coverage**.
+ * No reimplement nothing that PG does
+ * Some minimal [additions](docs/additions.md) for comfort
+
+<!--lang:es-->
 
 # Instalación
 
+<!--lang:en--]
+
+# Install
+
+[!--lang:*-->
 
 ```sh
 $ npm install pg-promise-strict
 ```
 
+<!--lang:es-->
 
 # Ejemplo de uso
 
+<!--lang:en--]
+
+# Use example
+
+[!--lang:*-->
 
 ```js 
 var pg = require('pg-promise-strict');
@@ -72,11 +93,19 @@ pg.connect(conOpts).then(function(client){
 });
 ```
 
+<!--lang:es-->
 
 ## Ejemplos de PG
 
 El primer ejemplo. Trae todas las filas de una consulta a la vez. Ejemplo basado en [PG](https://www.npmjs.com/package/pg#client-pooling)
 
+<!--lang:en--]
+
+## Examples of PG
+
+The first easy example. One simple query that returns all rows. Example based in [PG](https://www.npmjs.com/package/pg#client-pooling)
+
+[!--lang:*-->
 
 ```js
 var pg = require('pg-promise-strict');
@@ -96,12 +125,35 @@ pg.connect(conString).then(function(client){
 });
 ```
 
+<!--lang:es-->
+
+En este ejemplo se puede ver:
+ * la cadena de promesas
+ * los parámetros apsados a *libpq* en la función *query*
+ * `.then(function(result)` es el equivalente a pasar callback a la función a *query*
+
+<!--lang:en--]
+
+In this example you see:
+ * the Promise chain
+ * parameters passed to *libpq* in the query function
+ * `.then(function(result)` is the equivalent callback passed to query
+
+<!--lang:es-->
 
 ### Ejemplo sin el pool de conexiones
 
 Corresponde al ejemplo de llamada a [PG](https://github.com/brianc/node-postgres#client-instance)
 con conexión directa del cliente
 
+<!--lang:en--]
+
+### Example without connection pool
+
+Corresponds to calls to [PG](https://github.com/brianc/node-postgres#client-instance) 
+direct client instance
+
+[!--lang:*-->
 
 ```js
 var pg = require('pg-promise-strict');
@@ -121,6 +173,7 @@ client.connect().then(function(client){
 });
 ```
 
+<!--lang:es-->
 
 ### Ejemplo procesando de a una fila a la vez
 
@@ -130,6 +183,17 @@ sin función callback. En la documentación de [PG](https://github.com/brianc/no
  
 Esta es la manera de procesar fila por fila
 
+<!--lang:en--]
+
+### Example with fetch row by row
+
+Corresponds to calls to [PG](https://github.com/brianc/node-postgres/wiki/Client#simple-query-without-callback).query 
+without callback. In [PG](https://github.com/brianc/node-postgres/wiki/Client#parameters-1) documentation 
+[Brian C](https://github.com/brianc) says *do not provide callback function for large result sets unless you're okay with loading the entire result set into memory*
+ 
+This is the way for process data row by row
+ 
+[!--lang:*-->
 
 ```js
 pg.connect({user: 'brianc', database: 'test'}).then(function(client){
@@ -142,6 +206,7 @@ pg.connect({user: 'brianc', database: 'test'}).then(function(client){
 });
 ```
 
+<!--lang:es-->
 
 # Corriendo los tests
 
@@ -149,6 +214,15 @@ Para correr los test, además de clonar el repositorio e instalar con npm
 tenemos que proveer una conexión a la base de datos *postgresql-9.3* para
 poder crear el usuario *test_user* y la base *test_db*.
 
+<!--lang:en--]
+
+# Running tests
+
+Clone the repository and install the developer dependencies in then normal way. 
+You must provide a *postgresql-9.3* instalation for create a *test_db*.
+Then you can test pg-promise-strict
+ 
+[!--lang:*-->
 
 ```sh
 $ git clone git://github.com/codenautas/pg-promise-strict.git pg-promise-strict
@@ -158,18 +232,31 @@ $ psql --file test/create_db.sql
 $ npm test
 ```
 
+<!--lang:es-->
 
 Luego se puede verificar la covertura de código probarndo por separado los test con conexion a la base de datos (odb) 
 o sin conexión (ndb, usando funciones sustitutas *mock functions* en vez de llamadas reales). 
 
+<!--lang:en--]
+
+Then you can also check coverage separadly: with only real db or with no-db (with mock functions). 
+
+[!--lang:*-->
 
 ```js
 $ npm run-script test-cov-odb
 $ npm run-script test-cov-ndb
 ```
 
+<!--lang:es-->
 
 ## Licencia
+
+<!--lang:en--]
+
+## License
+
+[!--lang:*-->
 
 [MIT](LICENSE)
 
