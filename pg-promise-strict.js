@@ -3,12 +3,12 @@
 /*jshint globalstrict:true */
 /*jshint node:true */
 
+var pgPromiseStrict = {};
+
 var pg = require('pg');
 var Promises = require('best-promise');
 var util = require('util');
 
-var pgPromiseStrict={
-};
 
 pgPromiseStrict.debug={};
 
