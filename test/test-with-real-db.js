@@ -123,10 +123,12 @@ describe('pg-promise-strict with real database', function(){
         }
         it("call execute directly", function(done){
             this.timeout(5000);
+            /*
             if(process.env.APPVEYOR){
                 done();
                 return;
             }
+            */
             tipicalExecuteWay("create schema test_pgps;",done,'CREATE');
         });
         function tipicalFail(textQuery,done,reason,code,msg,functionName){
