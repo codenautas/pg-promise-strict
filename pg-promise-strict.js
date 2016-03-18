@@ -137,7 +137,7 @@ pgPromiseStrict.Query = function Query(query, client){
         // pgPromiseStrict.log('Query.execute');
         if(callbackForEachRow && !(callbackForEachRow instanceof Function)){
             if(adapterName){
-                return Promises.reject(new Error("Query.execute() must recive optional callback function and optional adapterName"));
+                return Promises.reject(new Error("Query.execute() must receive optional callback function and optional adapterName"));
             }
             adapterName=callbackForEachRow;
             callbackForEachRow=null;
@@ -171,7 +171,7 @@ pgPromiseStrict.Query = function Query(query, client){
     this.fetchRowByRow       = function fetchRowByRow(callback){
         // pgPromiseStrict.log('Query.onRow');
         if(!(callback instanceof Function)){
-            var err=new Error('fetchRowByRow must recive a callback that executes for each row');
+            var err=new Error('fetchRowByRow must receive a callback that executes for each row');
             err.code='39004!';
             return Promises.reject(err);
         }
