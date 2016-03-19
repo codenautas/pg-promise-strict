@@ -72,7 +72,7 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
         this.connect = function connect(){
             // pgPromiseStrict.log('Client.connect');
             if(arguments.length){
-                return Promises.reject(new Error('client.connect must no recive parameters, it returns a Promise'));
+                return Promises.reject(new Error('client.connect must no receive parameters, it returns a Promise'));
             }
             return Promises.make(function(resolve, reject){
                 client.connect(function(err){
@@ -180,7 +180,7 @@ pgPromiseStrict.Query = function Query(query, client){
     };
     this.onRow = this.fetchRowByRow;
     /* why this then function is needed?
-     *   pg.Client.query is synchronic (not need to recive a callback function) then not need to return a Promise
+     *   pg.Client.query is synchronic (not need to receive a callback function) then not need to return a Promise
      *   but pg-promise-strict always returns a "theneable". Then "then" is here. 
      */
     if(pgPromiseStrict.easy){

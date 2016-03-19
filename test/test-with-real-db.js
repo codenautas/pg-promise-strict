@@ -182,7 +182,7 @@ describe('pg-promise-strict with real database', function(){
             }).catch(done);
         });
         it("control not call query row by row without callback", function(done){
-            tipicalFail("select 1, 2",done,"no callback provide","39004!",/fetchRowByRow must recive a callback/,"fetchRowByRow")
+            tipicalFail("select 1, 2",done,"no callback provide","39004!",/fetchRowByRow must receive a callback/,"fetchRowByRow")
         });
     });
     describe('pool-less connections', function(){
@@ -227,7 +227,7 @@ describe('pg-promise-strict with real database', function(){
                 client.connect("extra parameter").then(function(){
                     done(new Error("must raise error because must not have parameters"));
                 }).catch(function(err){
-                    expect(err.message).to.match(/must no recive parameters/);
+                    expect(err.message).to.match(/must no receive parameters/);
                     done();
                 }).catch(done).then(function(){
                 });

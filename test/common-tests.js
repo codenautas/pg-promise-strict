@@ -39,7 +39,7 @@ describe('pg-promise-strict common tests', function(){
             client.query().execute('one value', 'other value').then(function(result){
                 done(new Error('must reject the parameters'));
             }).catch(function(err){
-                expect(err.message).to.match(/must recive/);
+                expect(err.message).to.match(/must receive/);
                 done();
             }).catch(done).then(function(){
                 clientInternalControl.stopControl();

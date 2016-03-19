@@ -280,7 +280,7 @@ describe('pg-promise-strict', function(){
             client.query("select 1").fetchRowByRow().then(function(result){
                 done(new Error('must throw error because the callback is mandatory'));
             }).catch(function(err){
-                expect(err.message).to.match(/fetchRowByRow must recive a callback/);
+                expect(err.message).to.match(/fetchRowByRow must receive a callback/);
                 done();
             }).catch(done).then(function(){
                 pg.debug.Query=false;
@@ -367,7 +367,7 @@ describe('pg-promise-strict', function(){
                 client.connect("something").then(function(client){
                     done(new Error("must raise error because connect doesn't admint parameters"));
                 }).catch(function(err){
-                    expect(err).to.match(/client.connect must no recive parameters/);
+                    expect(err).to.match(/client.connect must no receive parameters/);
                     done();
                 }).catch(done).then(function(){
                 });
