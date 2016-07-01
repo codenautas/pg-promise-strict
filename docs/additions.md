@@ -23,7 +23,7 @@ Although the purpose of ***pg-promise-strict*** is to be neutral about the libra
 addons to persue the following golds:
 * Explicit indication (when *it is known*) of how many rows are expected in the result, so that in case that this is not accomplished an exception 
 is thrown (because we are in a situation that *we didn´t know that could happen*)
-* Explicit indication of the desire that all the rowns should be pulled at once (in[pg](//npmjs.com/package/pg) this is explicit when passing a callback to the
+* Explicit indication of the desire that all the rows should be pulled at once (in[pg](//npmjs.com/package/pg) this is explicit when passing a callback to the
 to the function query, but as the equivalent in pg-promise-strict is to wait for a promise with the function then, it could go unnoticed the fact
 that a `fetchAll` is being done) 
 
