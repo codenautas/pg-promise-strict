@@ -6,6 +6,7 @@
 
 var pgPromiseStrict = {};
 
+var fs = require('fs-promise');
 var pg = require('pg');
 var Promises = require('best-promise');
 var util = require('util');
@@ -90,6 +91,28 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
                 });
             });
         };
+    }
+    if(pgPromiseStrict.easy){
+        self.executeSentences = function executeSentences(sentences){
+            var cdp = Promises.start();
+            sentences.forEach(function(sentence){
+                cdp = cdp.then(function(){
+                    if(!sentence.trim()) return;
+                    return self.query(sentence).execute().catch(function(err){
+                        console.log('ERROR',err);
+                        console.log(sentence);
+                        throw err;
+                    });
+                });
+            });
+            return cdp;
+        }
+        self.executeSqlScript = function executeSqlScript(fileName){
+            return fs.readFile(fileName,'utf-8').then(function(content){
+                var sentences = content.split('\n\n');
+                return self.executeSentences(sentences);
+            });
+        }
     }
 };
 
