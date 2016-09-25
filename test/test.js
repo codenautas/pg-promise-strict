@@ -8,7 +8,6 @@ var expect = require('expect.js');
 var expectCalled = require('expect-called');
 var pg0 = require('pg');
 var pg = require('..');
-var Promises = require('best-promise');
 var queryWithEmitter = require('./query-with-emitter.js');
 // var queryWithEmitter = require('../auxiliars/query-with-emitter.js');
 
@@ -27,7 +26,7 @@ describe('pg-promise-strict', function(){
                 function(conn, callback){ callback(null,clientInternal,doneInternal); }
             ]});
             pg.debug.Client=true;
-            Promises.start(function(){
+            Promise.resolve().then(function(){
                 return pg.connect(connectParams);
             }).then(function(client){
                 expect(client).to.be.a(pg.Client);
@@ -50,7 +49,7 @@ describe('pg-promise-strict', function(){
             var pg0connectControl = expectCalled.control(pg0,'connect',{mocks:[
                 function(conn, callback){ callback(new Error('example error')); }
             ]});
-            Promises.start(function(){
+            Promise.resolve().then(function(){
                 return pg.connect(connectParams);
             }).then(function(client){
                 done(new Error('must raise error'));
@@ -109,6 +108,23 @@ describe('pg-promise-strict', function(){
             ]);
             pg.debug.Query=false;
             clientInternalControl.stopControl();
+        });
+        it.skip('executeSqlScript', function(){
+            pg.easy=true;
+            var queryText = {mockQueryText: 'example of query text'};
+            var queryInternal = {mockQuery: 'example of query mock'};
+            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
+                queryInternal,
+                {other: 'query'}
+            ]});
+            return client.executeSqlScript('test/script-example.sql').then(function(){
+                expect(clientInternalControl.calls).to.eql([
+                    [queryText],
+                    [queryText,['more', 'parameters', 'may be arguments']]
+                ]);
+                clientInternalControl.stopControl();
+                pg.easy=false;
+            });
         });
     });
     describe('call queries and fetch data', function(){

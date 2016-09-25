@@ -1,24 +1,34 @@
-<!--lang:en-->
+<!--multilang v0 es:agregados.md en:additions.md -->
 
-# Additions in pg-promise-strict
-
-<!--lang:es--]
+<!--lang:es-->
 
 # Agregados en pg-promise-strict
 
-[!--lang:*-->
+<!--lang:en--]
 
-<!--multilang v0 en:additions.md es:agregados.md -->
+# Additions in pg-promise-strict
+
+[!--lang:*-->
 
 <!--multilang buttons-->
 
-language: ![English](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)
-also available in:
-[![Spanish](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-es.png)](agregados.md) - 
+idioma: ![castellano](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-es.png)
+también disponible en:
+[![inglés](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)](additions.md) - 
 
-<!--lang:en-->
+<!--lang:es-->
 
-(for this section see [spanish version](agregados.md))
+Si bien el objetivo de ***pg-promise-strict*** es ser neutro respecto de la librería [pg](//npmjs.com/package/pg)
+es conveniente hacer algunos agregados que persiguen los siguientes objetivos:
+* indicar explícitamente (cuando *se sabe*) cuántas líneas se esperan en el resultado, 
+para que en caso de no cumplirse se lance una excepción (porque estamos en una situación que *no se sabía que podía pasar*)
+* indicar explícitamente que se desean traer todas las líneas de una sola vez
+(en [pg](//npmjs.com/package/pg) eso es explícito al pasar un callback a la función query, 
+pero como el equivalente en pg-promise-strict es esperar una promesa con la función then, 
+podría pasar desapersibido el hecho de que se está haciendo un `fetchAll`)
+
+<!--lang:en--]
+
 Although the purpose of ***pg-promise-strict*** is to be neutral about the library [pg](//npmjs.com/package/pg), it is convinient to do some
 addons to persue the following golds:
 * Explicit indication (when *it is known*) of how many rows are expected in the result, so that in case that this is not accomplished an exception 
@@ -31,25 +41,70 @@ Addings:
 * explicit indication of how many rows are expected in the result
 * explicit indication of `fetchAll` in `query(...).then` calls
 
-<!--lang:es--]
+[!--lang:*-->
 
-Si bien el objetivo de ***pg-promise-strict*** es ser neutro respecto de la librería [pg](//npmjs.com/package/pg)
-es conveniente hacer algunos agregados que persiguen los siguientes objetivos:
-* indicar explícitamente (cuando *se sabe*) cuántas líneas se esperan en el resultado, 
-para que en caso de no cumplirse se lance una excepción (porque estamos en una situación que *no se sabía que podía pasar*)
-* indicar explícitamente que se desean traer todas las líneas de una sola vez
-(en [pg](//npmjs.com/package/pg) eso es explícito al pasar un callback a la función query, 
-pero como el equivalente en pg-promise-strict es esperar una promesa con la función then, 
-podría pasar desapersibido el hecho de que se está haciendo un `fetchAll`)
+function            | min | max |return
+--------------------|-----|-----|--------------
+execute             |  -  |  -  | result.rowCount
+fetchAll            |  0  | inf | result.rows, result.rowCount
+fetchUniqueValue    |  1  |  1  | result.value
+fetchUniqueRow      |  1  |  1  | result.row
+fetchOneRowIfExists |  0  |  1  | result.row, result.rowCount
+
+## executeSentences(sentences)
+
+<!--lang:es-->
+
+Devuelve una cadena de promesas que 
+ejecutará en orden un arreglo de sentencias SQL.
+Si alguna sentencia da error interrumpe devolviendo la condición de error. 
+
+<!--lang:en--]
+
+Returns a promise chain that will 
+execute an array of sql sentences. 
+If an error ocurrs it will reject the promise. 
 
 [!--lang:*-->
 
-function   | min | max | return
------------|-----|-----|--------------
-execute    |  -  |  -  | result.rowCount
-fetchAll   |  0  | inf | result.rows, result.rowCount
-fetchUniqueValue | 1 | 1 | result.value
-fetchUniqueRow | 1 | 1 | result.row
-fetchOneRowIfExists | 0 | 1 | result.row, result.rowCount
+```js
 
+client.executeSentences([
+    'CREATE TABLE perfect_nums (num bigint)',
+    'INSERT INTO perfect_nums values (6), (28), (496), (8128)'
+]).then(function(){
+    console.log('ok');
+}).catch(function(err){
+    console.log('ERROR', err);
+});
 
+```
+
+## executeSqlScript(fileName)
+
+<!--lang:es-->
+
+Devuelve una cadena de promesas que ejecutará un archivo con sentencias SQL.
+Utiliza `executeSentences` para la ejecución. 
+
+**El separador de sentencias es la línea en blanco** 
+(de ese modo se pueden poner sentencias complejas que incluyan el ';')
+
+<!--lang:en--]
+
+Returns a promise chain that will execute a file with sql sentences. 
+Uses `executeSentences` for the task. 
+
+**Blank line is the sentence separator** (to allow complex sentences). 
+
+[!--lang:*-->
+
+```js
+
+client.executeSqlScript('generate_db.sql').then(function(){
+    console.log('ok');
+}).catch(function(err){
+    console.log('ERROR', err);
+});
+
+```

@@ -10,7 +10,6 @@ var _ = require('lodash');
 var expect = require('expect.js');
 var pg0 = require('pg');
 var pg = require('..');
-var Promises = require('best-promise');
 var colors = require('colors'); 
 
 console.warn(pg.poolBalanceControl());
@@ -28,41 +27,35 @@ describe('pg-promise-strict with real database', function(){
         {id:2, text1:'two'},
     ];
     describe('pool connections', function(){
-        it('failed connection', function(done){
-            Promises.start(function(){
-                return pg.connect({
-                    user: 'test_user',
-                    password: 'bad_pass',
-                    database: 'test_db',
-                    host: 'localhost',
-                    port: 5432
-                });
+        it.skip('failed connection', function(){
+            return pg.connect({
+                user: 'test_user',
+                password: 'bad_pass',
+                database: 'test_db',
+                host: 'localhost',
+                port: 5432
             }).then(function(client){
                 if(process.env.TRAVIS){
                     console.log('**************** MAY BE AN ERROR. I MUST STUDY MORE THIS ISSUE ************** ');
                     client.query("SELECT 1").execute().then(function(result){
                         console.log('** SOMETHING IS WRONG IN TRAVIS WITH PG PASSs ***',result);
                         client.done();
-                        done();
                     }).catch(function(err){
                         console.log("ok. error detected when execute");
-                        done();
                     });
                 }else{
-                    done(new Error('must raise error'));
+                    throw new Error('must raise error');
                 }
             }).catch(function(err){
                 expect(err).to.be.a(Error);
                 expect(err.code).to.be('28P01');
                 expect(err.message).to.match(/(aut.*|pass.*){2}/);
-                done();
-            }).catch(done).then(function(){
             });
         });
         it('successful connection', function(done){
             pg.debug.Client=true;
             pg.debug.pool=true;
-            Promises.start().then(function(){
+            Promise.resolve().then(function(){
                 return pg.connect(connectParams);
             }).then(function(client){
                 expect(client).to.be.a(pg.Client);
@@ -85,8 +78,10 @@ describe('pg-promise-strict with real database', function(){
         var client;
         var poolLog;
         before(function(done){
+            pg.easy=true;
             pg.connect(connectParams).then(function(returnedClient){
                 // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
+                pg.easy=false;
                 client = returnedClient;
                 done();
             });
@@ -103,6 +98,21 @@ describe('pg-promise-strict with real database', function(){
                 done();
             }).catch(done).then(function(){
                 pg.debug.Query=false;
+            });
+        });
+        it("executeSqlScript succefull", function(){
+            return client.executeSqlScript("test/script-example.sql").then(function(result){
+                expect(result.command).to.be("SELECT");
+                expect(result.rows).to.eql([{count:4}]);
+            }).then(function(){
+                pg.debug.Query=false;
+            });
+        });
+        it("executeSqlScript with error", function(){
+            return client.executeSqlScript("test/script-err-example.sql").then(function(result){
+                throw new Error('must throw an error');
+            },function(err){
+                expect(err.code).to.eql('42601');;
             });
         });
         function tipicalExecuteWay(queryText,done,commandExpected,resultExpected,functionName,params){

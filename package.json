@@ -10,24 +10,16 @@
   }],
   "dependencies": {
     "fs-promise": "0.5.0",
-    "lodash": "3.10.1",
-    "pg": "4.4.1",
-    "promise": "7.0.4",
+    "pg": "6.1.0"
     
-    "best-promise": "0.2.3"
   },
   "devDependencies": {
-    "bluebird": "2.9.34",
     "colors": "1.1.2",
-    "es6-promise": "3.0.2",
     "expect-called": "0.4.0",
     "expect.js": "0.3.1",
-    "istanbul": "0.3.19",
-    "mocha": "2.3.0",
-    "native-promise-only": "0.8.1",
-    "q": "1.4.1",
-    "rsvp": "3.1.0",
-    "when": "3.7.3"
+    "istanbul": "0.4.5",
+    "lodash": "4.16.1",
+    "mocha": "3.0.2"
   },
   "main": "pg-promise-strict.js",
   "engines": {
@@ -35,6 +27,7 @@
   },
   "scripts": {
     "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test-odb": "set COVER=odb&&mocha --reporter spec --bail --check-leaks test/",
     "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
     "test-cov":     "set COVER=all&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "test-cov-odb": "set COVER=odb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",

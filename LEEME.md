@@ -34,7 +34,7 @@ pg-strict-promise implementa una versión con Promise/A+ en el sentido estricto 
  * Tiene las mismas funciones que PG, con los mismos nombres, los mismos parámetros y que devuelven lo mismo, reemplazando los *callbacks* con promesas.
  * Con pruebas que cubren el 100% del código en dos grupos: un grupo de pruebas que usa una base de datos real (postgresl 9.3) y otro que testea solo las llamadas (adaptaciones) que se hacen sobre PG. Ambos grupos de pruebas cubren el 100% del código. Así obtenemos una **cobertura de 2 × 100%**.
  * No se reimplementa nada de lo que PG ya implementa
- * Algunos [agregados](docs/agregados.md) mínimos para mayor comodidad
+ * Algunos [agregados](docs/agregados.md) para mayor comodidad
 
 <!--lang:en--]
 
@@ -44,7 +44,7 @@ PG Promise/A+ in the strict way:
  * The same functions, with the same name and same retunrs that in PG, but without callbacks
  * covers 100% by test in two groups: test with real database (postgresql 9.3) and test with mock functions. Each group covers 100% the code. It means that we have **2 × 100% of coverage**.
  * No reimplement nothing that PG does
- * Some minimal [additions](docs/additions.md) for comfort
+ * Some [additions](docs/additions.md) for comfort
 
 <!--lang:es-->
 

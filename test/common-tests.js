@@ -5,7 +5,6 @@ var expect = require('expect.js');
 var expectCalled = require('expect-called');
 var pg0 = require('pg');
 var pg = require('..');
-var Promises = require('best-promise');
 var queryWithEmitter = require('./query-with-emitter.js');
 
 describe('pg-promise-strict common tests', function(){
@@ -56,7 +55,7 @@ describe('pg-promise-strict common tests', function(){
             pg.log=function(message){
                 messages.push(message);
             };
-            Promises.start(function(){
+            Promise.resolve().then(function(){
                 return client.query('select $1, $2, $3, $4', [1, "one's", true, null]).execute();
             }).then(function(result){
                 expect(messages).to.eql([

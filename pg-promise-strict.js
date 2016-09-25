@@ -8,7 +8,6 @@ var pgPromiseStrict = {};
 
 var fs = require('fs-promise');
 var pg = require('pg');
-var Promises = require('best-promise');
 var util = require('util');
 
 
@@ -73,9 +72,9 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
         this.connect = function connect(){
             // pgPromiseStrict.log('Client.connect');
             if(arguments.length){
-                return Promises.reject(new Error('client.connect must no receive parameters, it returns a Promise'));
+                return Promise.reject(new Error('client.connect must no receive parameters, it returns a Promise'));
             }
-            return Promises.make(function(resolve, reject){
+            return new Promise(function(resolve, reject){
                 client.connect(function(err){
                     if(err){
                         reject(err);
@@ -94,13 +93,13 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
     }
     if(pgPromiseStrict.easy){
         self.executeSentences = function executeSentences(sentences){
-            var cdp = Promises.start();
+            var cdp = Promise.resolve();
             sentences.forEach(function(sentence){
                 cdp = cdp.then(function(){
                     if(!sentence.trim()) return;
                     return self.query(sentence).execute().catch(function(err){
-                        console.log('ERROR',err);
-                        console.log(sentence);
+                        // console.log('ERROR',err);
+                        // console.log(sentence);
                         throw err;
                     });
                 });
@@ -109,7 +108,7 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
         }
         self.executeSqlScript = function executeSqlScript(fileName){
             return fs.readFile(fileName,'utf-8').then(function(content){
-                var sentences = content.split('\n\n');
+                var sentences = content.split(/\r?\n\r?\n/);
                 return self.executeSentences(sentences);
             });
         }
@@ -161,13 +160,13 @@ pgPromiseStrict.Query = function Query(query, client){
         // pgPromiseStrict.log('Query.execute');
         if(callbackForEachRow && !(callbackForEachRow instanceof Function)){
             if(adapterName){
-                return Promises.reject(new Error("Query.execute() must receive optional callback function and optional adapterName"));
+                return Promise.reject(new Error("Query.execute() must receive optional callback function and optional adapterName"));
             }
             adapterName=callbackForEachRow;
             callbackForEachRow=null;
         }
         var adapter = pgPromiseStrict.queryAdapters[adapterName||'normal'];
-        return Promises.make(function(resolve, reject){
+        return new Promise(function(resolve, reject){
             query.on('error',function(err){
                 reject(err);
             });
@@ -197,7 +196,7 @@ pgPromiseStrict.Query = function Query(query, client){
         if(!(callback instanceof Function)){
             var err=new Error('fetchRowByRow must receive a callback that executes for each row');
             err.code='39004!';
-            return Promises.reject(err);
+            return Promise.reject(err);
         }
         return this.execute(callback);
     };
@@ -217,8 +216,8 @@ pgPromiseStrict.Query = function Query(query, client){
 
 pgPromiseStrict.connect = function connect(connectParameters){
     // pgPromiseStrict.log('pg.connect');
-    return Promises.make(function(resolve, reject){
-        pg.connect(connectParameters,function(err, client, done){
+    return new Promise(function(resolve, reject){
+        pg.connect(connectParameters, function(err, client, done){
             if(err){
                 reject(err);
             }else{
