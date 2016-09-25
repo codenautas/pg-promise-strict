@@ -25,7 +25,7 @@ PG Promise/A+ in the strict way:
  * The same functions, with the same name and same retunrs that in PG, but without callbacks
  * covers 100% by test in two groups: test with real database (postgresql 9.3) and test with mock functions. Each group covers 100% the code. It means that we have **2 × 100% of coverage**.
  * No reimplement nothing that PG does
- * Some minimal [additions](docs/additions.md) for comfort
+ * Some [additions](docs/additions.md) for comfort
 
 
 # Install
@@ -169,4 +169,3 @@ $ npm run-script test-cov-ndb
 
 
 [MIT](LICENSE)
-

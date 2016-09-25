@@ -181,18 +181,78 @@ describe('pg-promise-strict with real database', function(){
         it("fail to query unique row", function(done){
             tipicalFail("select * from test_pgps.table1",done,"returns 2 rows","54011!",/query expects.*one row.*and obtains 2/,"fetchUniqueRow")
         });
-        it("query row by row", function(done){
+        it("query row by row", function(){
             var accumulate=[];
-            client.query("select * from test_pgps.table1 order by id").onRow(function(row){
+            return client.query("select * from test_pgps.table1 /* where id<3 */ order  by id").onRow(function(row){
                 accumulate.unshift(row);
             }).then(function(){
                 accumulate.reverse();
                 expect(accumulate).to.eql(expectedTable1Data);
-                done();
-            }).catch(done);
+            });
         });
         it("control not call query row by row without callback", function(done){
             tipicalFail("select 1, 2",done,"no callback provide","39004!",/fetchRowByRow must receive a callback/,"fetchRowByRow")
+        });
+        it("bulk insert", function(){
+            return client.bulkInsert({
+                schema: "test_pgps", 
+                table: "table1", 
+                columns: ['id', 'text1'],
+                rows: [
+                    [3, 'three'],
+                    [4, 'four'],
+                    [5, 'five'],
+                    [6, 'six'],
+                    [7, 'seven'],
+                    [8, 'eight'],
+                    [9, 'nine'],
+                    [10, 'ten'],
+                    [11, 'eleven'],
+                    [12, 'twelve'],
+                    [13, 'thirteen'],
+                    [14, 'fourteen'],
+                    [15, 'fifteen'],
+                    [16, 'sixteen'],
+                    [17, 'seventeen'],
+                    [18, 'eighteen'],
+                    [19, 'nineteen'],
+                    [20, 'twenty'],
+                    [21, 'twenty-one'],
+                    [22, 'twenty-two'],
+                    [23, 'twenty-three'],
+                    [30, 'thirty'],
+                    [40, 'forty'],
+                    [50, 'fifty'],
+                    [60, 'sixty'],
+                    [70, 'seventy'],
+                    [80, 'eighty'],
+                    [90, 'ninety'],
+                    [100, 'one hundred'],
+                    [101, 'one hundred and one'],
+                    [200, 'two hundred'],
+                    [300, 'three hundred'],
+                    [1000, 'one thousand'],
+                    [1000000, 'one million'],
+                    [10000000, 'ten million'],               
+                ]
+            }).then(function(){
+                return client.query("select sum(id) as sum_id from test_pgps.table1").fetchUniqueRow();
+            }).then(function(result){
+                expect(result.row.sum_id).to.eql(11002397);
+            });
+        });
+        it("bulk insert", function(){
+            return client.bulkInsert({
+                table: "table3", 
+                columns: ['id', 'text1'],
+                rows: [
+                    [3, 'three'],
+                ]
+            }).then(function(){
+                throw new Error('must throw error');
+            }, function(err){
+                expect(err.code).to.eql('42P01');
+            });
         });
     });
     describe('pool-less connections', function(){
@@ -204,7 +264,7 @@ describe('pg-promise-strict with real database', function(){
             it("successful query", function(done){
                 pg.easy=true;
                 client.connect().then(function(){
-                    return client.query("select * from test_pgps.table1 order by id;");
+                    return client.query("select * from test_pgps.table1 where id<3 order by id;");
                 }).then(function(result){
                     expect(result.rows).to.eql(expectedTable1Data);
                     result.client.end();

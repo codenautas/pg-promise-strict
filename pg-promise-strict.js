@@ -1,8 +1,4 @@
 "use strict";
-/*jshint eqnull:true */
-/*jshint globalstrict:true */
-/*jshint node:true */
-/*eslint-disable no-console */
 
 var pgPromiseStrict = {};
 
@@ -17,6 +13,13 @@ pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfD
     if(pgPromiseStrict.debug[self.constructor.name]){
         self.internals = internals;
     }
+};
+
+pgPromiseStrict.quoteObject=function(insaneName){
+    if(typeof insaneName!=="string"){
+        throw new Error("insaneName");
+    }
+    return JSON.stringify(insaneName);
 };
 
 pgPromiseStrict.Client = function Client(connOpts, client, done){
@@ -96,7 +99,9 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
             var cdp = Promise.resolve();
             sentences.forEach(function(sentence){
                 cdp = cdp.then(function(){
-                    if(!sentence.trim()) return;
+                    if(!sentence.trim()){
+                        return;
+                    }
                     return self.query(sentence).execute().catch(function(err){
                         // console.log('ERROR',err);
                         // console.log(sentence);
@@ -105,13 +110,34 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
                 });
             });
             return cdp;
-        }
+        };
         self.executeSqlScript = function executeSqlScript(fileName){
             return fs.readFile(fileName,'utf-8').then(function(content){
                 var sentences = content.split(/\r?\n\r?\n/);
                 return self.executeSentences(sentences);
             });
-        }
+        };
+        self.bulkInsert = function bulkInsert(params){
+            var sql = "INSERT INTO "+(params.schema?pgPromiseStrict.quoteObject(params.schema)+'.':'')+
+                pgPromiseStrict.quoteObject(params.table)+" ("+
+                params.columns.map(pgPromiseStrict.quoteObject).join(', ')+") VALUES ("+
+                params.columns.map(function(name, i_name){ return '$'+(i_name+1); })+")";
+            var insertOneRowAndContinueInserting = function insertOneRowAndContinueInserting(i_rows){
+                if(i_rows<params.rows.length){
+                    return self.query(sql, params.rows[i_rows]).execute().then(function(){
+                    // return Promise.resolve().then(function(){
+                    //     return self.query(sql, params.rows[i_rows]).execute();
+                    // }).then(function(){
+                        return insertOneRowAndContinueInserting(i_rows+1);
+                    }).catch(function(err){
+                        // console.log('xxxxxxxxxxxx err', err, params.rows.length);
+                        throw err;
+                    });
+                }
+                return;
+            };
+            return insertOneRowAndContinueInserting(0);
+        };
     }
 };
 

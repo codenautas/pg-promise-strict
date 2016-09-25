@@ -1,10 +1,11 @@
 {
   "name": "pg-promise-strict",
   "description": "postgresql with strict interpretation of promises",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/pg-promise-strict",
+  "files": [],
   "contributors": [{
     "name": "Emilio Platzer", "email": "emilioplatzer@gmail.com"
   }],
@@ -34,23 +35,8 @@
     "test-cov-ndb": "set COVER=ndb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "start": "node examples/use-examples.js"
   },
-  "jshintConfig": {
-    "asi": false,
-    "curly": true,
-    "forin": true
-  },
-  "eslintConfig": {
-    "env": {
-      "node": false
-    },
-    "rules": {
-      "strict": 0,
-      "no-console": 1,
-      "no-unused-vars": 1
-    }
-  }, 
   "qa-control": {
-    "package-version": "0.1.4",
+    "package-version": "0.3.0",
     "run-in": "server",
     "test-appveyor": true,
     "type": "lib",

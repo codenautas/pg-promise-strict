@@ -80,4 +80,11 @@ describe('pg-promise-strict common tests', function(){
             });
         });
     });
+    describe('handle errors', function(){
+        it("reject non string object names", function(){
+            expect(function(){
+                pg.quoteObject(null);
+            }).to.throwError(/name/i);
+        });
+    });
 });

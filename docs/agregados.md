@@ -108,3 +108,45 @@ client.executeSqlScript('generate_db.sql').then(function(){
 });
 
 ```
+
+## bulkInsert(params)
+
+<!--lang:es-->
+
+Inserta un conunto de filas en una tabla.
+
+parámetro |uso
+----------|----------------------------------
+schema    | (opcional) nombre del esquema
+table     | nombre de la tabla
+columns   | arreglo de nombres de columnas
+rows      | arreglo de registros (cada registro es un arreglo de valores)
+
+<!--lang:en--]
+
+Inserts a set of rows in a table. 
+
+parámetro |uso
+----------|----------------------------------
+schema    | (optional) schema name
+table     | table name
+columns   | array of column names
+rows      | array of records (each record is an array of values)
+
+[!--lang:*-->
+
+```js
+client.bulkInsert({
+    table: 'people',
+    columns: ['first_name', 'last_name', 'age'],
+    rows: [
+        ['Smith', 'Mary', 23],
+        ['Connor', 'Sarah', 33],
+    ]
+}).then(function(){
+    console.log('ok');
+}).catch(function(err){
+    console.log('ERROR', err);
+});
+
+```

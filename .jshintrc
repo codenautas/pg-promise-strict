@@ -1,0 +1,8 @@
+{
+    "asi": false,
+    "forin": true,
+    "curly": true,
+    "node": true,
+    "strict": "global",
+    "predef": [ "module", "Promise" ]
+}

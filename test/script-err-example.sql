@@ -1,4 +1,5 @@
-
+CREATE TABLE alpha(
+    
 
 
 CREATE TABLE perfect_nums(
