@@ -125,12 +125,8 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
             var insertOneRowAndContinueInserting = function insertOneRowAndContinueInserting(i_rows){
                 if(i_rows<params.rows.length){
                     return self.query(sql, params.rows[i_rows]).execute().then(function(){
-                    // return Promise.resolve().then(function(){
-                    //     return self.query(sql, params.rows[i_rows]).execute();
-                    // }).then(function(){
                         return insertOneRowAndContinueInserting(i_rows+1);
                     }).catch(function(err){
-                        // console.log('xxxxxxxxxxxx err', err, params.rows.length);
                         throw err;
                     });
                 }
