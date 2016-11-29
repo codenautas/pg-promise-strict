@@ -6,11 +6,12 @@ if(process.versions.node.substr(0,4)!=="0.12" && process.env.TRAVIS) return;
 // WHEN COVER with NO DB NO DB
 if(process.env.COVER==="ndb") return;
 
-var _ = require('lodash');
 var expect = require('expect.js');
 var pg0 = require('pg');
 var pg = require('..');
 var colors = require('colors'); 
+var bestGlobals = require('best-globals');
+var discrepances = require('discrepances');
 
 console.warn(pg.poolBalanceControl());
 
@@ -78,6 +79,7 @@ describe('pg-promise-strict with real database', function(){
         var client;
         var poolLog;
         before(function(done){
+            pg.setAllTypes();
             pg.easy=true;
             pg.connect(connectParams).then(function(returnedClient){
                 // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
@@ -121,6 +123,12 @@ describe('pg-promise-strict with real database', function(){
                 if(resultExpected){
                     for(var attr in resultExpected){
                         expect([attr,result[attr]]).to.eql([attr,resultExpected[attr]]);
+                        var dis = discrepances(result[attr],resultExpected[attr]);
+                        if(dis){
+                            console.log('discrepances in',attr);
+                            console.dir(dis, {depth:8});
+                        }
+                        expect(dis).to.not.be.ok();
                     }
                 }else{
                     expect(result.rowCount).to.not.be.ok();
@@ -155,6 +163,7 @@ describe('pg-promise-strict with real database', function(){
                 "do $$ begin "+
                 "create table test_pgps.table1(id integer primary key, text1 text); "+
                 "create table test_pgps.table2(text2 text primary key, int2 integer); "+
+                "create table test_pgps.table3(id3 integer primary key, num3 numeric, dou3 double precision, dat3 date); "+
                 "end$$;",
                 done,
                 "DO"
@@ -253,6 +262,15 @@ describe('pg-promise-strict with real database', function(){
             }, function(err){
                 expect(err.code).to.eql('42P01');
             });
+        });
+        it.skip("inserting dates", function(done){
+            tipicalExecuteWay("insert into test_pgps.table3 (id3, dat3) values (1,'1999-12-31') returning dat3;",done,"INSERT",{
+                rows:[
+                    //{dat3: new Date("1999-12-31")}
+                    {dat3: bestGlobals.date.iso("1999-12-31")}
+                    // anonymous({dat3: new Date("1999-12-31")})
+                ]
+            })
         });
     });
     describe('pool-less connections', function(){

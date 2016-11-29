@@ -4,8 +4,10 @@ var pgPromiseStrict = {};
 
 var fs = require('fs-promise');
 var pg = require('pg');
+var pgTypes = require('pg').types;
 var util = require('util');
 
+var bestGlobals = require('best-globals');
 
 pgPromiseStrict.debug={};
 
@@ -236,8 +238,21 @@ pgPromiseStrict.Query = function Query(query, client){
     }
 };
 
+var allTypes=false;
+
+pgPromiseStrict.setAllTypes = function setAllTypes(){
+    var DATE_OID = 1082;
+    var parseFn = function(val) {
+       return val === null ? null : bestGlobals.date.iso(val);
+    }
+    pgTypes.setTypeParser(DATE_OID, parseFn)
+}
+
 pgPromiseStrict.connect = function connect(connectParameters){
     // pgPromiseStrict.log('pg.connect');
+    if(pgPromiseStrict.easy && !allTypes){
+        pgPromiseStrict.setAllTypes();
+    }
     return new Promise(function(resolve, reject){
         pg.connect(connectParameters, function(err, client, done){
             if(err){
@@ -265,5 +280,7 @@ pgPromiseStrict.poolBalanceControl = function poolBalanceControl(){
 process.on('exit',function(){
     console.warn(pgPromiseStrict.poolBalanceControl());
 });
+
+// pgPromiseStrict.setAllTypes();
 
 module.exports = pgPromiseStrict;
