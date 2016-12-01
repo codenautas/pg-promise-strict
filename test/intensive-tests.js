@@ -17,6 +17,8 @@ var pg = require('..');
 var colors = require('colors'); 
 console.warn(pg.poolBalanceControl());
 
+var miniTools = require('mini-tools');
+
 describe('intensive tests', function(){
     var connectParams = {
         user: 'test_user',
@@ -29,8 +31,8 @@ describe('intensive tests', function(){
         describe('pool connection '+iClient, function(){
             var client;
             before(function(done){
-                Promise.resolve().then(function(){
-                    return pg.connect(connectParams);
+                miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+                    return pg.connect(config.db);
                 }).then(function(clientFromPool){
                     client=clientFromPool;
                 }).then(done).catch(done);

@@ -12,6 +12,7 @@ var pg = require('..');
 var colors = require('colors'); 
 var bestGlobals = require('best-globals');
 var discrepances = require('discrepances');
+var miniTools = require('mini-tools');
 
 console.warn(pg.poolBalanceControl());
 
@@ -29,12 +30,8 @@ describe('pg-promise-strict with real database', function(){
     ];
     describe('pool connections', function(){
         it.skip('failed connection', function(){
-            return pg.connect({
-                user: 'test_user',
-                password: 'bad_pass',
-                database: 'test_db',
-                host: 'localhost',
-                port: 5432
+            miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+                return pg.connect(config.db);
             }).then(function(client){
                 if(process.env.TRAVIS){
                     console.log('**************** MAY BE AN ERROR. I MUST STUDY MORE THIS ISSUE ************** ');
@@ -56,8 +53,8 @@ describe('pg-promise-strict with real database', function(){
         it('successful connection', function(done){
             pg.debug.Client=true;
             pg.debug.pool=true;
-            Promise.resolve().then(function(){
-                return pg.connect(connectParams);
+            miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+                return pg.connect(config.db);
             }).then(function(client){
                 expect(client).to.be.a(pg.Client);
                 expect(client.internals.client).to.be.a(pg0.Client);
@@ -81,7 +78,9 @@ describe('pg-promise-strict with real database', function(){
         before(function(done){
             pg.setAllTypes();
             pg.easy=true;
-            pg.connect(connectParams).then(function(returnedClient){
+            miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+                return pg.connect(config.db);
+            }).then(function(returnedClient){
                 // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
                 pg.easy=false;
                 client = returnedClient;
@@ -263,7 +262,7 @@ describe('pg-promise-strict with real database', function(){
                 expect(err.code).to.eql('42P01');
             });
         });
-        it.skip("inserting dates", function(done){
+        it("inserting dates", function(done){
             tipicalExecuteWay("insert into test_pgps.table3 (id3, dat3) values (1,'1999-12-31') returning dat3;",done,"INSERT",{
                 rows:[
                     //{dat3: new Date("1999-12-31")}
@@ -276,8 +275,11 @@ describe('pg-promise-strict with real database', function(){
     describe('pool-less connections', function(){
         describe('call queries', function(){
             var client;
-            before(function(){
-                client = new pg.Client(connectParams);
+            before(function(done){
+                miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+                    client = new pg.Client(config.db);
+                    done();
+                });
             });
             it("successful query", function(done){
                 pg.easy=true;
@@ -294,15 +296,21 @@ describe('pg-promise-strict with real database', function(){
                 this.timeout(5000);
                 pg.easy=true;
                 pg.debug.Client=true;
-                client = new pg.Client("this_user@xxxx");
-                expect(client).to.be.a(pg.Client);
-                expect(client.internals.client).to.be.a(pg0.Client);
-                client.connect().then(function(){
-                    done(new Error("must raise error"));
-                }).catch(function(err){
-                    expect(err.message).to.match(/(aut.*|pass.*){2}|database.*does not exist/);
-                    done();
-                }).catch(done).then(function(){
+                miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+                    client = new pg.Client("this_user@localhost:"+config.db.port+"/nonex");
+                    expect(client).to.be.a(pg.Client);
+                    expect(client.internals.client).to.be.a(pg0.Client);
+                    client.connect().then(function(){
+                        done(new Error("must raise error"));
+                    }).catch(function(err){
+                        if(config.db.port==5432){
+                            expect(err.message).to.match(/(aut.*|pass.*){2}|database.*does not exist/);
+                        }else{
+                            expect(err.message).to.match(/ECONNREFUSED.*5432/);
+                        }
+                        done();
+                    }).catch(done).then(function(){
+                    });
                 });
             });
             it("connect with extra parameter", function(done){
