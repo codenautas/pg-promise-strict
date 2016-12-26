@@ -241,12 +241,18 @@ pgPromiseStrict.Query = function Query(query, client){
 var allTypes=false;
 
 pgPromiseStrict.setAllTypes = function setAllTypes(){
+    var TypeStore = require('type-store');
     var DATE_OID = 1082;
-    var parseFn = function(val) {
-       return val === null ? null : bestGlobals.date.iso(val);
-    }
-    pgTypes.setTypeParser(DATE_OID, parseFn)
-}
+    pgTypes.setTypeParser(DATE_OID, function parseDate(val){
+       return bestGlobals.date.iso(val);
+       //return val === null ? null : bestGlobals.date.iso(val);
+    });
+    var BIGINT_OID = 20;
+    pgTypes.setTypeParser(BIGINT_OID, function parseBigInt(val){
+       return TypeStore.bigint.fromString(val);
+       // return val === null ? null : TypeStore.bigint.fromString(val);
+    });
+};
 
 pgPromiseStrict.connect = function connect(connectParameters){
     // pgPromiseStrict.log('pg.connect');

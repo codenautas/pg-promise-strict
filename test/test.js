@@ -3,13 +3,14 @@
 // WHEN COVER with ONLY DB ONLY DB
 if(process.env.COVER==="odb") return;
 
-var _ = require('lodash');
 var expect = require('expect.js');
 var expectCalled = require('expect-called');
 var pg0 = require('pg');
 var pg = require('..');
 var queryWithEmitter = require('./query-with-emitter.js');
 // var queryWithEmitter = require('../auxiliars/query-with-emitter.js');
+
+var bestGlobals = require('best-globals');
 
 console.warn(pg.poolBalanceControl());
 
@@ -279,7 +280,7 @@ describe('pg-promise-strict', function(){
                     done(new Error('call to '+test.fetchFunctionName+' must raise an error'));
                 }).catch(function(err){
                     expect(err).to.be.a(Error);
-                    var r=test.messagePart instanceof RegExp?test.messagePart:new RegExp(_.escapeRegExp(test.messagePart));
+                    var r=test.messagePart instanceof RegExp?test.messagePart:new RegExp(bestGlobals.escapeRegExp(test.messagePart));
                     expect(err.message).to.match(r);
                     done();
                 }).catch(done).then(function(){

@@ -10,7 +10,6 @@ if(process.versions.node.substr(0,4)!=="0.12" && process.env.TRAVIS) return;
 // WHEN COVER don't continue
 if(process.env.COVER) return;
 
-var _ = require('lodash');
 var expect = require('expect.js');
 var pg0 = require('pg');
 var pg = require('..');

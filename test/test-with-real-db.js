@@ -13,7 +13,7 @@ var colors = require('colors');
 var bestGlobals = require('best-globals');
 var discrepances = require('discrepances');
 var miniTools = require('mini-tools');
-
+var TypeStore = require('type-store');
 console.warn(pg.poolBalanceControl());
 
 describe('pg-promise-strict with real database', function(){
@@ -162,7 +162,7 @@ describe('pg-promise-strict with real database', function(){
                 "do $$ begin "+
                 "create table test_pgps.table1(id integer primary key, text1 text); "+
                 "create table test_pgps.table2(text2 text primary key, int2 integer); "+
-                "create table test_pgps.table3(id3 integer primary key, num3 numeric, dou3 double precision, dat3 date); "+
+                "create table test_pgps.table3(id3 integer primary key, num3 numeric, dou3 double precision, dat3 date, big3 bigint); "+
                 "end$$;",
                 done,
                 "DO"
@@ -263,12 +263,20 @@ describe('pg-promise-strict with real database', function(){
             });
         });
         it("inserting dates", function(done){
-            tipicalExecuteWay("insert into test_pgps.table3 (id3, dat3) values (1,'1999-12-31') returning dat3;",done,"INSERT",{
-                rows:[
-                    //{dat3: new Date("1999-12-31")}
-                    {dat3: bestGlobals.date.iso("1999-12-31")}
-                    // anonymous({dat3: new Date("1999-12-31")})
-                ]
+            tipicalExecuteWay("insert into test_pgps.table3 (id3, dat3) values (1,'1999-12-31') returning dat3, big3;",done,"INSERT",{
+                rows:[{
+                    dat3: bestGlobals.date.iso("1999-12-31"),
+                    big3: null
+                }]
+            })
+        });
+        it("inserting bigint", function(done){
+            var bigIntData='123456789012345678';
+            tipicalExecuteWay("insert into test_pgps.table3 (id3, big3) values (2,'"+bigIntData+"') returning big3,dat3;",done,"INSERT",{
+                rows:[{
+                    big3: TypeStore.bigint.fromString(bigIntData),
+                    dat3: null
+                }]
             })
         });
     });

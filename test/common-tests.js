@@ -1,6 +1,5 @@
 "use strict";
 
-var _ = require('lodash');
 var expect = require('expect.js');
 var expectCalled = require('expect-called');
 var pg0 = require('pg');

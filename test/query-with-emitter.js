@@ -1,8 +1,8 @@
-// var _ = require('lodash');
+"use strict";
+
 var Events = require('events');
 
 module.exports = function queryWithEmitter(rows,fields,finishWithThisError){
-    //var remianingRows = _.clone(rows);
     var remianingRows = rows.slice();
     var emitter = new Events.EventEmitter();
     var endListener=false;
