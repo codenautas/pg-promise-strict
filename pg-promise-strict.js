@@ -24,6 +24,16 @@ pgPromiseStrict.quoteObject=function(insaneName){
     return JSON.stringify(insaneName);
 };
 
+pgPromiseStrict.adaptParameterTypes = function adaptParameterTypes(parameters){
+    return parameters.map(function(value){
+        if(value && value.typeStore){
+            console.log('xxxxxxxxxxxx por aca pase',value);
+            return value.toLiteral();
+        }
+        return value;
+    });
+}
+
 pgPromiseStrict.Client = function Client(connOpts, client, done){
     this.fromPool = connOpts==='pool';
     var self = this;
@@ -37,6 +47,12 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
             return done.apply(client,arguments);
         };
         self.query = function query(){
+            var queryArguments = arguments;
+            if(typeof queryArguments[0] == 'string' && queryArguments[1] instanceof Array){
+                queryArguments[1] = pgPromiseStrict.adaptParameterTypes(queryArguments[1]);
+            }else if(queryArguments[0] instanceof Object && queryArguments[0].values instanceof Array){
+                queryArguments[0] = changing(queryArguments[0], {values:pgPromiseStrict.adaptParameterTypes(queryArguments[0].values)});
+            }
             if(pgPromiseStrict.log){
                 var sql=arguments[0];
                 pgPromiseStrict.log('------');
@@ -53,7 +69,6 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
                 }
                 pgPromiseStrict.log(sql+';');
             }
-            var queryArguments = arguments;
             var returnedQuery = client.query.apply(client,queryArguments);
             return new pgPromiseStrict.Query(returnedQuery, self);
         };
@@ -245,12 +260,10 @@ pgPromiseStrict.setAllTypes = function setAllTypes(){
     var DATE_OID = 1082;
     pgTypes.setTypeParser(DATE_OID, function parseDate(val){
        return bestGlobals.date.iso(val);
-       //return val === null ? null : bestGlobals.date.iso(val);
     });
     var BIGINT_OID = 20;
     pgTypes.setTypeParser(BIGINT_OID, function parseBigInt(val){
-       return TypeStore.bigint.fromString(val);
-       // return val === null ? null : TypeStore.bigint.fromString(val);
+       return TypeStore.type.bigint.fromString(val);
     });
 };
 

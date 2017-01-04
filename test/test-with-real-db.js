@@ -270,14 +270,23 @@ describe('pg-promise-strict with real database', function(){
                 }]
             })
         });
-        it("inserting bigint", function(done){
-            var bigIntData='123456789012345678';
-            tipicalExecuteWay("insert into test_pgps.table3 (id3, big3) values (2,'"+bigIntData+"') returning big3,dat3;",done,"INSERT",{
+        it("inserting big bigint", function(done){
+            var bigIntData="123456789012345678";
+            tipicalExecuteWay("insert into test_pgps.table3 (id3, big3) values (2,$1) returning big3::text,dat3;",done,"INSERT",{
                 rows:[{
-                    big3: TypeStore.bigint.fromString(bigIntData),
+                    big3: bigIntData,
                     dat3: null
                 }]
-            })
+            },null, [TypeStore.type.bigint.fromString(bigIntData)])
+        });
+        it("inserting medium bigint", function(done){
+            var bigIntData="123456789012345";
+            tipicalExecuteWay("insert into test_pgps.table3 (id3, big3) values (3,$1) returning big3,dat3;",done,"INSERT",{
+                rows:[{
+                    big3: TypeStore.type.bigint.fromString(bigIntData),
+                    dat3: null
+                }]
+            },null, [TypeStore.type.bigint.fromString(bigIntData)])
         });
     });
     describe('pool-less connections', function(){
