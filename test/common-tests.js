@@ -79,11 +79,37 @@ describe('pg-promise-strict common tests', function(){
             });
         });
     });
+    describe('service', function(){
+        it("quoteObject", function(){
+            expect(pg.quoteObject("column1")).to.eql('"column1"');
+            expect(pg.quoteObject('column"delta"')).to.eql('"column""delta"""');
+        });
+        it("quoteText", function(){
+            expect(pg.quoteText('hi')).to.eql("'hi'");
+            expect(pg.quoteText("don't")).to.eql("'don''t'");
+        });
+        it("quoteText of null", function(){
+            expect(pg.quoteText(null,{allowNull:true})).to.eql('null');
+        });
+        it("quoteObjectList", function(){
+            expect(pg.quoteObjectList(['one', '"2"'])).to.eql('"one","""2"""');
+        });
+    });
     describe('handle errors', function(){
         it("reject non string object names", function(){
             expect(function(){
                 pg.quoteObject(null);
             }).to.throwError(/name/i);
+        });
+        it("reject non string text", function(){
+            expect(function(){
+                pg.quoteText({},{allowNull:true});
+            }).to.throwError(/not text data/i);
+        });
+        it("reject null text", function(){
+            expect(function(){
+                pg.quoteText(null);
+            }).to.throwError(/null/i);
         });
     });
 });

@@ -191,7 +191,10 @@ describe('pg-promise-strict with real database', function(){
         });
         it("query row by row", function(){
             var accumulate=[];
-            return client.query("select * from test_pgps.table1 /* where id<3 */ order  by id").onRow(function(row){
+            return client.query({
+                text:"select * from test_pgps.table1 where id<$1 order  by id",
+                values:[99]
+            }).onRow(function(row){
                 accumulate.unshift(row);
             }).then(function(){
                 accumulate.reverse();

@@ -17,22 +17,39 @@ pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfD
     }
 };
 
-pgPromiseStrict.quoteObject=function(insaneName){
+pgPromiseStrict.quoteObject=function quoteObject(insaneName){
     if(typeof insaneName!=="string"){
         throw new Error("insaneName");
     }
-    return JSON.stringify(insaneName);
+    return '"'+insaneName.replace(/"/g, '""')+'"';
 };
+
+pgPromiseStrict.quoteObjectList = function quoteObjectList(ObjectList){
+    return ObjectList.map(function(objectName){ return this.quoteObject(objectName); }, this).join(',');
+};
+
+pgPromiseStrict.quoteText=function quoteText(anyTextData, opts){
+    if(anyTextData==null){
+        if(opts && opts.allowNull){
+            return 'null';
+        }else{
+            throw new Error("null in quoteText without opts.allowNull");
+        }
+    }else if(typeof anyTextData!=="string"){
+        throw new Error("not text data");
+    }
+    return "'"+anyTextData.replace(/'/g,"''")+"'";
+};
+
 
 pgPromiseStrict.adaptParameterTypes = function adaptParameterTypes(parameters){
     return parameters.map(function(value){
         if(value && value.typeStore){
-            console.log('xxxxxxxxxxxx por aca pase',value);
             return value.toLiteral();
         }
         return value;
     });
-}
+};
 
 pgPromiseStrict.Client = function Client(connOpts, client, done){
     this.fromPool = connOpts==='pool';
@@ -47,20 +64,25 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
             return done.apply(client,arguments);
         };
         self.query = function query(){
-            var queryArguments = arguments;
-            if(typeof queryArguments[0] == 'string' && queryArguments[1] instanceof Array){
-                queryArguments[1] = pgPromiseStrict.adaptParameterTypes(queryArguments[1]);
+            var queryArguments = Array.prototype.slice.call(arguments);
+            var queryText;
+            var queryValues;
+            if(typeof queryArguments[0] === 'string' && queryArguments[1] instanceof Array){
+                queryText = queryArguments[0];
+                queryValues = queryArguments[1] = pgPromiseStrict.adaptParameterTypes(queryArguments[1]);
             }else if(queryArguments[0] instanceof Object && queryArguments[0].values instanceof Array){
-                queryArguments[0] = changing(queryArguments[0], {values:pgPromiseStrict.adaptParameterTypes(queryArguments[0].values)});
+                queryText = queryArguments[0].text;
+                queryValues = pgPromiseStrict.adaptParameterTypes(queryArguments[0].values);
+                queryArguments[0].values = queryValues;
             }
             if(pgPromiseStrict.log){
-                var sql=arguments[0];
+                var sql=queryArguments[0];
                 pgPromiseStrict.log('------');
-                if(arguments[1]){
+                if(queryArguments[1]){
                     pgPromiseStrict.log('-- '+sql);
-                    pgPromiseStrict.log('-- '+JSON.stringify(arguments[1]));
-                    for(var i=1; i<=arguments[1].length; i++){
-                        var valor=arguments[1][i-1];
+                    pgPromiseStrict.log('-- '+JSON.stringify(queryArguments[1]));
+                    for(var i=1; i<=queryArguments[1].length; i++){
+                        var valor=queryArguments[1][i-1];
                         if(typeof valor === 'string'){
                             valor="'"+valor.replace(/'/g,"''")+"'";
                         }
