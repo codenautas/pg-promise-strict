@@ -25,7 +25,7 @@
     
     "discrepances": "~0.0.14",
     "mini-tools": "~0.3.9",
-    "type-store": "~0.0.5"
+    "type-store": "~0.0.6"
   },
   "main": "pg-promise-strict.js",
   "engines": {

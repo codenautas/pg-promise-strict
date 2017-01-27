@@ -283,10 +283,14 @@ pgPromiseStrict.setAllTypes = function setAllTypes(){
     pgTypes.setTypeParser(DATE_OID, function parseDate(val){
        return bestGlobals.date.iso(val);
     });
-    var BIGINT_OID = 20;
-    pgTypes.setTypeParser(BIGINT_OID, function parseBigInt(val){
-       return TypeStore.type.bigint.fromString(val);
-    });
+    for(var typeName in TypeStore.type){
+        var typeDef = TypeStore.type[typeName];
+        if(typeDef.pgSpecialParse){
+            pgTypes.setTypeParser(typeDef.pg_OID, function(val){
+               return typeDef.fromString(val);
+            });
+        }
+    }
 };
 
 pgPromiseStrict.connect = function connect(connectParameters){
