@@ -1,0 +1,4 @@
+--globals json4allRegisteredTypes
+--check-leaks
+--es_staging
+--throw-deprecation

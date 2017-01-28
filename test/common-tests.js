@@ -1,5 +1,6 @@
 "use strict";
 
+var assert = require('assert');
 var expect = require('expect.js');
 var expectCalled = require('expect-called');
 var pg0 = require('pg');
