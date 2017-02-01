@@ -229,6 +229,9 @@ pgPromiseStrict.Query = function Query(query, client){
         var adapter = pgPromiseStrict.queryAdapters[adapterName||'normal'];
         return new Promise(function(resolve, reject){
             query.on('error',function(err){
+                if(pgPromiseStrict.log){
+                    pgPromiseStrict.log('--ERROR! '+err.code+', '+err.message, true);
+                }
                 reject(err);
             });
             query.on('row',function(row, result){
