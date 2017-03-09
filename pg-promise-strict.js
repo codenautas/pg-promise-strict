@@ -4,8 +4,9 @@ var pgPromiseStrict = {};
 
 var fs = require('fs-promise');
 var pg = require('pg');
-var pgTypes = require('pg').types;
+var pgTypes = pg.types;
 var util = require('util');
+var likeAr = require('like-ar');
 
 var bestGlobals = require('best-globals');
 
@@ -81,13 +82,12 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
                 if(queryArguments[1]){
                     pgPromiseStrict.log('-- '+sql);
                     pgPromiseStrict.log('-- '+JSON.stringify(queryArguments[1]));
-                    for(var i=1; i<=queryArguments[1].length; i++){
-                        var valor=queryArguments[1][i-1];
-                        if(typeof valor === 'string'){
-                            valor="'"+valor.replace(/'/g,"''")+"'";
+                    queryArguments[1].forEach(function(value, i){
+                        if(typeof value === 'string'){
+                            value="'"+value.replace(/'/g,"''")+"'";
                         }
-                        sql=sql.replace(new RegExp('\\$'+i+'\\b'), valor);
-                    }
+                        sql=sql.replace(new RegExp('\\$'+i+'\\b'), value);
+                    });
                 }
                 pgPromiseStrict.log(sql+';');
             }
@@ -286,14 +286,13 @@ pgPromiseStrict.setAllTypes = function setAllTypes(){
     pgTypes.setTypeParser(DATE_OID, function parseDate(val){
        return bestGlobals.date.iso(val);
     });
-    for(var typeName in TypeStore.type){
-        var typeDef = TypeStore.type[typeName];
+    likeAr(TypeStore.type).forEach(function(typeDef, typeName){
         if(typeDef.pgSpecialParse){
             pgTypes.setTypeParser(typeDef.pg_OID, function(val){
                return typeDef.fromString(val);
             });
         }
-    }
+    });
 };
 
 pgPromiseStrict.connect = function connect(connectParameters){
@@ -315,11 +314,11 @@ pgPromiseStrict.connect = function connect(connectParameters){
 pgPromiseStrict.poolBalanceControl = function poolBalanceControl(){
     var rta=[];
     if(pgPromiseStrict.debug.pool){
-        for(var key in pgPromiseStrict.debug.pool){
-            if(pgPromiseStrict.debug.pool[key].count){
-                rta.push('pgPromiseStrict.debug.pool unbalanced connection '+util.inspect(pgPromiseStrict.debug.pool[key]));
+        likeAr(pgPromiseStrict.debug.pool).forEach(function(pool){
+            if(pool.count){
+                rta.push('pgPromiseStrict.debug.pool unbalanced connection '+util.inspect(pool));
             }
-        }
+        });
     }
     return rta.join('\n');
 };

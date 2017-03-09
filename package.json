@@ -11,9 +11,10 @@
   }],
   "dependencies": {
     "fs-promise": "~2.0.0",
-    "pg": "~6.1.2",
+    "pg": "~6.1.3",
     
-    "best-globals": "~0.7.1"
+    "best-globals": "~0.7.1",
+    "like-ar": "~0.0.1"
   },
   "devDependencies": {
     "colors": "~1.1.2",
@@ -24,8 +25,8 @@
     "mocha": "~3.2.0",
     
     "discrepances": "~0.0.14",
-    "mini-tools": "~0.3.11",
-    "type-store": "~0.0.9"
+    "mini-tools": "~0.3.12",
+    "type-store": "~0.0.10"
   },
   "main": "pg-promise-strict.js",
   "engines": {
