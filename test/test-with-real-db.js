@@ -119,8 +119,6 @@ describe('pg-promise-strict with real database', function(){
         function tipicalExecuteWay(queryText,done,commandExpected,resultExpected,functionName,params){
             pg.easy=false;
             return client.query(queryText,params)[functionName||"execute"]().then(function(result){
-                console.log('================');
-                console.log(result);
                 if(resultExpected){
                     for(var attr in resultExpected){
                         expect([attr,result[attr]]).to.eql([attr,resultExpected[attr]]);
@@ -284,27 +282,14 @@ describe('pg-promise-strict with real database', function(){
                 }]
             },null, [TypeStore.type.bigint.fromString(bigIntData)])
         });
-        it.only("inserting medium bigint", function(done){
-            tipicalExecuteWay(
-                "do $$ begin "+
-                "drop table if exists test_pgps.table3; "+
-                "drop table if exists test_pgps.table2; "+
-                "drop table if exists test_pgps.table1; "+
-                "create table test_pgps.table1(id integer primary key, text1 text); "+
-                "create table test_pgps.table2(text2 text primary key, int2 integer); "+
-                "create table test_pgps.table3(id3 integer primary key, num3 numeric, dou3 double precision, dat3 date, big3 bigint); "+
-                "end$$;",
-                function(){
-                    var bigIntData="123456789012341";
-                    tipicalExecuteWay("insert into test_pgps.table3 (id3, big3) values (3,$1) returning big3,dat3;",done,"INSERT",{
-                        rows:[{
-                            big3: Number(bigIntData),
-                            dat3: null
-                        }]
-                    },null, [Number(bigIntData)])
-                },
-                "DO"
-            ).then();
+        it("inserting medium bigint", function(done){
+            var bigIntData="123456789012341";
+            tipicalExecuteWay("insert into test_pgps.table3 (id3, big3) values (3,$1) returning big3,dat3;",done,"INSERT",{
+                rows:[{
+                    big3: Number(bigIntData),
+                    dat3: null
+                }]
+            },null, [Number(bigIntData)])
         });
     });
     describe('pool-less connections', function(){

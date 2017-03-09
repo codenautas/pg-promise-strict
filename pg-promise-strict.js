@@ -86,7 +86,7 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
                         if(typeof value === 'string'){
                             value="'"+value.replace(/'/g,"''")+"'";
                         }
-                        sql=sql.replace(new RegExp('\\$'+i+'\\b'), value);
+                        sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'), value);
                     });
                 }
                 pgPromiseStrict.log(sql+';');
