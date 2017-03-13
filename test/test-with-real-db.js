@@ -1,7 +1,7 @@
 "use strict";
 
-// IN TRAVIS-CI ONLY TEST WITH REAL DB IN ONE VERSION 0.12
-if(process.versions.node.substr(0,4)!=="0.12" && process.env.TRAVIS) return;
+// // IN TRAVIS-CI ONLY TEST WITH REAL DB IN ONE VERSION 0.12
+// if(process.versions.node.substr(0,4)!=="0.12" && process.env.TRAVIS) return;
 
 // WHEN COVER with NO DB NO DB
 if(process.env.COVER==="ndb") return;

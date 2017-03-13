@@ -9,8 +9,13 @@ var util = require('util');
 var likeAr = require('like-ar');
 
 var bestGlobals = require('best-globals');
+var changing = bestGlobals.changing;
 
 pgPromiseStrict.debug={};
+
+pgPromiseStrict.defaults={
+    releaseTimeout:{inactive:60000, connection:600000}
+}
 
 pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfDebugging(self, internals){
     if(pgPromiseStrict.debug[self.constructor.name]){
@@ -52,19 +57,56 @@ pgPromiseStrict.adaptParameterTypes = function adaptParameterTypes(parameters){
     });
 };
 
-pgPromiseStrict.Client = function Client(connOpts, client, done){
+pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions){
     this.fromPool = connOpts==='pool';
     var self = this;
+    if(this.fromPool){
+        self.opts=specificOptions;
+        self.lastOperationTimestamp = new Date().getTime();
+        self.lastConnectionTimestamp = self.lastOperationTimestamp;
+        /* DOING
+        if(self.opts.timeoutController){
+            cancelTimeout(self.timeoutController);
+        }
+        self.timeoutController = setInterval(function(){
+            // console.log('zzzzzzzzzzzzz',new Date().getTime() - self.lastOperationTimestamp, self.opts.releaseTimeout.inactive)
+            if(new Date().getTime() - self.lastOperationTimestamp  > self.opts.releaseTimeout.inactive
+            || new Date().getTime() - self.lastConnectionTimestamp > self.opts.releaseTimeout.connection
+            ){
+                self.done();
+            }
+        },Math.min(1000,self.opts.releaseTimeout.inactive/4));
+        */
+    }
     var assignFunctionsPostConnect = function assignFunctionsPostConnect(){
         // existing functions
         self.done = function(){
+            console.log('xxxxx DONE',new Date().getTime() - self.lastOperationTimestamp)
             // pgPromiseStrict.log('Client.done');
+            if(!client){
+                throw new Error("pg-promise-strict client already done");
+            }
             if(pgPromiseStrict.debug.pool){
                 pgPromiseStrict.debug.pool[client.secretKey].count--;
             }
+            var clientToDone=client;
+            client=null;
             return done.apply(client,arguments);
         };
         self.query = function query(){
+            if(!client){
+                var rejecter = {};
+                // var rejection = function(){Promise.reject(new Error("pg-promise-strict the client was released"));};
+                var rejection = Promise.reject(new Error("pg-promise-strict the client was released"));
+                [{name:'then'},{name:'catch'}].concat(easiers).forEach(function(easierDef){
+                    rejecter[easierDef.name] = function(){
+                        return rejection;
+                    }
+                });
+                console.log('xxxxxxxx the rejecter', rejecter)
+                return rejecter;
+            }
+            self.lastOperationTimestamp = new Date().getTime();
             var queryArguments = Array.prototype.slice.call(arguments);
             var queryText;
             var queryValues;
@@ -108,6 +150,7 @@ pgPromiseStrict.Client = function Client(connOpts, client, done){
         }
         assignFunctionsPostConnect();
     }else{
+        console.log('xxxxxxxxxxxx CLIENT',connOpts)
         // pgPromiseStrict.log('new Client');
         client = new pg.Client(connOpts);
         pgPromiseStrict.allowAccessInternalIfDebugging(self, {client:client, pool:false});
@@ -214,6 +257,24 @@ pgPromiseStrict.queryAdapters = {
     })
 };
 
+var easiers=[
+    {name:'execute'             , funName:'execute'},
+    {name:'fetchOneRowIfExists' , funName:'execute', binding:'upto1' },
+    {name:'fetchUniqueRow'      , funName:'execute', binding:'row'   },
+    {name:'fetchUniqueValue'    , funName:'execute', binding:'value' },
+    {name:'fetchAll'            , funName:'execute', binding:'normal'},
+    {name:'fetchRowByRow'       , fun: function fetchRowByRow(callback){
+        // pgPromiseStrict.log('Query.onRow');
+        if(!(callback instanceof Function)){
+            var err=new Error('fetchRowByRow must receive a callback that executes for each row');
+            err.code='39004!';
+            return Promise.reject(err);
+        }
+        return this.execute(callback);
+    }},
+    {name:'onRow'              , funName:'fetchRowByRow'}
+]
+
 pgPromiseStrict.Query = function Query(query, client){
     var self = this;
     pgPromiseStrict.allowAccessInternalIfDebugging(self, {query: query, client:client});
@@ -251,20 +312,15 @@ pgPromiseStrict.Query = function Query(query, client){
         });
     };
     // new functions
-    this.fetchOneRowIfExists = this.execute.bind(this,'upto1');
-    this.fetchUniqueRow      = this.execute.bind(this,'row');
-    this.fetchUniqueValue    = this.execute.bind(this,'value');
-    this.fetchAll            = this.execute.bind(this,'normal');
-    this.fetchRowByRow       = function fetchRowByRow(callback){
-        // pgPromiseStrict.log('Query.onRow');
-        if(!(callback instanceof Function)){
-            var err=new Error('fetchRowByRow must receive a callback that executes for each row');
-            err.code='39004!';
-            return Promise.reject(err);
+    easiers.forEach(function(easierDef){
+        if(easierDef.binding){
+            self[easierDef.name] = self[easierDef.funName].bind(self,easierDef.binding);
+        }else if(easierDef.fun){
+            self[easierDef.name] = easierDef.fun
+        }else{
+            self[easierDef.name] = self[easierDef.funName];
         }
-        return this.execute(callback);
-    };
-    this.onRow = this.fetchRowByRow;
+    });
     /* why this then function is needed?
      *   pg.Client.query is synchronic (not need to receive a callback function) then not need to return a Promise
      *   but pg-promise-strict always returns a "theneable". Then "then" is here. 
@@ -301,11 +357,15 @@ pgPromiseStrict.connect = function connect(connectParameters){
         pgPromiseStrict.setAllTypes();
     }
     return new Promise(function(resolve, reject){
-        pg.connect(connectParameters, function(err, client, done){
+        var pgConnectParameters = changing(connectParameters,{releaseTimeout:undefined},changing.options({deletingValue:undefined}));
+        var pgConnectParameters = connectParameters;
+        pg.connect(pgConnectParameters, function(err, client, done){
             if(err){
                 reject(err);
             }else{
-                resolve(new pgPromiseStrict.Client('pool', client, done));
+                resolve(new pgPromiseStrict.Client('pool', client, done /*, DOING {
+                    releaseTimeout: changing(pgPromiseStrict.defaults.releaseTimeout,connectParameters.releaseTimeout||{})
+                }*/));
             }
         });
     });

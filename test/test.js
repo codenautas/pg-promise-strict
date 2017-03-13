@@ -18,6 +18,8 @@ pg.debug.pool=true;
 
 describe('pg-promise-strict', function(){
     var connectParams = {mockConnection: 'example'};
+    var connectParamsExpected = connectParams;
+    //var connectParamsExpected = {mockConnection: 'example'};
     var lastDoneValuePassedToDone = null;
     var clientInternal = {mockClient: 'example of client', query:function(){ throw new Error('you must mock this!');}};
     var doneInternal = function doneInternal(){ lastDoneValuePassedToDone=arguments; };
@@ -34,7 +36,7 @@ describe('pg-promise-strict', function(){
                 expect(client.internals.client).to.be(clientInternal);
                 expect(client.internals.done).to.be(doneInternal);
                 expect(pg0connectControl.calls.length).to.be(1);
-                expect(pg0connectControl.calls[0][0]).to.be(connectParams);
+                expect(pg0connectControl.calls[0][0]).to.be(connectParamsExpected);
                 expect(pg.poolBalanceControl().length>0).to.be.ok();
                 client.done(1);
                 expect(lastDoneValuePassedToDone[0]).to.eql(1);

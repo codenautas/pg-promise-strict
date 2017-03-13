@@ -1,7 +1,7 @@
 {
   "name": "pg-promise-strict",
   "description": "postgresql with strict interpretation of promises",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/pg-promise-strict",
@@ -34,6 +34,7 @@
   },
   "scripts": {
     "test": "mocha --reporter spec --bail --check-leaks test/",
+    "try-t": "mocha --reporter spec --bail --check-leaks test/trying-timeout.js",
     "test-odb": "set COVER=odb&&mocha --reporter spec --bail --check-leaks test/",
     "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
     "test-cov":     "set COVER=all&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
