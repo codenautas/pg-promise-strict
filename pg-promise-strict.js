@@ -81,7 +81,6 @@ pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions
     var assignFunctionsPostConnect = function assignFunctionsPostConnect(){
         // existing functions
         self.done = function(){
-            console.log('xxxxx DONE',new Date().getTime() - self.lastOperationTimestamp)
             // pgPromiseStrict.log('Client.done');
             if(!client){
                 throw new Error("pg-promise-strict client already done");
@@ -103,7 +102,6 @@ pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions
                         return rejection;
                     }
                 });
-                console.log('xxxxxxxx the rejecter', rejecter)
                 return rejecter;
             }
             self.lastOperationTimestamp = new Date().getTime();
@@ -150,7 +148,6 @@ pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions
         }
         assignFunctionsPostConnect();
     }else{
-        console.log('xxxxxxxxxxxx CLIENT',connOpts)
         // pgPromiseStrict.log('new Client');
         client = new pg.Client(connOpts);
         pgPromiseStrict.allowAccessInternalIfDebugging(self, {client:client, pool:false});
