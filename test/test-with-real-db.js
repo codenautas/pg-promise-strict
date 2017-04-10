@@ -122,12 +122,7 @@ describe('pg-promise-strict with real database', function(){
                 if(resultExpected){
                     for(var attr in resultExpected){
                         expect([attr,result[attr]]).to.eql([attr,resultExpected[attr]]);
-                        var dis = discrepances(result[attr],resultExpected[attr]);
-                        if(dis){
-                            console.log('discrepances in',attr);
-                            console.dir(dis, {depth:8});
-                        }
-                        expect(dis).to.not.be.ok();
+                        discrepances.showAndThrow(result[attr],resultExpected[attr]);
                     }
                 }else{
                     expect(result.rowCount).to.not.be.ok();
