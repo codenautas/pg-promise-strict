@@ -120,8 +120,8 @@ pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions
                 var sql=queryArguments[0];
                 pgPromiseStrict.log('------');
                 if(queryArguments[1]){
-                    pgPromiseStrict.log('-- '+sql);
-                    pgPromiseStrict.log('-- '+JSON.stringify(queryArguments[1]));
+                    pgPromiseStrict.log('-- '+sql,'QUERY-P');
+                    pgPromiseStrict.log('-- '+JSON.stringify(queryArguments[1]),'QUERY-A');
                     queryArguments[1].forEach(function(value, i){
                         if(typeof value === 'string'){
                             value="'"+value.replace(/'/g,"''")+"'";
@@ -129,7 +129,7 @@ pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions
                         sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'), value);
                     });
                 }
-                pgPromiseStrict.log(sql+';');
+                pgPromiseStrict.log(sql+';','QUERY');
             }
             var returnedQuery = client.query.apply(client,queryArguments);
             return new pgPromiseStrict.Query(returnedQuery, self);
@@ -288,7 +288,7 @@ pgPromiseStrict.Query = function Query(query, client){
         return new Promise(function(resolve, reject){
             query.on('error',function(err){
                 if(pgPromiseStrict.log){
-                    pgPromiseStrict.log('--ERROR! '+err.code+', '+err.message, true);
+                    pgPromiseStrict.log('--ERROR! '+err.code+', '+err.message, 'ERROR');
                 }
                 reject(err);
             });
@@ -367,6 +367,22 @@ pgPromiseStrict.connect = function connect(connectParameters){
         });
     });
 };
+
+pgPromiseStrict.logLastError = function logLastError(message, messageType){
+    if(messageType){
+        if(messageType=='ERROR'){
+            console.log('PG-ERROR',message)
+            for(var attr in pgPromiseStrict.logLastError.receivedMessages){
+                console.log(attr, pgPromiseStrict.logLastError.receivedMessages[attr]);
+            }
+            pgPromiseStrict.logLastError.receivedMessages = {};
+        }else{
+            pgPromiseStrict.logLastError.receivedMessages[messageType] = message;
+        }
+    }
+}
+
+pgPromiseStrict.logLastError.receivedMessages={};
 
 pgPromiseStrict.poolBalanceControl = function poolBalanceControl(){
     var rta=[];
