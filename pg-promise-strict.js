@@ -15,7 +15,7 @@ pgPromiseStrict.debug={};
 
 pgPromiseStrict.defaults={
     releaseTimeout:{inactive:60000, connection:600000}
-}
+};
 
 pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfDebugging(self, internals){
     if(pgPromiseStrict.debug[self.constructor.name]){
@@ -100,7 +100,7 @@ pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions
                 [{name:'then'},{name:'catch'}].concat(easiers).forEach(function(easierDef){
                     rejecter[easierDef.name] = function(){
                         return rejection;
-                    }
+                    };
                 });
                 return rejecter;
             }
@@ -270,7 +270,7 @@ var easiers=[
         return this.execute(callback);
     }},
     {name:'onRow'              , funName:'fetchRowByRow'}
-]
+];
 
 pgPromiseStrict.Query = function Query(query, client){
     var self = this;
@@ -313,7 +313,7 @@ pgPromiseStrict.Query = function Query(query, client){
         if(easierDef.binding){
             self[easierDef.name] = self[easierDef.funName].bind(self,easierDef.binding);
         }else if(easierDef.fun){
-            self[easierDef.name] = easierDef.fun
+            self[easierDef.name] = easierDef.fun;
         }else{
             self[easierDef.name] = self[easierDef.funName];
         }
@@ -354,7 +354,7 @@ pgPromiseStrict.connect = function connect(connectParameters){
         pgPromiseStrict.setAllTypes();
     }
     return new Promise(function(resolve, reject){
-        var pgConnectParameters = changing(connectParameters,{releaseTimeout:undefined},changing.options({deletingValue:undefined}));
+        // var pgConnectParameters = changing(connectParameters,{releaseTimeout:undefined},changing.options({deletingValue:undefined}));
         var pgConnectParameters = connectParameters;
         pg.connect(pgConnectParameters, function(err, client, done){
             if(err){
@@ -371,16 +371,19 @@ pgPromiseStrict.connect = function connect(connectParameters){
 pgPromiseStrict.logLastError = function logLastError(message, messageType){
     if(messageType){
         if(messageType=='ERROR'){
-            console.log('PG-ERROR',message)
+            console.log('PG-ERROR',message);
+            /*jshint forin:false */
             for(var attr in pgPromiseStrict.logLastError.receivedMessages){
                 console.log(attr, pgPromiseStrict.logLastError.receivedMessages[attr]);
             }
+            /*jshint forin:true */
+            /*eslint guard-for-in: 0*/
             pgPromiseStrict.logLastError.receivedMessages = {};
         }else{
             pgPromiseStrict.logLastError.receivedMessages[messageType] = message;
         }
     }
-}
+};
 
 pgPromiseStrict.logLastError.receivedMessages={};
 
