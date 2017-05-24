@@ -350,7 +350,7 @@ pgPromiseStrict.setAllTypes = function setAllTypes(){
 
 pgPromiseStrict.connect = function connect(connectParameters){
     // pgPromiseStrict.log('pg.connect');
-    if(pgPromiseStrict.easy && !allTypes){
+    if(pgPromiseStrict.easy && allTypes){
         pgPromiseStrict.setAllTypes();
     }
     return new Promise(function(resolve, reject){
