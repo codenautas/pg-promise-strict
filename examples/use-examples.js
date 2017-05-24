@@ -13,7 +13,7 @@ var conOpts = {
     password: 'test_pass',
     database: 'test_db',
     host: 'localhost',
-    port: 5432
+    port: 5435
 };
 
 pg.connect(conOpts).then(function(client){

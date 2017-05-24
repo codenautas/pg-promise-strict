@@ -53,11 +53,12 @@ var conOpts = {
 };
 
 pg.connect(conOpts).then(function(client){
-    return client.query('select * from table');
+    return client.query('select * from table').execute();
 }).then(function(result){
     for(var i=0; i<result.rowCount; i++){
-        console.log('row',i,result.row[i]);
+        console.log('row',i,result.rows[i]);
     }
+    result.client.done();
 }).catch(function(err){
     console.log('ERROR',err);
 });
@@ -77,13 +78,11 @@ pg.easy = true;
 var conString = "postgres://username:password@localhost/database";
 
 pg.connect(conString).then(function(client){
-    return client.query('SELECT $1::int AS number', ['1']);
-}).then(function(result)){
+    return client.query('SELECT $1::int AS number', ['1']).execute();
+}).then(function(result){
     console.log(result.rows[0].number);
-}).catch(err){
-    return console.error('error fetching client from pool or running query', err);
-}).then(function(){
-    client.done(); // original done function of callback of PG.connect
+}).catch(function(err){
+    console.error('error fetching client from pool or running query', err);
 });
 ```
 
@@ -112,7 +111,7 @@ client.connect().then(function(client){
 }).then(function(result){
     console.log(result.rows[0].theTime);
     console.log(row.name);
-    client.end();
+    result.client.done();
 }).catch(function(err){
     return console.error('error connecting or running query', err);
 });
@@ -130,14 +129,20 @@ This is the way for process data row by row
 
 ```js
 pg.connect({user: 'brianc', database: 'test'}).then(function(client){
-    client.query("SELECT name FROM users").onRow(function(row){
+    return client.query("SELECT name FROM users").onRow(function(row){
         console.log(row.name);
     }).then(function(result){
         console.log('ready.',result.rowCount,'rows processed');
-        client.done();
+        result.client.done();
     });
 });
 ```
+
+
+# Running the examples
+
+In the `examples` directory the `create_db.sql` script can be used to create de test database.
+In the same directory there are the example slightly modified.
 
 
 # Running tests
