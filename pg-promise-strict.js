@@ -371,13 +371,25 @@ pgPromiseStrict.connect = function connect(connectParameters){
 pgPromiseStrict.logLastError = function logLastError(message, messageType){
     if(messageType){
         if(messageType=='ERROR'){
+            console.log('PG-ERROR pgPromiseStrict.logLastError.inFileName',pgPromiseStrict.logLastError.inFileName);
             console.log('PG-ERROR',message);
-            /*jshint forin:false */
-            for(var attr in pgPromiseStrict.logLastError.receivedMessages){
-                console.log(attr, pgPromiseStrict.logLastError.receivedMessages[attr]);
+            if(pgPromiseStrict.logLastError.inFileName){
+                var lines=['PG-ERROR '+message];
+                /*jshint forin:false */
+                for(var attr in pgPromiseStrict.logLastError.receivedMessages){
+                    lines.push("------- "+attr+":\n"+pgPromiseStrict.logLastError.receivedMessages[attr]);
+                }
+                /*jshint forin:true */
+                /*eslint guard-for-in: 0*/
+                fs.writeFile(pgPromiseStrict.logLastError.inFileName,lines.join('\n'));
+            }else{
+                /*jshint forin:false */
+                for(var attr in pgPromiseStrict.logLastError.receivedMessages){
+                    console.log(attr, pgPromiseStrict.logLastError.receivedMessages[attr]);
+                }
+                /*jshint forin:true */
+                /*eslint guard-for-in: 0*/
             }
-            /*jshint forin:true */
-            /*eslint guard-for-in: 0*/
             pgPromiseStrict.logLastError.receivedMessages = {};
         }else{
             pgPromiseStrict.logLastError.receivedMessages[messageType] = message;
