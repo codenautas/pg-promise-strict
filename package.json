@@ -1,7 +1,7 @@
 {
   "name": "pg-promise-strict",
   "description": "postgresql with strict interpretation of promises",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/pg-promise-strict",
@@ -11,37 +11,36 @@
   }],
   "dependencies": {
     "fs-promise": "~2.0.3",
-    "pg": "~6.4.0",
+    "pg": "~7.1.2",
     
-    "best-globals": "~0.8.1",
-    "like-ar": "~0.2.0"
+    "best-globals": "~0.9.15",
+    "like-ar": "~0.2.1"
   },
   "devDependencies": {
     "colors": "~1.1.2",
-    "expect-called": "~0.4.0",
     "expect.js": "~0.3.1",
     "istanbul": "~0.4.5",
-    "mocha": "~3.4.2",
+    "mocha": "~3.5.0",
     
-    "discrepances": "~0.1.3",
-    "mini-tools": "~0.3.16",
-    "type-store": "~0.1.5"
+    "discrepances": "~0.1.4",
+    "mini-tools": "~0.3.17",
+    "type-store": "~0.1.12"
   },
   "optionalDependencies": {
-    "type-store": "~0.1.5"
+    "type-store": "~0.1.12"
   },
   "main": "pg-promise-strict.js",
   "engines": {
-    "node": ">= 0.12"
+    "node": ">= 4.4"
   },
   "scripts": {
     "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test-real": "mocha --reporter spec --bail --check-leaks test/test-with-real-db.js",
+    "test-intensive": "mocha --reporter spec --bail --check-leaks test/intensive-tests.js",
+    "test-common": "mocha --reporter spec --bail --check-leaks test/common-tests.js",
     "try-t": "mocha --reporter spec --bail --check-leaks test/trying-timeout.js",
-    "test-odb": "set COVER=odb&&mocha --reporter spec --bail --check-leaks test/",
-    "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
-    "test-cov":     "set COVER=all&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
-    "test-cov-odb": "set COVER=odb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
-    "test-cov-ndb": "set COVER=ndb&& istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "test-ci":  "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
     "start": "node examples/use-examples.js"
   },
   "qa-control": {

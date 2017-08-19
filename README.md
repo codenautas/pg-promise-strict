@@ -23,7 +23,7 @@ also available in:
 
 PG Promise/A+ in the strict way:
  * The same functions, with the same name and same retunrs that in PG, but without callbacks
- * covers 100% by test in two groups: test with real database (postgresql 9.3) and test with mock functions. Each group covers 100% the code. It means that we have **2 × 100% of coverage**.
+ * covers 100% by test.
  * No reimplement nothing that PG does
  * Some [additions](docs/additions.md) for comfort
 

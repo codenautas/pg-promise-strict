@@ -131,7 +131,11 @@ pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions
                 }
                 pgPromiseStrict.log(sql+';','QUERY');
             }
-            var returnedQuery = client.query.apply(client,queryArguments);
+            //var returnedQuery = client.query.apply(client,queryArguments);
+            // var returnedQuery = client.query(new pg.Query(queryArguments));
+            // console.log('xxxxxxx queryArguments',queryArguments, arguments);
+            // var returnedQuery = client.query(new (Function.prototype.bind.apply(pg.Query, queryArguments)));
+            var returnedQuery = client.query(new pg.Query(queryArguments[0], queryArguments[1]));
             return new pgPromiseStrict.Query(returnedQuery, self);
         };
     };
@@ -293,6 +297,7 @@ pgPromiseStrict.Query = function Query(query, client){
                 reject(err);
             });
             query.on('row',function(row, result){
+                // console.log('xxxxxxxxxxxxx row', row, result);
                 if(callbackForEachRow){
                     callbackForEachRow(row, result);
                 }else{
@@ -306,6 +311,7 @@ pgPromiseStrict.Query = function Query(query, client){
                 }
                 adapter(result, resolve, reject);
             });
+            // console.log('xxxxxx ok adapted');
         });
     };
     // new functions
@@ -348,15 +354,18 @@ pgPromiseStrict.setAllTypes = function setAllTypes(){
     });
 };
 
+var pools = {};
+
 pgPromiseStrict.connect = function connect(connectParameters){
     // pgPromiseStrict.log('pg.connect');
     if(pgPromiseStrict.easy && allTypes){
         pgPromiseStrict.setAllTypes();
     }
     return new Promise(function(resolve, reject){
-        // var pgConnectParameters = changing(connectParameters,{releaseTimeout:undefined},changing.options({deletingValue:undefined}));
-        var pgConnectParameters = connectParameters;
-        pg.connect(pgConnectParameters, function(err, client, done){
+        var idConnectParameters = JSON.stringify(connectParameters);
+        var pool = pools[idConnectParameters]||new pg.Pool(connectParameters);
+        pools[idConnectParameters] = pool;
+        pool.connect(function(err, client, done){
             if(err){
                 reject(err);
             }else{
@@ -384,8 +393,8 @@ pgPromiseStrict.logLastError = function logLastError(message, messageType){
                 fs.writeFile(pgPromiseStrict.logLastError.inFileName,lines.join('\n'));
             }else{
                 /*jshint forin:false */
-                for(var attr in pgPromiseStrict.logLastError.receivedMessages){
-                    console.log(attr, pgPromiseStrict.logLastError.receivedMessages[attr]);
+                for(var attr2 in pgPromiseStrict.logLastError.receivedMessages){
+                    console.log(attr2, pgPromiseStrict.logLastError.receivedMessages[attr2]);
                 }
                 /*jshint forin:true */
                 /*eslint guard-for-in: 0*/

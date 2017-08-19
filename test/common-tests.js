@@ -2,80 +2,70 @@
 
 var assert = require('assert');
 var expect = require('expect.js');
-var expectCalled = require('expect-called');
 var pg0 = require('pg');
 var pg = require('..');
 var queryWithEmitter = require('./query-with-emitter.js');
 
+var MiniTools = require('mini-tools');
+
 describe('pg-promise-strict common tests', function(){
-    var connectParams = {mockConnection: 'example'};
-    var lastDoneValuePassedToDone = null;
-    var clientInternal = {mockClient: 'example of client', query:function(){ throw new Error('you must mock this!');}};
-    var doneInternal = function doneInternal(){ lastDoneValuePassedToDone=arguments; };
+    var connectParams = {
+        user: 'test_user',
+        password: 'test_pass',
+        database: 'test_db',
+        host: 'localhost',
+        port: 5432
+    }
+    var client;
+    var poolLog;
+    before(function(done){
+        pg.setAllTypes();
+        pg.easy=true;
+        MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+            return pg.connect(config.db);
+        }).then(function(returnedClient){
+            // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
+            pg.easy=false;
+            client = returnedClient;
+            done();
+        });
+    });
+    after(function(){
+        client.done();
+    });
     describe('internal controls', function(){
-        var client;
-        var pg0connectControl;
-        before(function(done){
-            pg0connectControl = expectCalled.control(pg0,'connect',{mocks:[
-                function(conn, callback){ callback(null,clientInternal,doneInternal); }
-            ]});
-            pg.debug.Client=true;
-            pg.connect(connectParams).then(function(returnedClient){
-                client = returnedClient;
-                pg.debug.Client=false;
-                done();
-            });
-        });
-        after(function(){
-            pg0connectControl.stopControl();
-            client.done();
-        });
-        it('control the parameters of the execute function',function(done){
-            var queryInternal = {mockQuery: 'example of query mock'};
-            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
-                queryInternal
-            ]});
-            client.query().execute('one value', 'other value').then(function(result){
+        it('control the parameters of the execute function',function(){
+            return client.query("SELECT 1").execute('one value', 'other value').then(function(result){
                 done(new Error('must reject the parameters'));
             }).catch(function(err){
                 expect(err.message).to.match(/must receive/);
-                done();
-            }).catch(done).then(function(){
-                clientInternalControl.stopControl();
             });
         });
-        it('control the log',function(done){
-            var resultExpected = [["the result"]];
-            var queryInternal = {execute: function(){ return Promise.resolve(resultExpected); }};
-            var clientInternalControl = expectCalled.control(client.internals.client,'query',{returns:[
-                queryWithEmitter(resultExpected),
-                queryWithEmitter(resultExpected)
-            ]});
+        it('control the log',function(){
             var messages=[];
             pg.log=function(message){
                 messages.push(message);
             };
-            Promise.resolve().then(function(){
-                return client.query('select $1, $2, $3, $4', [1, "one's", true, null]).execute();
-            }).then(function(result){
+            return Promise.resolve().then(function(){
+                return client.query('select $1, $2, $3, $4, illegal syntax here', [1, "one's", true, null]).execute();
+            }).catch(function(err){
+                var resultExpected="ERROR! 42601, "+err.message;
                 expect(messages).to.eql([
                     '------',
-                    '-- select $1, $2, $3, $4',
+                    '-- select $1, $2, $3, $4, illegal syntax here',
                     '-- [1,"one\'s",true,null]',
-                    "select 1, 'one\'\'s', true, null;",
-                    '-- '+JSON.stringify(resultExpected)
+                    "select 1, 'one\'\'s', true, null, illegal syntax here;",
+                    '--'+resultExpected
                 ]);
                 messages=[];
-                return client.query("select 'exit'").execute();
-            }).then(function(result){
+                return client.query("select 'exit', 0/0 as inf").execute();
+            }).catch(function(err){
+                var resultExpected="ERROR! 22012, "+err.message;
                 expect(messages).to.eql([
                     '------',
-                    "select 'exit';",
-                    '-- '+JSON.stringify(resultExpected)
+                    "select 'exit', 0/0 as inf;",
+                    '--'+resultExpected
                 ]);
-                done();
-            }).catch(done).then(function(){
-                clientInternalControl.stopControl();
                 pg.log=null;
             });
         });

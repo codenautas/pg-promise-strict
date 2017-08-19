@@ -4,12 +4,6 @@ var MAX_CLIENTS=24;
 var MAX_QUERIES=100;
 var MAX_CICLES=24;
 
-// IN TRAVIS-CI ONLY TEST WITH REAL DB IN ONE VERSION 0.12
-if(process.versions.node.substr(0,4)!=="0.12" && process.env.TRAVIS) return;
-
-// WHEN COVER don't continue
-if(process.env.COVER) return;
-
 var expect = require('expect.js');
 var pg0 = require('pg');
 var pg = require('..');
@@ -46,6 +40,7 @@ describe('intensive tests', function(){
                         p=p.then(function(){
                             return client.query("SELECT $1::integer c, $2::integer q, $3::integer i",[iClient, iQuery, iCicle]).execute();
                         }).then(function(result){
+                            // console.log('xxxxxxxxxxxx',result);
                             expect(result.rows).to.eql([{c: iClient, q:iQuery, i:iCicle}]);
                         });
                     };  

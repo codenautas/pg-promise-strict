@@ -12,7 +12,7 @@ var pg = require('..');
 var colors = require('colors'); 
 var bestGlobals = require('best-globals');
 var discrepances = require('discrepances');
-var miniTools = require('mini-tools');
+var MiniTools = require('mini-tools');
 var TypeStore = require('type-store');
 console.warn(pg.poolBalanceControl());
 
@@ -30,7 +30,7 @@ describe('pg-promise-strict with real database', function(){
     ];
     describe('pool connections', function(){
         it.skip('failed connection', function(){
-            miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+            MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
             }).then(function(client){
                 if(process.env.TRAVIS){
@@ -53,7 +53,7 @@ describe('pg-promise-strict with real database', function(){
         it('successful connection', function(done){
             pg.debug.Client=true;
             pg.debug.pool=true;
-            miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+            MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
             }).then(function(client){
                 expect(client).to.be.a(pg.Client);
@@ -78,7 +78,7 @@ describe('pg-promise-strict with real database', function(){
         before(function(done){
             pg.setAllTypes();
             pg.easy=true;
-            miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+            MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
             }).then(function(returnedClient){
                 // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
@@ -291,7 +291,7 @@ describe('pg-promise-strict with real database', function(){
         describe('call queries', function(){
             var client;
             before(function(done){
-                miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+                MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                     client = new pg.Client(config.db);
                     done();
                 });
@@ -311,7 +311,7 @@ describe('pg-promise-strict with real database', function(){
                 this.timeout(5000);
                 pg.easy=true;
                 pg.debug.Client=true;
-                miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+                MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                     client = new pg.Client("this_user@localhost:"+config.db.port+"/nonex");
                     expect(client).to.be.a(pg.Client);
                     expect(client.internals.client).to.be.a(pg0.Client);
