@@ -348,7 +348,7 @@ pgPromiseStrict.setAllTypes = function setAllTypes(){
     likeAr(TypeStore.type).forEach(function(typeDef, typeName){
         if(typeDef.pgSpecialParse){
             pgTypes.setTypeParser(typeDef.pg_OID, function(val){
-               return typeDef.fromString(val);
+                return typeDef.fromString(val);
             });
         }
     });
