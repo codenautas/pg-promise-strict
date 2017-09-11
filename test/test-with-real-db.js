@@ -275,7 +275,8 @@ describe('pg-promise-strict with real database', function(){
                     big4: bigIntData,
                     dat3: null
                 }]
-            },null, [TypeStore.type.bigint.fromString(bigIntData)])
+            },null, [new TypeStore.class.Big(bigIntData)])
+            // },null, [bigIntData])
         });
         it("inserting medium bigint", function(done){
             var bigIntData="123456789012341";

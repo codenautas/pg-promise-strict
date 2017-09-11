@@ -71,6 +71,22 @@ describe('pg-promise-strict common tests', function(){
         });
     });
     describe('service', function(){
+        it("quoteIdent", function(){
+            expect(pg.quoteIdent("column1")).to.eql('"column1"');
+            expect(pg.quoteIdent('column"delta"')).to.eql('"column""delta"""');
+        });
+        it("quoteLiteral", function(){
+            expect(pg.quoteLiteral('hi')).to.eql("'hi'");
+            expect(pg.quoteLiteral("don't")).to.eql("'don''t'");
+            expect(pg.quoteLiteral(7)).to.eql("'7'");
+        });
+        it("quoteNullable", function(){
+            expect(pg.quoteNullable('hi')).to.eql("'hi'");
+            expect(pg.quoteNullable("don't")).to.eql("'don''t'");
+            expect(pg.quoteNullable(7)).to.eql("'7'");
+            expect(pg.quoteNullable(null)).to.eql("null");
+            expect(pg.quoteNullable(true)).to.eql("'true'");
+        });
         it("quoteObject", function(){
             expect(pg.quoteObject("column1")).to.eql('"column1"');
             expect(pg.quoteObject('column"delta"')).to.eql('"column""delta"""');

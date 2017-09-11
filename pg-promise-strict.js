@@ -23,7 +23,20 @@ pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfD
     }
 };
 
+pgPromiseStrict.quoteIdent=function quoteIdent(insaneName){
+    if(typeof insaneName!=="string"){
+        throw new Error("insaneName");
+    }
+    return '"'+insaneName.replace(/"/g, '""')+'"';
+};
+
+var warningsShowed=0;
+
 pgPromiseStrict.quoteObject=function quoteObject(insaneName){
+    if(!(warningsShowed++)){
+        console.log('*******************************');
+        console.log('DEPRECATED quoteObject & quoteText');
+    }
     if(typeof insaneName!=="string"){
         throw new Error("insaneName");
     }
@@ -35,6 +48,10 @@ pgPromiseStrict.quoteObjectList = function quoteObjectList(ObjectList){
 };
 
 pgPromiseStrict.quoteText=function quoteText(anyTextData, opts){
+    if(!(warningsShowed++)){
+        console.log('*******************************');
+        console.log('DEPRECATED quoteObject & quoteText');
+    }
     if(anyTextData==null){
         if(opts && opts.allowNull){
             return 'null';
@@ -45,6 +62,25 @@ pgPromiseStrict.quoteText=function quoteText(anyTextData, opts){
         throw new Error("not text data");
     }
     return "'"+anyTextData.replace(/'/g,"''")+"'";
+};
+
+pgPromiseStrict.quoteNullable=function quoteNullable(anyValue){
+    if(anyValue==null){
+        return 'null';
+    }
+    if(typeof anyValue === 'object' && typeof anyValue.toPostgres === 'function'){
+        anyValue = anyValue.toPostgres();
+    }else{
+        anyValue = anyValue.toString();
+    }
+    return "'"+anyValue.replace(/'/g,"''")+"'";
+};
+
+pgPromiseStrict.quoteLiteral=function quoteLiteral(anyValue){
+    if(anyValue==null){
+        throw new Error("null in quoteLiteral");
+    }
+    return pgPromiseStrict.quoteNullable(anyValue);
 };
 
 
@@ -346,9 +382,10 @@ pgPromiseStrict.setAllTypes = function setAllTypes(){
        return bestGlobals.date.iso(val);
     });
     likeAr(TypeStore.type).forEach(function(typeDef, typeName){
-        if(typeDef.pgSpecialParse){
-            pgTypes.setTypeParser(typeDef.pg_OID, function(val){
-                return typeDef.fromString(val);
+        var typer = new TypeStore.type[typeName]();
+        if(typer.pgSpecialParse){
+            pgTypes.setTypeParser(typer.pg_OID, function(val){
+                return typer.fromString(val);
             });
         }
     });
