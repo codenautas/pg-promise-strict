@@ -384,8 +384,10 @@ pgPromiseStrict.setAllTypes = function setAllTypes(){
     likeAr(TypeStore.type).forEach(function(typeDef, typeName){
         var typer = new TypeStore.type[typeName]();
         if(typer.pgSpecialParse){
-            pgTypes.setTypeParser(typer.pg_OID, function(val){
-                return typer.fromString(val);
+            (typer.pg_OIDS||[typer.pg_OID]).forEach(function(OID){
+                pgTypes.setTypeParser(OID, function(val){
+                    return typer.fromString(val);
+                });
             });
         }
     });
