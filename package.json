@@ -1,7 +1,7 @@
 {
   "name": "pg-promise-strict",
   "description": "postgresql with strict interpretation of promises",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/pg-promise-strict",
@@ -10,7 +10,7 @@
     "name": "Emilio Platzer", "email": "emilioplatzer@gmail.com"
   }],
   "dependencies": {
-    "fs-promise": "~2.0.3",
+    "fs-extra": "~1.1.1",
     "pg": "~7.3.0",
     
     "best-globals": "~0.10.1",

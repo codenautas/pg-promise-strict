@@ -2,7 +2,7 @@
 
 var pgPromiseStrict = {};
 
-var fs = require('fs-promise');
+var fs = require('fs-extra');
 var pg = require('pg');
 var pgTypes = pg.types;
 var util = require('util');
