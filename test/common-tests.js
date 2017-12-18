@@ -37,7 +37,7 @@ describe('pg-promise-strict common tests', function(){
         it('control the parameters of the execute function',function(){
             return client.query("SELECT 1").execute('one value', 'other value').then(function(result){
                 done(new Error('must reject the parameters'));
-            }).catch(function(err){
+            },function(err){
                 expect(err.message).to.match(/must receive/);
             });
         });
@@ -88,6 +88,7 @@ describe('pg-promise-strict common tests', function(){
             expect(pg.quoteNullable(true)).to.eql("'true'");
         });
         it("quoteObject", function(){
+            process.noDeprecation=true;
             expect(pg.quoteObject("column1")).to.eql('"column1"');
             expect(pg.quoteObject('column"delta"')).to.eql('"column""delta"""');
         });
@@ -99,7 +100,10 @@ describe('pg-promise-strict common tests', function(){
             expect(pg.quoteText(null,{allowNull:true})).to.eql('null');
         });
         it("quoteObjectList", function(){
-            expect(pg.quoteObjectList(['one', '"2"'])).to.eql('"one","""2"""');
+            process.noDeprecation=false;
+            expect(function(){
+                expect(pg.quoteObjectList(['one', '"2"'])).to.eql('"one","""2"""');
+            }).to.throwError(/promise-strict.quoteObjectList: use quoteIdentList instead/i);
         });
     });
     describe('handle errors', function(){

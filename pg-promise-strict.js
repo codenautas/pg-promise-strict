@@ -30,28 +30,22 @@ pgPromiseStrict.quoteIdent=function quoteIdent(insaneName){
     return '"'+insaneName.replace(/"/g, '""')+'"';
 };
 
-var warningsShowed=0;
-
-pgPromiseStrict.quoteObject=function quoteObject(insaneName){
-    if(!(warningsShowed++)){
-        console.log('*******************************');
-        console.log('DEPRECATED quoteObject & quoteText');
-    }
+pgPromiseStrict.quoteObject=util.deprecate(function quoteObject(insaneName){
     if(typeof insaneName!=="string"){
         throw new Error("insaneName");
     }
     return '"'+insaneName.replace(/"/g, '""')+'"';
-};
+},'promise-strict.quoteObject: use quoteIdent instead');
 
-pgPromiseStrict.quoteObjectList = function quoteObjectList(ObjectList){
+pgPromiseStrict.quoteObjectList = util.deprecate(function quoteObjectList(ObjectList){
     return ObjectList.map(function(objectName){ return this.quoteObject(objectName); }, this).join(',');
+},'promise-strict.quoteObjectList: use quoteIdentList instead');
+
+pgPromiseStrict.quoteIdentList = function quoteIdentList(ObjectList){
+    return ObjectList.map(function(objectName){ return this.quoteIdent(objectName); }, this).join(',');
 };
 
-pgPromiseStrict.quoteText=function quoteText(anyTextData, opts){
-    if(!(warningsShowed++)){
-        console.log('*******************************');
-        console.log('DEPRECATED quoteObject & quoteText');
-    }
+pgPromiseStrict.quoteText=util.deprecate(function quoteText(anyTextData, opts){
     if(anyTextData==null){
         if(opts && opts.allowNull){
             return 'null';
@@ -62,7 +56,7 @@ pgPromiseStrict.quoteText=function quoteText(anyTextData, opts){
         throw new Error("not text data");
     }
     return "'"+anyTextData.replace(/'/g,"''")+"'";
-};
+},'promise-strict.quoteText: use quoteNullable or quoteLiteral instead');;
 
 pgPromiseStrict.quoteNullable=function quoteNullable(anyValue){
     if(anyValue==null){
@@ -384,8 +378,10 @@ pgPromiseStrict.setAllTypes = function setAllTypes(){
     likeAr(TypeStore.type).forEach(function(typeDef, typeName){
         var typer = new TypeStore.type[typeName]();
         if(typer.pgSpecialParse){
-            pgTypes.setTypeParser(typer.pg_OID, function(val){
-                return typer.fromString(val);
+            (typer.pg_OIDS||[typer.pg_OID]).forEach(function(OID){
+                pgTypes.setTypeParser(OID, function(val){
+                    return typer.fromString(val);
+                });
             });
         }
     });
