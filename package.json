@@ -1,7 +1,7 @@
 {
   "name": "pg-promise-strict",
   "description": "postgresql with strict interpretation of promises",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/pg-promise-strict",
@@ -14,17 +14,17 @@
   ],
   "dependencies": {
     "fs-extra": "~5.0.0",
-    "pg": "~7.4.0",
-    "best-globals": "~0.10.3",
+    "pg": "~7.4.1",
+    "best-globals": "~0.10.4",
     "like-ar": "~0.2.2"
   },
   "devDependencies": {
     "colors": "~1.1.2",
     "expect.js": "~0.3.1",
     "istanbul": "~0.4.5",
-    "mocha": "~3.5.3",
+    "mocha": "~4.1.0",
     "discrepances": "~0.2.2",
-    "mini-tools": "~0.3.19",
+    "mini-tools": "~0.3.22",
     "type-store": "~0.2.13"
   },
   "optionalDependencies": {
