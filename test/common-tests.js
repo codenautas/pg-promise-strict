@@ -100,10 +100,10 @@ describe('pg-promise-strict common tests', function(){
             expect(pg.quoteText(null,{allowNull:true})).to.eql('null');
         });
         it("quoteObjectList", function(){
-            process.noDeprecation=false;
-            expect(function(){
+            process.noDeprecation=true;
+            // expect(function(){
                 expect(pg.quoteObjectList(['one', '"2"'])).to.eql('"one","""2"""');
-            }).to.throwError(/promise-strict.quoteObjectList: use quoteIdentList instead/i);
+            // }).to.throwError(/promise-strict.quoteObjectList: use quoteIdentList instead/i);
         });
     });
     describe('handle errors', function(){
