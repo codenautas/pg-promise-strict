@@ -24,6 +24,7 @@ declare module "pg-promise-strict"{
     }
     export type Client={
         executeSqlScript(fileName:string):Promise<void>
+        executeSentences(sentences:string[]):Promise<void>
         query(queryString:string, params?:any[]):{
             fetchUniqueValue():Promise<ResultValue>
             fetchUniqueRow():Promise<ResultOneRow>
