@@ -1,28 +1,28 @@
 declare module "pg-promise-strict"{
-    var easy:boolean
-    type ConnectParams={
+    export var easy:boolean
+    export type ConnectParams={
         motor?:string
         database?:string
         user?:string
         password?:string
         port?:string
     }
-    interface Result{
+    export interface Result{
         rowCount:number
     }
-    interface ResultOneRow extends Result{
+    export interface ResultOneRow extends Result{
         row:{[key:string]:any}
     }
-    interface ResultOneRowIfExists extends Result{
+    export interface ResultOneRowIfExists extends Result{
         row?:{[key:string]:any}|null
     }
-    interface ResultRows extends Result{
+    export interface ResultRows extends Result{
         rows:{[key:string]:any}[]
     }
-    interface ResultValue extends Result{
+    export interface ResultValue extends Result{
         value:any
     }
-    type Client={
+    export type Client={
         executeSqlScript(fileName:string):Promise<void>
         query(queryString:string, params?:any[]):{
             fetchUniqueValue():Promise<ResultValue>
@@ -33,15 +33,15 @@ declare module "pg-promise-strict"{
         }
         done():void
     }
-    function connect(opts:ConnectParams):Client
-    var debug:{
+    export function connect(opts:ConnectParams):Client
+    export var debug:{
         pool?:boolean
     }
-    function setAllTypes():void
-    function quoteText(textValue:string):string // deprecated
-    function quoteLiteral(textValue:string):string
-    function quoteNullable(textValue:string|null):string
-    function quoteIdent(name:string):string
-    function quoteObject(name:string):string // deprecated
+    export function setAllTypes():void
+    export function quoteText(textValue:string):string // deprecated
+    export function quoteLiteral(textValue:string):string
+    export function quoteNullable(textValue:string|null):string
+    export function quoteIdent(name:string):string
+    export function quoteObject(name:string):string // deprecated
 }
 
