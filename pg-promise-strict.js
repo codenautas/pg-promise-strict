@@ -166,7 +166,7 @@ pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions
             // console.log('xxxxxxx queryArguments',queryArguments, arguments);
             // var returnedQuery = client.query(new (Function.prototype.bind.apply(pg.Query, queryArguments)));
             var returnedQuery = client.query(new pg.Query(queryArguments[0], queryArguments[1]));
-            return new pgPromiseStrict.Query(returnedQuery, self);
+            return new pgPromiseStrict.Query(returnedQuery, self, client);
         };
     };
     if(this.fromPool){
@@ -306,9 +306,23 @@ var easiers=[
     {name:'onRow'              , funName:'fetchRowByRow'}
 ];
 
-pgPromiseStrict.Query = function Query(query, client){
+pgPromiseStrict.Query = function Query(query, client, internalClient){
     var self = this;
     pgPromiseStrict.allowAccessInternalIfDebugging(self, {query: query, client:client});
+    this.onNotice = function onNotice(callbackNoticeConsumer){
+        var noticeCallback=function(notice){
+            if(this.activeQuery==query){
+                callbackNoticeConsumer(notice.message);
+            }
+        }
+        internalClient.on('notice',noticeCallback);
+        var removeNoticeCallback=function removeNoticeCallback(){
+            internalClient.removeListener('notice',noticeCallback);
+        }
+        query.on('end',removeNoticeCallback);
+        query.on('error',removeNoticeCallback);
+        return this;
+    };
     this.execute = function execute(callbackForEachRow, adapterName){
         // pgPromiseStrict.log('Query.execute');
         if(callbackForEachRow && !(callbackForEachRow instanceof Function)){

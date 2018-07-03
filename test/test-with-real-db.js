@@ -287,6 +287,61 @@ describe('pg-promise-strict with real database', function(){
                 }]
             },null, [Number(bigIntData)])
         });
+        it("query reading notices in execute", function(){
+            var accumulate=[];
+            return client.query({
+                text:`
+                do language plpgsql
+                $$
+                begin
+                  raise notice 'notice 1';
+                  raise notice 'notice 2';
+                  drop function if exists function_with_notice(text);
+                  create function function_with_notice(p_value text) returns text 
+                    language plpgsql
+                  as
+                  $body$
+                  begin
+                    raise notice 'notice inside 1 %',p_value;
+                    raise notice 'notice inside 2 %',p_value;
+                    return p_value;
+                  end;
+                  $body$;
+                end;
+                $$;
+                `,
+            }).onNotice(function(notice){
+                accumulate.push(notice);
+            }).execute().then(function(){
+                expect(accumulate.slice(0,2)).to.eql([
+                    "notice 1", "notice 2"
+                ]);
+            });
+        });
+        it("query reading notices with value", function(){
+            var accumulate=[];
+            return client.query("select function_with_notice($1);",['valor']).onNotice(function(notice){
+                accumulate.push(notice);
+            }).fetchUniqueValue().then(function(result){
+                expect(result.value).to.eql("valor");
+                expect(accumulate).to.eql([
+                    "notice inside 1 valor", "notice inside 2 valor"
+                ]);
+            }).then(function(){
+                var accumulate2=[];
+                return client.query("select function_with_notice($1);",['other']).onNotice(function(notice){
+                    accumulate2.push(notice);
+                }).fetchUniqueValue().then(function(result){
+                    expect(result.value).to.eql("other");
+                    expect(accumulate2).to.eql([
+                        "notice inside 1 other", "notice inside 2 other"
+                    ]);
+                    expect(accumulate).to.eql([
+                        "notice inside 1 valor", "notice inside 2 valor"
+                    ]);
+                });
+            })
+        });
     });
     describe('pool-less connections', function(){
         describe('call queries', function(){
