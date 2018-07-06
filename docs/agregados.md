@@ -66,8 +66,8 @@ Reads the database notifications raies with `raise notice`.
 ```js
 client.connect().then(function(client){
     return client.query('SELECT functionThatNotices()');
-}).onNotice(function(message){
-    console.log('Notice',message)
+}).onNotice(function(notice){
+    console.log('Notice',notice.message)
 }).execute().then(function(){
     console.log('DONE!');
     result.client.done();

@@ -311,7 +311,7 @@ describe('pg-promise-strict with real database', function(){
                 $$;
                 `,
             }).onNotice(function(notice){
-                accumulate.push(notice);
+                accumulate.push(notice.message);
             }).execute().then(function(){
                 expect(accumulate.slice(0,2)).to.eql([
                     "notice 1", "notice 2"
@@ -321,7 +321,7 @@ describe('pg-promise-strict with real database', function(){
         it("query reading notices with value", function(){
             var accumulate=[];
             return client.query("select function_with_notice($1);",['valor']).onNotice(function(notice){
-                accumulate.push(notice);
+                accumulate.push(notice.message);
             }).fetchUniqueValue().then(function(result){
                 expect(result.value).to.eql("valor");
                 expect(accumulate).to.eql([
@@ -330,7 +330,7 @@ describe('pg-promise-strict with real database', function(){
             }).then(function(){
                 var accumulate2=[];
                 return client.query("select function_with_notice($1);",['other']).onNotice(function(notice){
-                    accumulate2.push(notice);
+                    accumulate2.push(notice.message);
                 }).fetchUniqueValue().then(function(result){
                     expect(result.value).to.eql("other");
                     expect(accumulate2).to.eql([

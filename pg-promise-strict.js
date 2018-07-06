@@ -312,7 +312,7 @@ pgPromiseStrict.Query = function Query(query, client, internalClient){
     this.onNotice = function onNotice(callbackNoticeConsumer){
         var noticeCallback=function(notice){
             if(this.activeQuery==query){
-                callbackNoticeConsumer(notice.message);
+                callbackNoticeConsumer(notice);
             }
         }
         internalClient.on('notice',noticeCallback);

@@ -42,6 +42,25 @@ fetchUniqueValue    |  1  |  1  | result.value
 fetchUniqueRow      |  1  |  1  | result.row
 fetchOneRowIfExists |  0  |  1  | result.row, result.rowCount
 
+## onNotice(callback)
+
+
+Reads the database notifications raies with `raise notice`.
+
+
+```js
+client.connect().then(function(client){
+    return client.query('SELECT functionThatNotices()');
+}).onNotice(function(notice){
+    console.log('Notice',notice.message)
+}).execute().then(function(){
+    console.log('DONE!');
+    result.client.done();
+}).catch(function(err){
+    return console.error(err);
+});
+```
+
 ## executeSentences(sentences)
 
 
