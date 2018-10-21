@@ -9,9 +9,7 @@ postgresql with strict interpretation of promises
 [![linux](https://img.shields.io/travis/codenautas/pg-promise-strict/master.svg)](https://travis-ci.org/codenautas/pg-promise-strict)
 [![windows](https://ci.appveyor.com/api/projects/status/github/codenautas/pg-promise-strict?svg=true)](https://ci.appveyor.com/project/codenautas/pg-promise-strict)
 [![coverage](https://img.shields.io/coveralls/codenautas/pg-promise-strict/master.svg)](https://coveralls.io/r/codenautas/pg-promise-strict)
-[![climate](https://img.shields.io/codeclimate/github/codenautas/pg-promise-strict.svg)](https://codeclimate.com/github/codenautas/pg-promise-strict)
 [![dependencies](https://img.shields.io/david/codenautas/pg-promise-strict.svg)](https://david-dm.org/codenautas/pg-promise-strict)
-[![qa-control](http://codenautas.com/github/codenautas/pg-promise-strict.svg)](http://codenautas.com/github/codenautas/pg-promise-strict)
 
 
 language: ![English](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)

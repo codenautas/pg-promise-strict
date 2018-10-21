@@ -237,10 +237,14 @@ pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions
                 params.columns.map(function(name, i_name){ return '$'+(i_name+1); })+")";
             var insertOneRowAndContinueInserting = function insertOneRowAndContinueInserting(i_rows){
                 if(i_rows<params.rows.length){
-                    return self.query(sql, params.rows[i_rows]).execute().then(function(){
+                    return self.query(sql, params.rows[i_rows]).execute().catch(function(err){
+                        if(params.onerror){
+                            params.onerror(err, params.rows[i_rows]);
+                        }else{
+                            throw err;
+                        }
+                    }).then(function(){
                         return insertOneRowAndContinueInserting(i_rows+1);
-                    }).catch(function(err){
-                        throw err;
                     });
                 }
                 return;
