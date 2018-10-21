@@ -63,7 +63,7 @@ describe('pg-promise-strict with real database', function(){
                 expect(pg.poolBalanceControl().length==0).to.be.ok();
                 done();
             }).catch(function(err){
-                console.log('Check your postgresql 9.3 instalation. Then be sure to create the user and db with:');
+                console.log('Check your postgresql instalation. Then be sure to create the user and db with:');
                 console.log("create user test_user password 'test_pass';".cyan);
                 console.log("create database test_db owner test_user;".cyan);
                 done(err);
@@ -287,8 +287,9 @@ describe('pg-promise-strict with real database', function(){
                 }]
             },null, [Number(bigIntData)])
         });
-        it("query reading notices in execute", function(){
+        it("query reading notices in execute", async function(){
             var accumulate=[];
+            await client.query('SET client_min_messages TO NOTICE');
             return client.query({
                 text:`
                 do language plpgsql
