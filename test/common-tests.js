@@ -5,6 +5,7 @@ var expect = require('expect.js');
 var pg0 = require('pg');
 var pg = require('..');
 var queryWithEmitter = require('./query-with-emitter.js');
+var bestGlobals = require('best-globals');
 
 var MiniTools = require('mini-tools');
 
@@ -79,6 +80,10 @@ describe('pg-promise-strict common tests', function(){
             expect(pg.quoteLiteral('hi')).to.eql("'hi'");
             expect(pg.quoteLiteral("don't")).to.eql("'don''t'");
             expect(pg.quoteLiteral(7)).to.eql("'7'");
+            expect(pg.quoteLiteral(new Date('2018-12-24'))).to.eql("'2018-12-24T00:00:00.000Z'");
+            expect(pg.quoteLiteral(bestGlobals.date.iso('2018-12-25'))).to.eql("'2018-12-25'");
+            // expect(pg.quoteLiteral(new Date('2018-12-24 10:20'))).to.eql("'2018-12-24T00:00:00.000Z'");
+            expect(pg.quoteLiteral(bestGlobals.datetime.iso('2018-12-26 10:20:30'))).to.eql("'2018-12-26 10:20:30'");
         });
         it("quoteNullable", function(){
             expect(pg.quoteNullable('hi')).to.eql("'hi'");

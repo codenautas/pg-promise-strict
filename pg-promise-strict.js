@@ -62,7 +62,13 @@ pgPromiseStrict.quoteNullable=function quoteNullable(anyValue){
     if(anyValue==null){
         return 'null';
     }
-    if(typeof anyValue === 'object' && typeof anyValue.toPostgres === 'function'){
+    if(anyValue.isRealDate){
+        anyValue = anyValue.toYmd();
+    // }else if(anyValue.isRealDateTime){
+    //     anyValue = anyValue.toISOString();
+    }else if(anyValue instanceof Date){
+        anyValue = anyValue.toISOString();
+    }else if(typeof anyValue === 'object' && typeof anyValue.toPostgres === 'function'){
         anyValue = anyValue.toPostgres();
     }else{
         anyValue = anyValue.toString();
