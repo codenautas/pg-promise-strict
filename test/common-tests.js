@@ -48,26 +48,30 @@ describe('pg-promise-strict common tests', function(){
                 messages.push(message);
             };
             return Promise.resolve().then(function(){
-                return client.query('select $1, $2, $3, $4, illegal syntax here', [1, "one's", true, null]).execute();
+                return client.query(
+                    'select $1, $2, $3, $4, $5, illegal syntax here', 
+                    [1, "one's", true, null, bestGlobals.date.iso('2019-01-05')]
+                ).execute();
             }).catch(function(err){
                 var resultExpected="ERROR! 42601, "+err.message;
+                console.log(messages);
                 expect(messages).to.eql([
                     '------',
-                    '-- select $1, $2, $3, $4, illegal syntax here',
-                    '-- [1,"one\'s",true,null]',
-                    "select 1, 'one\'\'s', true, null, illegal syntax here;",
+                    '`select $1, $2, $3, $4, $5, illegal syntax here\n`',
+                    '-- [1,"one\'s",true,null,\"2019-01-05T03:00:00.000Z\"]',
+                    "select 1, 'one\'\'s', true, null, '2019-01-05', illegal syntax here;",
                     '--'+resultExpected
                 ]);
                 messages=[];
-                return client.query("select 'exit', 0/0 as inf").execute();
-            }).catch(function(err){
-                var resultExpected="ERROR! 22012, "+err.message;
-                expect(messages).to.eql([
-                    '------',
-                    "select 'exit', 0/0 as inf;",
-                    '--'+resultExpected
-                ]);
-                pg.log=null;
+                return client.query("select 'exit', 0/0 as inf").execute().catch(function(err){
+                    var resultExpected="ERROR! 22012, "+err.message;
+                    expect(messages).to.eql([
+                        '------',
+                        "select 'exit', 0/0 as inf;",
+                        '--'+resultExpected
+                    ]);
+                    pg.log=null;
+                });
             });
         });
     });

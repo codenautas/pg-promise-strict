@@ -1,4 +1,6 @@
 // var pg = require('pg-promise-strict');
+"use strict";
+
 var pg = require('..');
 
 var conString = "postgres://test_user:test_pass@localhost:5432/test_db";

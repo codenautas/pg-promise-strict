@@ -56,7 +56,7 @@ pgPromiseStrict.quoteText=util.deprecate(function quoteText(anyTextData, opts){
         throw new Error("not text data");
     }
     return "'"+anyTextData.replace(/'/g,"''")+"'";
-},'promise-strict.quoteText: use quoteNullable or quoteLiteral instead');;
+},'promise-strict.quoteText: use quoteNullable or quoteLiteral instead');
 
 pgPromiseStrict.quoteNullable=function quoteNullable(anyValue){
     if(anyValue==null){
@@ -154,15 +154,12 @@ pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions
             }
             if(pgPromiseStrict.log){
                 var sql=queryArguments[0];
-                pgPromiseStrict.log('------');
+                pgPromiseStrict.log('------','------');
                 if(queryArguments[1]){
-                    pgPromiseStrict.log('-- '+sql,'QUERY-P');
+                    pgPromiseStrict.log('`'+sql+'\n`','QUERY-P');
                     pgPromiseStrict.log('-- '+JSON.stringify(queryArguments[1]),'QUERY-A');
                     queryArguments[1].forEach(function(value, i){
-                        if(typeof value === 'string'){
-                            value="'"+value.replace(/'/g,"''")+"'";
-                        }
-                        sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'), value);
+                        sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'), typeof value == "number" || typeof value == "boolean"?value:pgPromiseStrict.quoteNullable(value));
                     });
                 }
                 pgPromiseStrict.log(sql+';','QUERY');
@@ -353,6 +350,9 @@ pgPromiseStrict.Query = function Query(query, client, internalClient){
             query.on('row',function(row, result){
                 // console.log('xxxxxxxxxxxxx row', row, result);
                 if(callbackForEachRow){
+                    if(pgPromiseStrict.log){
+                        pgPromiseStrict.log('-- '+JSON.stringify(row), 'ROW');
+                    }
                     callbackForEachRow(row, result);
                 }else{
                     result.addRow(row);
@@ -361,7 +361,7 @@ pgPromiseStrict.Query = function Query(query, client, internalClient){
             query.on('end',function(result){
                 result.client = client;
                 if(pgPromiseStrict.log){
-                    pgPromiseStrict.log('-- '+JSON.stringify(result.rows));
+                    pgPromiseStrict.log('-- '+JSON.stringify(result.rows), 'RESULT');
                 }
                 adapter(result, resolve, reject);
             });
