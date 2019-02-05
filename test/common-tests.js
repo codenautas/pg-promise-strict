@@ -58,7 +58,7 @@ describe('pg-promise-strict common tests', function(){
                 expect(messages).to.eql([
                     '------',
                     '`select $1, $2, $3, $4, $5, illegal syntax here\n`',
-                    '-- [1,"one\'s",true,null,\"2019-01-05T03:00:00.000Z\"]',
+                    '-- [1,"one\'s",true,null,'+JSON.stringify(bestGlobals.date.iso('2019-01-05'))+']',
                     "select 1, 'one\'\'s', true, null, '2019-01-05', illegal syntax here;",
                     '--'+resultExpected
                 ]);
