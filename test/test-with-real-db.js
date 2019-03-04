@@ -57,7 +57,7 @@ describe('pg-promise-strict with real database', function(){
                 return pg.connect(config.db);
             }).then(function(client){
                 expect(client).to.be.a(pg.Client);
-                expect(client.internals.client).to.be.a(pg0.Client);
+                expect(client._client).to.be.a(pg0.Client);
                 expect(pg.poolBalanceControl().length>0).to.be.ok();
                 client.done();
                 expect(pg.poolBalanceControl().length==0).to.be.ok();
@@ -88,7 +88,9 @@ describe('pg-promise-strict with real database', function(){
             });
         });
         after(function(){
-            client.done();
+            if(client){
+                client.done();
+            }
         });
         it("successful query that doesn't return rows", function(done){
             pg.easy=true;
@@ -371,7 +373,7 @@ describe('pg-promise-strict with real database', function(){
                 MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                     client = new pg.Client("this_user@localhost:"+config.db.port+"/nonex");
                     expect(client).to.be.a(pg.Client);
-                    expect(client.internals.client).to.be.a(pg0.Client);
+                    expect(client._client).to.be.a(pg0.Client);
                     client.connect().then(function(){
                         done(new Error("must raise error"));
                     }).catch(function(err){
@@ -391,7 +393,7 @@ describe('pg-promise-strict with real database', function(){
                 pg.debug.Client=true;
                 client = new pg.Client("this_user@xxxx");
                 expect(client).to.be.a(pg.Client);
-                expect(client.internals.client).to.be.a(pg0.Client);
+                expect(client._client).to.be.a(pg0.Client);
                 client.connect("extra parameter").then(function(){
                     done(new Error("must raise error because must not have parameters"));
                 }).catch(function(err){

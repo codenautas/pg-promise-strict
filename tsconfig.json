@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "outDir": "this-dir-must-not-be-created",
+        "moduleResolution": "node",
+        "lib":["es2015", "dom"],
+        "target": "es5",
+        "module": "umd",
+        "typeRoots" : ["node_modules/@types", "node_modules/types.d.ts/modules"],
+        "noImplicitAny": true,
+        "strict":true, 
+        "alwaysStrict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
+        "noFallthroughCasesInSwitch": true,
+        "checkJs": true,
+        "allowJs": true,
+    }
+}

@@ -1,15 +1,30 @@
+/// <reference path="./in-pg-promise-strict.d.ts" />
 "use strict";
 
+/** @typedef {()=>void} DoneCallback */
+
+/**
+ * @typedef {typeof pgps & {
+    Client:new (connOpts:pgps.ConnectParams, client:pg.Client, done:DoneCallback, specificOptions?:{})=>pgps.Client
+    adaptParameterTypes:(parameters:any)=>void
+   }} PG 
+ * */
+
+/** @type {PG} */
 var pgPromiseStrict = {};
 
+// @ts-ignore 
 var fs = require('fs-extra');
 var pg = require('pg');
 var pgTypes = pg.types;
+
+var copyFrom = require('pg-copy-streams').from;
 var util = require('util');
 var likeAr = require('like-ar');
-
 var bestGlobals = require('best-globals');
 var changing = bestGlobals.changing;
+
+/** @typedef {pg.QueryResult} RESULT */
 
 pgPromiseStrict.debug={};
 
@@ -17,34 +32,43 @@ pgPromiseStrict.defaults={
     releaseTimeout:{inactive:60000, connection:600000}
 };
 
-pgPromiseStrict.allowAccessInternalIfDebugging = function allowAccessInternalIfDebugging(self, internals){
-    if(pgPromiseStrict.debug[self.constructor.name]){
-        self.internals = internals;
-    }
-};
-
-pgPromiseStrict.quoteIdent=function quoteIdent(insaneName){
-    if(typeof insaneName!=="string"){
+/** @param {string} name */
+pgPromiseStrict.quoteIdent=function quoteIdent(name){
+    if(typeof name!=="string"){
         throw new Error("insaneName");
     }
-    return '"'+insaneName.replace(/"/g, '""')+'"';
+    return '"'+name.replace(/"/g, '""')+'"';
 };
 
-pgPromiseStrict.quoteObject=util.deprecate(function quoteObject(insaneName){
-    if(typeof insaneName!=="string"){
-        throw new Error("insaneName");
-    }
-    return '"'+insaneName.replace(/"/g, '""')+'"';
-},'promise-strict.quoteObject: use quoteIdent instead');
+pgPromiseStrict.quoteObject=util.deprecate(
+    /** @param {{}} name */
+    function quoteObject(name){
+        if(typeof name!=="string"){
+            throw new Error("insaneName");
+        }
+        return '"'+name.replace(/"/g, '""')+'"';
+    },
+    'promise-strict.quoteObject: use quoteIdent instead'
+);
 
-pgPromiseStrict.quoteObjectList = util.deprecate(function quoteObjectList(ObjectList){
-    return ObjectList.map(function(objectName){ return this.quoteObject(objectName); }, this).join(',');
-},'promise-strict.quoteObjectList: use quoteIdentList instead');
+// @ts-ignore
+pgPromiseStrict.quoteObjectList = util.deprecate(
+    /** @param {string[]} ObjectList */
+    function quoteObjectList(ObjectList){
+        /** @type {typeof pgps} */
+        // @ts-ignore
+        var self= this;
+        return ObjectList.map(function(objectName){ return self.quoteObject(objectName); }).join(',');
+    },
+    'promise-strict.quoteObjectList: use quoteIdentList instead'
+);
 
 pgPromiseStrict.quoteIdentList = function quoteIdentList(ObjectList){
-    return ObjectList.map(function(objectName){ return this.quoteIdent(objectName); }, this).join(',');
+    var self=this;
+    return ObjectList.map(function(objectName){ return self.quoteIdent(objectName); }).join(',');
 };
 
+// @ts-ignore
 pgPromiseStrict.quoteText=util.deprecate(function quoteText(anyTextData, opts){
     if(anyTextData==null){
         if(opts && opts.allowNull){
@@ -83,8 +107,8 @@ pgPromiseStrict.quoteLiteral=function quoteLiteral(anyValue){
     return pgPromiseStrict.quoteNullable(anyValue);
 };
 
-
 pgPromiseStrict.adaptParameterTypes = function adaptParameterTypes(parameters){
+    // @ts-ignore 
     return parameters.map(function(value){
         if(value && value.typeStore){
             return value.toLiteral();
@@ -93,174 +117,246 @@ pgPromiseStrict.adaptParameterTypes = function adaptParameterTypes(parameters){
     });
 };
 
-pgPromiseStrict.Client = function Client(connOpts, client, done, specificOptions){
-    this.fromPool = connOpts==='pool';
-    var self = this;
-    if(this.fromPool){
-        self.opts=specificOptions;
-        self.lastOperationTimestamp = new Date().getTime();
-        self.lastConnectionTimestamp = self.lastOperationTimestamp;
-        /* DOING
-        if(self.opts.timeoutController){
-            cancelTimeout(self.timeoutController);
-        }
-        self.timeoutController = setInterval(function(){
-            // console.log('zzzzzzzzzzzzz',new Date().getTime() - self.lastOperationTimestamp, self.opts.releaseTimeout.inactive)
-            if(new Date().getTime() - self.lastOperationTimestamp  > self.opts.releaseTimeout.inactive
-            || new Date().getTime() - self.lastConnectionTimestamp > self.opts.releaseTimeout.connection
-            ){
-                self.done();
-            }
-        },Math.min(1000,self.opts.releaseTimeout.inactive/4));
-        */
-    }
-    var assignFunctionsPostConnect = function assignFunctionsPostConnect(){
-        // existing functions
-        self.done = function(){
-            // pgPromiseStrict.log('Client.done');
-            if(!client){
-                throw new Error("pg-promise-strict client already done");
-            }
-            if(pgPromiseStrict.debug.pool){
-                pgPromiseStrict.debug.pool[client.secretKey].count--;
-            }
-            var clientToDone=client;
-            client=null;
-            return done.apply(client,arguments);
+function NotTheneable(){
+    /** @type {{[key:string]:(()=>void)}} */
+    var rejecter = {};
+    // var rejection = function(){Promise.reject(new Error("pg-promise-strict the client was released"));};
+    var rejection = Promise.reject(new Error("pg-promise-strict: not call function as thenable"));
+    [{name:'then'},{name:'catch'}].concat(easiers).forEach(function(easierDef){
+        rejecter[easierDef.name] = function(){
+            return rejection;
         };
-        self.query = function query(){
-            if(!client){
-                var rejecter = {};
-                // var rejection = function(){Promise.reject(new Error("pg-promise-strict the client was released"));};
-                var rejection = Promise.reject(new Error("pg-promise-strict the client was released"));
-                [{name:'then'},{name:'catch'}].concat(easiers).forEach(function(easierDef){
-                    rejecter[easierDef.name] = function(){
-                        return rejection;
-                    };
-                });
-                return rejecter;
+    });
+    return rejecter;
+}
+
+/** @extends {pgps.Client} Client */
+/** @private {number} lastOperationTimestamp */
+/** @private {number} lastConnectionTimestamp */
+/** @property {boolean} fromPool */
+/** @property {{}} opts */
+/** @property {boolean} connected */
+class Client{
+    /** @param {pgps.ConnectParams} connOpts */
+    /** @param {pg.Client & {secretKey:string}} client */
+    /** @param {()=>void} done */
+    /** @param {{}} specificOptions? */
+    constructor(connOpts, client, done, specificOptions){
+        this.fromPool = connOpts==='pool';
+        /** @type {pg.Client|null} */
+        this._client = client;
+        this._done = done;
+        this._connected = !!client;
+        if(this.fromPool){
+            this.opts=specificOptions;
+            this.lastOperationTimestamp = new Date().getTime();
+            this.lastConnectionTimestamp = this.lastOperationTimestamp;
+            /* DOING
+            if(self.opts.timeoutController){
+                cancelTimeout(self.timeoutController);
             }
-            self.lastOperationTimestamp = new Date().getTime();
-            var queryArguments = Array.prototype.slice.call(arguments);
-            var queryText;
-            var queryValues;
-            if(typeof queryArguments[0] === 'string' && queryArguments[1] instanceof Array){
-                queryText = queryArguments[0];
-                queryValues = queryArguments[1] = pgPromiseStrict.adaptParameterTypes(queryArguments[1]);
-            }else if(queryArguments[0] instanceof Object && queryArguments[0].values instanceof Array){
-                queryText = queryArguments[0].text;
-                queryValues = pgPromiseStrict.adaptParameterTypes(queryArguments[0].values);
-                queryArguments[0].values = queryValues;
-            }
-            if(pgPromiseStrict.log){
-                var sql=queryArguments[0];
-                pgPromiseStrict.log('------','------');
-                if(queryArguments[1]){
-                    pgPromiseStrict.log('`'+sql+'\n`','QUERY-P');
-                    pgPromiseStrict.log('-- '+JSON.stringify(queryArguments[1]),'QUERY-A');
-                    queryArguments[1].forEach(function(value, i){
-                        sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'), typeof value == "number" || typeof value == "boolean"?value:pgPromiseStrict.quoteNullable(value));
-                    });
+            self.timeoutController = setInterval(function(){
+                // console.log('zzzzzzzzzzzzz',new Date().getTime() - self.lastOperationTimestamp, self.opts.releaseTimeout.inactive)
+                if(new Date().getTime() - self.lastOperationTimestamp  > self.opts.releaseTimeout.inactive
+                || new Date().getTime() - self.lastConnectionTimestamp > self.opts.releaseTimeout.connection
+                ){
+                    self.done();
                 }
-                pgPromiseStrict.log(sql+';','QUERY');
+            },Math.min(1000,self.opts.releaseTimeout.inactive/4));
+            */
+            if(pgPromiseStrict.debug.pool){
+                if(pgPromiseStrict.debug.pool===true){
+                    pgPromiseStrict.debug.pool={};
+                }
+                if(!(client.secretKey in pgPromiseStrict.debug.pool)){
+                    pgPromiseStrict.debug.pool[client.secretKey] = {client:client, count:0};
+                }
+                pgPromiseStrict.debug.pool[client.secretKey].count++;
             }
-            //var returnedQuery = client.query.apply(client,queryArguments);
-            // var returnedQuery = client.query(new pg.Query(queryArguments));
-            // console.log('xxxxxxx queryArguments',queryArguments, arguments);
-            // var returnedQuery = client.query(new (Function.prototype.bind.apply(pg.Query, queryArguments)));
-            var returnedQuery = client.query(new pg.Query(queryArguments[0], queryArguments[1]));
-            return new pgPromiseStrict.Query(returnedQuery, self, client);
-        };
-    };
-    if(this.fromPool){
-        pgPromiseStrict.allowAccessInternalIfDebugging(self, {client:client, pool:true, done:done});
-        if(pgPromiseStrict.debug.pool){
-            if(pgPromiseStrict.debug.pool===true){
-                pgPromiseStrict.debug.pool={};
-            }
-            if(!(client.secretKey in pgPromiseStrict.debug.pool)){
-                pgPromiseStrict.debug.pool[client.secretKey] = {client:client, count:0};
-            }
-            pgPromiseStrict.debug.pool[client.secretKey].count++;
+        }else{
+            // pgPromiseStrict.log('new Client');
+            this._client = new pg.Client(connOpts);
         }
-        assignFunctionsPostConnect();
-    }else{
-        // pgPromiseStrict.log('new Client');
-        client = new pg.Client(connOpts);
-        pgPromiseStrict.allowAccessInternalIfDebugging(self, {client:client, pool:false});
-        this.connect = function connect(){
-            // pgPromiseStrict.log('Client.connect');
-            if(arguments.length){
-                return Promise.reject(new Error('client.connect must no receive parameters, it returns a Promise'));
-            }
-            return new Promise(function(resolve, reject){
-                client.connect(function(err){
-                    if(err){
-                        reject(err);
-                        // pgPromiseStrict.log('Client.end ERR');
-                    }else{
-                        assignFunctionsPostConnect();
-                        self.end = function end(){
-                            client.end();
-                        };
-                        resolve(self);
-                        // pgPromiseStrict.log('Client.end');
-                    }
-                });
-            });
-        };
     }
-    if(pgPromiseStrict.easy){
-        self.executeSentences = function executeSentences(sentences){
-            var cdp = Promise.resolve();
-            sentences.forEach(function(sentence){
-                cdp = cdp.then(function(){
-                    if(!sentence.trim()){
-                        return;
+    connect(){
+        if(this.fromPool){
+            throw new Error("pg-promise-strict: Must not connect client from pool")
+        }
+        if(arguments.length){
+            return Promise.reject(new Error('client.connect must no receive parameters, it returns a Promise'));
+        }
+        if(!this._client){
+            throw new Error("pg-promise-strict: lack of Client._client");
+        }
+        /** @type {pg.Client} */
+        var client = this._client;
+        var self = this;
+        return new Promise(function(resolve, reject){
+            client.connect(function(err){
+                if(err){
+                    reject(err);
+                }else{
+                    self._connected = true;
+                    resolve(self);
+                }
+            });
+        });
+    };
+    end(){
+        if(this.fromPool){
+            throw new Error("pg-promise-strict: Must not end client from pool")
+        }
+        if(!this._client){
+            throw new Error("pg-promise-strict: lack of Client._client");
+        }
+        this._client.end();
+    };
+    assertConnected(){
+        if(!this._connected){
+            throw new Error('pg-promise-strict: not connected por use this function');
+        }
+    }
+    done(){
+        if(!this._client){
+            throw new Error("pg-promise-strict client already done");
+        }
+        if(pgPromiseStrict.debug.pool){
+            // @ts-ignore DEBUGGING
+            pgPromiseStrict.debug.pool[this._client.secretKey].count--;
+        }
+        var clientToDone=this._client;
+        this._client=null;
+        // @ts-ignore arguments Array like and applyable
+        return this._done.apply(clientToDone, arguments);
+    }
+    query(){
+        this.assertConnected();
+        if(!this._client){
+            return NotTheneable();
+        }
+        this.lastOperationTimestamp = new Date().getTime();
+        var queryArguments = Array.prototype.slice.call(arguments);
+        var queryText;
+        var queryValues;
+        if(typeof queryArguments[0] === 'string' && queryArguments[1] instanceof Array){
+            queryText = queryArguments[0];
+            queryValues = queryArguments[1] = pgPromiseStrict.adaptParameterTypes(queryArguments[1]);
+        }else if(queryArguments[0] instanceof Object && queryArguments[0].values instanceof Array){
+            queryText = queryArguments[0].text;
+            queryValues = pgPromiseStrict.adaptParameterTypes(queryArguments[0].values);
+            queryArguments[0].values = queryValues;
+        }
+        if(pgPromiseStrict.log){
+            var sql=queryArguments[0];
+            pgPromiseStrict.log('------','------');
+            if(queryArguments[1]){
+                pgPromiseStrict.log('`'+sql+'\n`','QUERY-P');
+                pgPromiseStrict.log('-- '+JSON.stringify(queryArguments[1]),'QUERY-A');
+                queryArguments[1].forEach(
+                    /** @param {any} value */
+                    /** @param {number} i */
+                    function(value, i){
+                        sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'), typeof value == "number" || typeof value == "boolean"?value:pgPromiseStrict.quoteNullable(value));
                     }
-                    return self.query(sentence).execute().catch(function(err){
+                );
+            }
+            pgPromiseStrict.log(sql+';','QUERY');
+        }
+        var returnedQuery = this._client.query(new pg.Query(queryArguments[0], queryArguments[1]));
+        return new pgPromiseStrict.Query(returnedQuery, this, this._client);
+    };
+    /** @param {string[]} sentences */
+    executeSentences(sentences){
+        var self = this;
+        this.assertConnected();
+        var cdp = Promise.resolve();
+        sentences.forEach(function(sentence){
+            cdp = cdp.then(function(){
+                if(!sentence.trim()){
+                    return;
+                }
+                return self.query(sentence).execute().catch(
+                    /** @param {Error} err */
+                    function(err){
                         // console.log('ERROR',err);
                         // console.log(sentence);
                         throw err;
-                    });
-                });
+                    }
+                );
             });
-            return cdp;
-        };
-        self.executeSqlScript = function executeSqlScript(fileName){
-            return fs.readFile(fileName,'utf-8').then(function(content){
-                var sentences = content.split(/\r?\n\r?\n/);
-                return self.executeSentences(sentences);
-            });
-        };
-        self.bulkInsert = function bulkInsert(params){
-            var sql = "INSERT INTO "+(params.schema?pgPromiseStrict.quoteObject(params.schema)+'.':'')+
-                pgPromiseStrict.quoteObject(params.table)+" ("+
-                params.columns.map(pgPromiseStrict.quoteObject).join(', ')+") VALUES ("+
-                params.columns.map(function(name, i_name){ return '$'+(i_name+1); })+")";
-            var insertOneRowAndContinueInserting = function insertOneRowAndContinueInserting(i_rows){
-                if(i_rows<params.rows.length){
-                    return self.query(sql, params.rows[i_rows]).execute().catch(function(err){
+        });
+        return cdp;
+    }
+    /** @param {string} fileName */
+    executeSqlScript(fileName){
+        var self=this;
+        this.assertConnected();
+        return fs.readFile(fileName,'utf-8').then(function(content){
+            var sentences = content.split(/\r?\n\r?\n/);
+            return self.executeSentences(sentences);
+        });
+    }
+    /** @param {pgps.BulkInsertParams} params*/
+    bulkInsert(params){
+        var self = this;
+        this.assertConnected();
+        var sql = "INSERT INTO "+(params.schema?pgPromiseStrict.quoteObject(params.schema)+'.':'')+
+            pgPromiseStrict.quoteObject(params.table)+" ("+
+            params.columns.map(pgPromiseStrict.quoteObject).join(', ')+") VALUES ("+
+            params.columns.map(function(name, i_name){ return '$'+(i_name+1); })+")";
+        /** @param {number} i_rows */
+        var insertOneRowAndContinueInserting = function insertOneRowAndContinueInserting(i_rows){
+            if(i_rows<params.rows.length){
+                return self.query(sql, params.rows[i_rows]).execute().catch(
+                    /** @param {Error} err */
+                    function(err){
                         if(params.onerror){
                             params.onerror(err, params.rows[i_rows]);
                         }else{
                             throw err;
                         }
-                    }).then(function(){
-                        return insertOneRowAndContinueInserting(i_rows+1);
-                    });
-                }
-                return;
-            };
-            return insertOneRowAndContinueInserting(0);
+                    }
+                ).then(function(){
+                    return insertOneRowAndContinueInserting(i_rows+1);
+                });
+            }
+            return;
         };
+        return insertOneRowAndContinueInserting(0);
     }
-};
+    /** @param {pgps.CopyFromOpts} opts */
+    copyFrom(opts){
+        this.assertConnected();
+        if(!this._client){
+            throw new Error("pg-promise-stric: no Client._client in copyFrom")
+        }
+        var stream = this._client.query(copyFrom(`'COPY ${opts.table} ${opts.columns?`(${opts.columns.map(name=>pgPromiseStrict.quoteIdent(name)).join(',')})`:''} FROM STDIN`));
+        if(!opts.stream){
+            if(opts.done){
+                opts.stream.on('error', opts.done);
+                stream.on('error', opts.done);
+                stream.on('end', opts.done);
+            }
+            opts.stream.pipe(stream);
+        }
+        return opts.stream;
+    }
+}
 
+
+pgPromiseStrict.Client = Client;
+
+/**
+ * @param {number} minCountRow 
+ * @param {number} maxCountRow 
+ * @param {string} expectText 
+ * @param {(result:RESULT, resolve:((value:any)=>void), reject:((err:any)=>void))=>((result:RESULT, resolve:((value:any)=>void), reject:((err:any)=>void))=>void) } callbackOtherControl 
+ */
 function buildQueryCounterAdapter(minCountRow, maxCountRow, expectText, callbackOtherControl){
     return function queryCounterAdapter(result, resolve, reject){ 
         if(result.rows.length<minCountRow || result.rows.length>maxCountRow ){
             var err=new Error('query expects '+expectText+' and obtains '+result.rows.length+' rows');
+            // @ts-ignore EXTENDED ERROR
             err.code='54011!';
             reject(err);
         }else{
@@ -315,7 +411,7 @@ var easiers=[
 
 pgPromiseStrict.Query = function Query(query, client, internalClient){
     var self = this;
-    pgPromiseStrict.allowAccessInternalIfDebugging(self, {query: query, client:client});
+    // pgPromiseStrict.allowAccessInternalIfDebugging(self, {query: query, client:client});
     this.onNotice = function onNotice(callbackNoticeConsumer){
         var noticeCallback=function(notice){
             if(this.activeQuery==query){
