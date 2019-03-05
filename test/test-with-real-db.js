@@ -31,12 +31,12 @@ describe('pg-promise-strict with real database', function(){
     describe('pool connections', function(){
         it('failed connection', function(){
             var errConnParams = bestGlobals.changing(connectParams, {password: 'xxxx'})
-            MiniTools.readConfig([{db:errConnParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+            return MiniTools.readConfig([{db:errConnParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
             }).then(function(client){
                 if(process.env.TRAVIS){
                     console.log('**************** MAY BE AN ERROR. I MUST STUDY MORE THIS ISSUE ************** ');
-                    client.query("SELECT 1").execute().then(function(result){
+                    return client.query("SELECT 1").execute().then(function(result){
                         console.log('** SOMETHING IS WRONG IN TRAVIS WITH PG PASSs ***',result);
                         client.done();
                     }).catch(function(err){

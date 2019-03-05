@@ -42,7 +42,7 @@ describe.skip('trying timeouts', function(){
         }).catch(function(err){
             console.log('LAST ERR:',err);
             throw err;
-        });;
+        });
     });
 });
 
