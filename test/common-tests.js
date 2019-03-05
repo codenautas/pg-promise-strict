@@ -96,11 +96,6 @@ describe('pg-promise-strict common tests', function(){
                 pg.quoteIdent(null);
             }).to.throwError(/name/i);
         });
-        it.skip("reject non string text", function(){
-            expect(function(){
-                pg.quoteNullable({},{allowNull:true});
-            }).to.throwError(/not text data/i);
-        });
         it("reject null text", function(){
             expect(function(){
                 pg.quoteLiteral(null);

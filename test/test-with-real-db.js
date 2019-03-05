@@ -29,8 +29,9 @@ describe('pg-promise-strict with real database', function(){
         {id:2, text1:'two'},
     ];
     describe('pool connections', function(){
-        it.skip('failed connection', function(){
-            MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+        it('failed connection', function(){
+            var errConnParams = bestGlobals.changing(connectParams, {password: 'xxxx'})
+            MiniTools.readConfig([{db:errConnParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
             }).then(function(client){
                 if(process.env.TRAVIS){
