@@ -67,12 +67,10 @@ describe('streams', function(){
     describe('inserting from stream', function(){
         var client;
         before(function(done){
-            pg.easy=true;
             miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
             }).then(function(clientFromPool){
                 client=clientFromPool;
-                pg.easy=false;
             }).then(done).catch(done);
         });
         after(function(){

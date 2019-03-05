@@ -1,7 +1,7 @@
+"use strict";
+
 // var pg = require('pg-promise-strict');
 var pg = require('..');
-
-pg.easy = true;
 
 var conOpts = {
     user: 'test_user',

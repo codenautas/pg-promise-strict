@@ -20,7 +20,10 @@ export var defaults={
     releaseTimeout:{inactive:60000, connection:600000}
 };
 
-export var log:(message:string, type:string)=>void=function(){};
+/* instanbul ignore next */
+function noLog(_message:string, _type:string){}
+
+export var log:(message:string, type:string)=>void=noLog;
 
 export function quoteIdent(name:string){
     if(typeof name!=="string"){
@@ -50,7 +53,7 @@ export function quoteNullable(anyValue:null|AnyQuoteable){
     }else if('toPostgres' in anyValue && anyValue.toPostgres instanceof Function){
         text = anyValue.toPostgres();
     }else{
-        text = anyValue.toString();
+        text = JSON.stringify(anyValue);
     }
     return "'"+text.replace(/'/g,"''")+"'";
 };
@@ -74,17 +77,6 @@ export function adaptParameterTypes(parameters?:any[]){
         return value;
     });
 };
-
-function rejecter():Promise<void>{
-    return Promise.reject(new Error("pg-promise-strict: not call function as thenable"));
-}
-
-export function NotTheneable(){
-    return {
-        then:rejecter(),
-        catch:rejecter(),
-    };
-}
 
 export var easy:boolean=true; // deprecated!
 
@@ -155,6 +147,7 @@ export class Client{
             return Promise.reject(new Error('client.connect must no receive parameters, it returns a Promise'));
         }
         if(!this._client){
+            /* istanbul ignore next */
             throw new Error("pg-promise-strict: lack of Client._client");
         }
         /** @type {pg.Client} */
@@ -173,11 +166,13 @@ export class Client{
     };
     end(){
         if(this.fromPool){
+            /* istanbul ignore next */
             throw new Error("pg-promise-strict: Must not end client from pool")
         }
         if(this._client instanceof pg.Client){
             this._client.end();
         }else{
+            /* istanbul ignore next */
             throw new Error("pg-promise-strict: lack of Client._client");
         }
     };
@@ -198,12 +193,9 @@ export class Client{
     query(sql:string, params:any[]):Query
     query(sqlObject:{text:string, values:any[]}):Query
     query():Query{
-        if(!this.connected){
+        if(!this.connected || !this._client){
+            /* istanbul ignore next */
             throw new Error("pg-promise-strict: query in not connected")
-        }
-        if(!this._client){
-            // @ts-ignore THIS IS A HACK FOR LEGACY CALLS TO wait ...query();
-            return NotTheneable();
         }
         this.connected.lastOperationTimestamp = new Date().getTime();
         var queryArguments = Array.prototype.slice.call(arguments);
@@ -235,6 +227,7 @@ export class Client{
     async executeSentences(sentences:string[]){
         var self = this;
         if(!this._client || !this.connected){
+            /* istanbul ignore next */
             throw new Error('pg-promise-strict: atempt to executeSentences on not connected '+!this._client+','+!this.connected)
         }
         var cdp:Promise<ResultCommand|void> = Promise.resolve();
@@ -255,6 +248,7 @@ export class Client{
     async executeSqlScript(fileName:string){
         var self=this;
         if(!this._client || !this.connected){
+            /* istanbul ignore next */
             throw new Error('pg-promise-strict: atempt to executeSqlScript on not connected '+!this._client+','+!this.connected)
         }
         return fs.readFile(fileName,'utf-8').then(function(content){
@@ -266,6 +260,7 @@ export class Client{
     bulkInsert(params:BulkInsertParams):Promise<void>{
         var self = this;
         if(!this._client || !this.connected){
+            /* istanbul ignore next */
             throw new Error('pg-promise-strict: atempt to bulkInsert on not connected '+!this._client+','+!this.connected)
         }
         var sql = "INSERT INTO "+(params.schema?quoteIdent(params.schema)+'.':'')+
@@ -290,10 +285,8 @@ export class Client{
     }
     copyFrom(opts:CopyFromOpts){
         if(!this._client || !this.connected){
+            /* istanbul ignore next */
             throw new Error('pg-promise-strict: atempt to copyFrom on not connected '+!this._client+','+!this.connected)
-        }
-        if(!this._client){
-            throw new Error("pg-promise-stric: no Client._client in copyFrom")
         }
         var stream = this._client.query(copyFrom(`'COPY ${opts.table} ${opts.columns?`(${opts.columns.map(name=>quoteIdent(name)).join(',')})`:''} FROM STDIN`));
         if(opts.done){
@@ -432,7 +425,7 @@ class Query{
     }
     fetchUniqueRow(acceptNoRows?:boolean):Promise<ResultOneRow> { 
         return this._execute(function(result:pg.QueryResult, resolve:(result:ResultOneRow)=>void, reject:(err:Error)=>void):void{
-            if(result.rowCount!==1 && (!acceptNoRows || !result.rowCount)){
+            if(result.rowCount!==1 && (!acceptNoRows || !!result.rowCount)){
                 var err=new Error('query expects one row and obtains '+result.rowCount);
                 // @ts-ignore EXTENDED ERROR
                 err.code='54011!';
@@ -521,6 +514,7 @@ export function connect(connectParameters:ConnectParams){
     });
 };
 
+/* istanbul ignore next */
 export function logLastError(message:string, messageType:string):void{
     if(messageType){
         if(messageType=='ERROR'){

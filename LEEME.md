@@ -73,8 +73,6 @@ $ npm install pg-promise-strict
 ```js 
 var pg = require('pg-promise-strict');
 
-pg.easy = true;
-
 var conOpts = {
     user: 'test_user',
     password: 'test_pass',

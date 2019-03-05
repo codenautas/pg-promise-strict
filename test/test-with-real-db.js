@@ -78,12 +78,10 @@ describe('pg-promise-strict with real database', function(){
         var poolLog;
         before(function(done){
             pg.setAllTypes();
-            pg.easy=true;
             MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
             }).then(function(returnedClient){
                 // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
-                pg.easy=false;
                 client = returnedClient;
                 done();
             });
@@ -94,7 +92,6 @@ describe('pg-promise-strict with real database', function(){
             }
         });
         it("successful query that doesn't return rows", function(done){
-            pg.easy=true;
             pg.debug.Query=true;
             client.query("drop schema if exists test_pgps cascade;").execute().then(function(result){
                 expect(result.command).to.be("DROP");
@@ -120,7 +117,6 @@ describe('pg-promise-strict with real database', function(){
             });
         });
         function tipicalExecuteWay(queryText,done,commandExpected,resultExpected,functionName,params){
-            pg.easy=false;
             return client.query(queryText,params)[functionName||"fetchAll"]().then(function(result){
                 if(resultExpected){
                     for(var attr in resultExpected){
@@ -183,6 +179,16 @@ describe('pg-promise-strict with real database', function(){
             tipicalExecuteWay("select * from test_pgps.table1 order by id limit 1",done,"SELECT",{
                 row:expectedTable1Data[0]
             },"fetchUniqueRow")
+        });
+        it("query one row that exists", function(done){
+            tipicalExecuteWay("select * from test_pgps.table1 order by id limit 1",done,"SELECT",{
+                row:expectedTable1Data[0]
+            },"fetchOneRowIfExists")
+        });
+        it("query one row that does not exist", function(done){
+            tipicalExecuteWay("select * from test_pgps.table1 where false",done,"SELECT",{
+                row:undefined
+            },"fetchOneRowIfExists")
         });
         it("fail to query unique row", function(done){
             tipicalFail("select * from test_pgps.table1",done,"returns 2 rows","54011!",/query expects.*one row.*and obtains 2/,"fetchUniqueRow")
@@ -346,6 +352,42 @@ describe('pg-promise-strict with real database', function(){
                 });
             })
         });
+        it('rejects waiting query', async function(){
+            var errObtained;
+            try{
+                var result = await client.query("select 1");
+                console.log('AND THE ANSWER IS...',result)
+            }catch(err){
+                errObtained=err;
+            }finally{
+                if(!errObtained){
+                    throw new Error("error expected");
+                }
+                if(!/Query must not be awaited/.test(errObtained.message)){
+                    throw new Error("bad error obtained: "+errObtained.message);
+                }
+            }
+        })
+        it('rejects catching query', async function(){
+            var errObtained;
+            try{
+                client.query("select 1").catch();
+            }catch(err){
+                errObtained=err;
+            }finally{
+                if(!errObtained){
+                    throw new Error("error expected");
+                }
+                if(!/Query must not be awaited/.test(errObtained.message)){
+                    throw new Error("bad error obtained: "+errObtained.message);
+                }
+            }
+        })
+        it("mus not connect client from pool",function(){
+            expect(function(){
+                client.connect();
+            }).throwException();
+        })
     });
     describe('pool-less connections', function(){
         describe('call queries', function(){
@@ -357,7 +399,6 @@ describe('pg-promise-strict with real database', function(){
                 });
             });
             it("successful query", function(done){
-                pg.easy=true;
                 client.connect().then(function(){
                     return client.query("select * from test_pgps.table1 where id<3 order by id;").fetchAll();
                 }).then(function(result){
@@ -369,7 +410,6 @@ describe('pg-promise-strict with real database', function(){
             });
             it("unsuccessful query", function(done){
                 this.timeout(5000);
-                pg.easy=true;
                 pg.debug.Client=true;
                 MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                     client = new pg.Client("this_user@localhost:"+config.db.port+"/nonex");
@@ -390,7 +430,6 @@ describe('pg-promise-strict with real database', function(){
             });
             it("connect with extra parameter", function(done){
                 this.timeout(5000);
-                pg.easy=true;
                 pg.debug.Client=true;
                 client = new pg.Client("this_user@xxxx");
                 expect(client).to.be.a(pg.Client);

@@ -30,10 +30,6 @@ export declare type AnyQuoteable = string | number | Date | {
 export declare function quoteNullable(anyValue: null | AnyQuoteable): string;
 export declare function quoteLiteral(anyValue: AnyQuoteable): string;
 export declare function adaptParameterTypes(parameters?: any[]): any[] | null;
-export declare function NotTheneable(): {
-    then: Promise<void>;
-    catch: Promise<void>;
-};
 export declare var easy: boolean;
 export declare type ConnectParams = {
     motor?: "postgres";
