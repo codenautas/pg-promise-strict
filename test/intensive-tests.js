@@ -17,7 +17,7 @@ const { LineSplitter }  = require("line-splitter");
 
 var miniTools = require('mini-tools');
 
-describe.skip('intensive tests', function(){
+describe('intensive tests', function(){
     var connectParams = {
         user: 'test_user',
         password: 'test_pass',
@@ -43,7 +43,7 @@ describe.skip('intensive tests', function(){
                     var p=Promise.resolve();
                     for(var iQuery=1; iQuery<=MAX_QUERIES; iQuery++){
                         p=p.then(function(){
-                            return client.query("SELECT $1::integer c, $2::integer q, $3::integer i",[iClient, iQuery, iCicle]).execute();
+                            return client.query("SELECT $1::integer c, $2::integer q, $3::integer i",[iClient, iQuery, iCicle]).fetchAll();
                         }).then(function(result){
                             // console.log('xxxxxxxxxxxx',result);
                             expect(result.rows).to.eql([{c: iClient, q:iQuery, i:iCicle}]);
@@ -81,7 +81,7 @@ describe('streams', function(){
         it.skip('reading fixture', async function(done){
             await client.query(`
                 DROP TABLE IF EXISTS attributes;
-            `);
+            `).execute();
             await client.query(`
                 CREATE TABLE attributes(
                     id serial primary key, 

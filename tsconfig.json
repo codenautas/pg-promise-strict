@@ -1,5 +1,8 @@
 {
     "compilerOptions": {
+        "sourceMap": true,
+        "inlineSources": true,
+        "declaration": true,
         "moduleResolution": "node",
         "lib":["es2017"],
         "target": "es2017",
@@ -12,7 +15,7 @@
         "noUnusedParameters": true,
         "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
         "noFallthroughCasesInSwitch": true,
-        "outDir": "dist/**/*.ts",
+        "outDir": "dist/lib",
     },
     "include":[
         "src/**/*.ts"

@@ -95,7 +95,7 @@ describe('pg-promise-strict with real database', function(){
         it("successful query that doesn't return rows", function(done){
             pg.easy=true;
             pg.debug.Query=true;
-            client.query("drop schema if exists test_pgps cascade;").then(function(result){
+            client.query("drop schema if exists test_pgps cascade;").execute().then(function(result){
                 expect(result.command).to.be("DROP");
                 expect(result.rowCount).to.not.be.ok();
                 done();
@@ -106,7 +106,7 @@ describe('pg-promise-strict with real database', function(){
         it("executeSqlScript succefull", function(){
             return client.executeSqlScript("test/script-example.sql").then(function(result){
                 expect(result.command).to.be("SELECT");
-                expect(result.rows).to.eql([{count:4}]);
+                expect(result.rows).to.eql(undefined);
             }).then(function(){
                 pg.debug.Query=false;
             });
@@ -120,7 +120,7 @@ describe('pg-promise-strict with real database', function(){
         });
         function tipicalExecuteWay(queryText,done,commandExpected,resultExpected,functionName,params){
             pg.easy=false;
-            return client.query(queryText,params)[functionName||"execute"]().then(function(result){
+            return client.query(queryText,params)[functionName||"fetchAll"]().then(function(result){
                 if(resultExpected){
                     for(var attr in resultExpected){
                         expect([attr,result[attr]]).to.eql([attr,resultExpected[attr]]);
@@ -291,7 +291,7 @@ describe('pg-promise-strict with real database', function(){
         });
         it("query reading notices in execute", async function(){
             var accumulate=[];
-            await client.query('SET client_min_messages TO NOTICE');
+            await client.query('SET client_min_messages TO NOTICE').execute();
             return client.query({
                 text:`
                 do language plpgsql
@@ -358,10 +358,10 @@ describe('pg-promise-strict with real database', function(){
             it("successful query", function(done){
                 pg.easy=true;
                 client.connect().then(function(){
-                    return client.query("select * from test_pgps.table1 where id<3 order by id;");
+                    return client.query("select * from test_pgps.table1 where id<3 order by id;").fetchAll();
                 }).then(function(result){
                     expect(result.rows).to.eql(expectedTable1Data);
-                    result.client.end();
+                    client.end();
                     done();
                 }).catch(done).then(function(){
                 });

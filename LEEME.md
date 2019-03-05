@@ -2,10 +2,10 @@
 # pg-promise-strict
 
 <!--lang:es-->
-**postgresql** con **promesas** en el sentido estricto
+**postgresql** con **promesas** y estricto tanto con los tipos como con el tamaño del resultado esperado
 
 <!--lang:en--]
-postgresql with strict interpretation of promises
+postgresql with promises and strict types and returning size of results
 
 [!--lang:*-->
 
@@ -28,11 +28,12 @@ también disponible en:
 
 # Características
 
-pg-strict-promise implementa una versión con Promise/A+ en el sentido estricto de la librería PG.
- * Tiene las mismas funciones que PG, con los mismos nombres, los mismos parámetros y que devuelven lo mismo, reemplazando los *callbacks* con promesas.
- * Con pruebas que cubren el 100% del código. 
+pg-strict-promise implementa una versión con Promise/A+ de la librería PG.
+ * Permite indicar qué tipo de resultado se espera (si una sola fila, un solo valor, etc.) y algunos [agregados](docs/agregados.md) más
+ * Trata de parecerse a PG, con los mismos nombres, los mismos parámetros y que devuelven lo mismo, reemplazando los *callbacks* con promesas.
+ * Con pruebas que cubren el 100% del código. ***Revisándolo***
+ * Escrito 100% en typescript
  * No se reimplementa nada de lo que PG ya implementa
- * Algunos [agregados](docs/agregados.md) para mayor comodidad
 
 <!--lang:en--]
 
@@ -41,6 +42,7 @@ pg-strict-promise implementa una versión con Promise/A+ en el sentido estricto 
 PG Promise/A+ in the strict way:
  * The same functions, with the same name and same retunrs that in PG, but without callbacks
  * covers 100% by test.
+ * 100% coded in typescript
  * No reimplement nothing that PG does
  * Some [additions](docs/additions.md) for comfort
 
@@ -82,12 +84,12 @@ var conOpts = {
 };
 
 pg.connect(conOpts).then(function(client){
-    return client.query('select * from table').execute();
-}).then(function(result){
-    for(var i=0; i<result.rowCount; i++){
-        console.log('row',i,result.rows[i]);
-    }
-    result.client.done();
+    return client.query('select * from table').execute().then(function(result){
+        for(var i=0; i<result.rowCount; i++){
+            console.log('row',i,result.rows[i]);
+        }
+        client.done();
+    });
 }).catch(function(err){
     console.log('ERROR',err);
 });
@@ -110,32 +112,30 @@ The first easy example. One simple query that returns all rows. Example based in
 ```js
 var pg = require('pg-promise-strict');
 
-pg.easy = true;
-
 var conString = "postgres://username:password@localhost/database";
- 
-pg.connect(conString).then(function(client){
-    return client.query('SELECT $1::int AS number', ['1']).execute();
-}).then(function(result){
+
+try{ 
+    var client = await pg.connect(conString)
+    var result = await client.query('SELECT $1::int AS number', ['1']).fetchAll();
     console.log(result.rows[0].number);
-}).catch(function(err){
+}catch(err){
     console.error('error fetching client from pool or running query', err);
-});
+};
 ```
 
 <!--lang:es-->
 
 En este ejemplo se puede ver:
- * la cadena de promesas
+ * las llamadas asincrónicas
  * los parámetros apsados a *libpq* en la función *query*
- * `.then(function(result)` es el equivalente a pasar callback a la función a *query*
+ * la función *fetchAll* que confirma que se desean todos los registros juntos y a la vez (se esperará hasta obtenerlos todos)
 
 <!--lang:en--]
 
 In this example you see:
- * the Promise chain
+ * async calls
  * parameters passed to *libpq* in the query function
- * `.then(function(result)` is the equivalent callback passed to query
+ * the *fetchAll* function that convirms that you want all rows.
 
 <!--lang:es-->
 
@@ -160,14 +160,14 @@ var conString = "postgres://username:password@localhost/database";
 
 var client = new pg.Client(conString);
 
-client.connect().then(function(client){
-    return client.query('SELECT NOW() AS "theTime"');
-}).then(function(result){
+try{
+    await client.connect();
+    var result = await client.query('SELECT NOW() AS "theTime"').fetchAll();
     console.log(result.rows[0].theTime);
     console.log(row.name);
-    result.client.done();
-}).catch(function(err){
-    return console.error('error connecting or running query', err);
+    client.done();
+}catch(err){
+    console.error('error connecting or running query', err);
 });
 ```
 
@@ -194,15 +194,25 @@ This is the way for process data row by row
 [!--lang:*-->
 
 ```js
-pg.connect({user: 'brianc', database: 'test'}).then(function(client){
-    return client.query("SELECT name FROM users").onRow(function(row){
-        console.log(row.name);
-    }).then(function(result){
-        console.log('ready.',result.rowCount,'rows processed');
-        result.client.done();
-    });
+var client = await pg.connect({user: 'brianc', database: 'test'});
+await client.query("SELECT name FROM users").onRow(function(row){
+    console.log(row.name);
 });
+client.done();
+console.log('ready.');
 ```
+
+<!--lang:es-->
+
+En el ejemplo se ve 
+  * la función que se llama en cada fila obtenida. 
+  * el *await* que espera a que se hayan terminado de leer todas las líneas
+
+<!--lang:en--]
+
+In this example you see:
+  * the on-row callback
+  * the *await* until the query has finished
 
 <!--lang:es-->
 

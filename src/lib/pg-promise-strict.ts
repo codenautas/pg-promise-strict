@@ -24,7 +24,7 @@ export var log:(message:string, type:string)=>void=function(){};
 
 export function quoteIdent(name:string){
     if(typeof name!=="string"){
-        throw new Error("insaneName");
+        throw new Error("insane name");
     }
     return '"'+name.replace(/"/g, '""')+'"';
 };
@@ -62,8 +62,11 @@ export function quoteLiteral(anyValue:AnyQuoteable){
     return quoteNullable(anyValue);
 };
 
-export function adaptParameterTypes(parameters:any[]){
+export function adaptParameterTypes(parameters?:any[]){
     // @ts-ignore 
+    if(parameters==null){
+        return null;
+    }
     return parameters.map(function(value){
         if(value && value.typeStore){
             return value.toLiteral();
@@ -111,7 +114,7 @@ export class Client{
         }
     }
     private _client:(pg.Client|pg.PoolClient)&{secretKey:string}|null;
-    constructor(connOpts:ConnectParams|null, client:(pg.Client|pg.PoolClient), private _done:()=>void, private opts?:any){
+    constructor(connOpts:ConnectParams|null, client:(pg.Client|pg.PoolClient), private _done:()=>void, _opts?:any){
         this._client = client as (pg.Client|pg.PoolClient)&{secretKey:string};
         if(connOpts==null){
             this.fromPool=true;
@@ -205,13 +208,13 @@ export class Client{
         this.connected.lastOperationTimestamp = new Date().getTime();
         var queryArguments = Array.prototype.slice.call(arguments);
         var queryText;
-        var queryValues;
-        if(typeof queryArguments[0] === 'string' && queryArguments[1] instanceof Array){
+        var queryValues=null;
+        if(typeof queryArguments[0] === 'string'){
             queryText = queryArguments[0];
-            queryValues = queryArguments[1] = adaptParameterTypes(queryArguments[1]);
-        }else if(queryArguments[0] instanceof Object && queryArguments[0].values instanceof Array){
+            queryValues = queryArguments[1] = adaptParameterTypes(queryArguments[1]||null);
+        }else if(queryArguments[0] instanceof Object){
             queryText = queryArguments[0].text;
-            queryValues = adaptParameterTypes(queryArguments[0].values);
+            queryValues = adaptParameterTypes(queryArguments[0].values||null);
             queryArguments[0].values = queryValues;
         }
         if(log){
@@ -234,13 +237,13 @@ export class Client{
         if(!this._client || !this.connected){
             throw new Error('pg-promise-strict: atempt to executeSentences on not connected '+!this._client+','+!this.connected)
         }
-        var cdp = Promise.resolve();
+        var cdp:Promise<ResultCommand|void> = Promise.resolve();
         sentences.forEach(function(sentence){
             cdp = cdp.then(async function(){
                 if(!sentence.trim()){
                     return ;
                 }
-                await self.query(sentence).execute().catch(function(err:Error){
+                return await self.query(sentence).execute().catch(function(err:Error){
                     // console.log('ERROR',err);
                     // console.log(sentence);
                     throw err;
@@ -359,18 +362,18 @@ function buildQueryCounterAdapter(
 type Notice = string;
 
 class Query{
-    constructor(private _query:pg.Query, private _client:Client, private _internalClient:pg.Client|pg.PoolClient){
+    constructor(private _query:pg.Query, public client:Client, private _internalClient:pg.Client|pg.PoolClient){
     }
     onNotice(callbackNoticeConsumer:(notice:Notice)=>void):Query{
         var q = this;
         var noticeCallback=function(notice:Notice){
             // @ts-ignore  DOES NOT HAVE THE CORRECT TYPE! LACKS of activeQuery
-            if(q.internalClient.activeQuery==q._query){
+            if(q._internalClient.activeQuery==q._query){
                 callbackNoticeConsumer(notice);
             }
         }
         // @ts-ignore .on('notice') DOES NOT HAVE THE CORRECT TYPE!
-        this.internalClient.on('notice',noticeCallback);
+        this._internalClient.on('notice',noticeCallback);
         var removeNoticeCallback=function removeNoticeCallback(){
             q._internalClient.removeListener('notice',noticeCallback);
         }
@@ -383,7 +386,7 @@ class Query{
         callbackForEachRow?:(row:{}, result:pg.QueryResult)=>Promise<void>, 
     ):Promise<TR>{
         var q = this;
-        return new Promise(function(resolve, reject){
+        return new Promise<TR>(function(resolve, reject){
             q._query.on('error',function(err){
                 if(log){
                     // @ts-ignore EXTENDED ERROR
@@ -429,10 +432,10 @@ class Query{
     }
     fetchUniqueRow(acceptNoRows?:boolean):Promise<ResultOneRow> { 
         return this._execute(function(result:pg.QueryResult, resolve:(result:ResultOneRow)=>void, reject:(err:Error)=>void):void{
-            if(result.rowCount!==1 && !acceptNoRows || result.rowCount){
+            if(result.rowCount!==1 && (!acceptNoRows || !result.rowCount)){
                 var err=new Error('query expects one row and obtains '+result.rowCount);
                 // @ts-ignore EXTENDED ERROR
-                err.code='54U11!';
+                err.code='54011!';
                 reject(err);
             }else{
                 var {rows, ...rest} = result;
@@ -462,6 +465,9 @@ class Query{
             return Promise.reject(err);
         }
         await this._execute(null, cb);
+    }
+    async onRow(cb:(row:{}, result:pg.QueryResult)=>Promise<void>):Promise<void>{ 
+        return this.fetchRowByRow(cb);
     }
     then(){
         throw new Error('pg-promise-strict: Query must not be awaited nor thened')
@@ -549,7 +555,7 @@ logLastError.receivedMessages={} as {
     [key:string]:string
 };
 
-function poolBalanceControl(){
+export function poolBalanceControl(){
     var rta:string[]=[];
     if(typeof debug.pool === "object"){
         likeAr(debug.pool).forEach(function(pool){

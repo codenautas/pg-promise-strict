@@ -35,13 +35,6 @@ describe('pg-promise-strict common tests', function(){
         client.done();
     });
     describe('internal controls', function(){
-        it('control the parameters of the execute function',function(){
-            return client.query("SELECT 1").execute('one value', 'other value').then(function(result){
-                done(new Error('must reject the parameters'));
-            },function(err){
-                expect(err.message).to.match(/must receive/);
-            });
-        });
         it('control the log',function(){
             var messages=[];
             pg.log=function(message){
@@ -96,39 +89,21 @@ describe('pg-promise-strict common tests', function(){
             expect(pg.quoteNullable(null)).to.eql("null");
             expect(pg.quoteNullable(true)).to.eql("'true'");
         });
-        it("quoteObject", function(){
-            process.noDeprecation=true;
-            expect(pg.quoteObject("column1")).to.eql('"column1"');
-            expect(pg.quoteObject('column"delta"')).to.eql('"column""delta"""');
-        });
-        it("quoteText", function(){
-            expect(pg.quoteText('hi')).to.eql("'hi'");
-            expect(pg.quoteText("don't")).to.eql("'don''t'");
-        });
-        it("quoteText of null", function(){
-            expect(pg.quoteText(null,{allowNull:true})).to.eql('null');
-        });
-        it("quoteObjectList", function(){
-            process.noDeprecation=true;
-            // expect(function(){
-                expect(pg.quoteObjectList(['one', '"2"'])).to.eql('"one","""2"""');
-            // }).to.throwError(/promise-strict.quoteObjectList: use quoteIdentList instead/i);
-        });
     });
     describe('handle errors', function(){
         it("reject non string object names", function(){
             expect(function(){
-                pg.quoteObject(null);
+                pg.quoteIdent(null);
             }).to.throwError(/name/i);
         });
-        it("reject non string text", function(){
+        it.skip("reject non string text", function(){
             expect(function(){
-                pg.quoteText({},{allowNull:true});
+                pg.quoteNullable({},{allowNull:true});
             }).to.throwError(/not text data/i);
         });
         it("reject null text", function(){
             expect(function(){
-                pg.quoteText(null);
+                pg.quoteLiteral(null);
             }).to.throwError(/null/i);
         });
     });
