@@ -37,7 +37,7 @@
     "discrepances": "~0.2.4",
     "mini-tools": "~1.0.6",
     "type-store": "~0.2.31",
-    "line-splitter": "~0.3.1"
+    "line-splitter": "~0.5.0"
   },
   "optionalDependencies": {
     "type-store": "~0.2.31"
@@ -58,6 +58,10 @@
     "start": "node examples/use-examples.js"
   },
   "nyc": {
+    "lines": 95,
+    "statements": 95,
+    "functions": 95,
+    "branches": 95,
     "extension": [
       ".js"
     ],
@@ -68,9 +72,6 @@
     ],
     "include": [
       "dist/**/*.js"
-    ],
-    "x-require": [
-      "ts-node/register"
     ],
     "reporter": [
       "html",

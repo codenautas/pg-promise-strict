@@ -39,7 +39,7 @@ export declare type ConnectParams = {
     port?: number;
 };
 export declare type CopyFromOpts = {
-    stream: Stream;
+    inStream: Stream;
     table: string;
     columns?: string[];
     done?: (err?: Error) => void;
@@ -70,9 +70,10 @@ export declare class Client {
     }): Query;
     executeSentences(sentences: string[]): Promise<void | ResultCommand>;
     executeSqlScript(fileName: string): Promise<void | ResultCommand>;
-    /** @param {pgps.} params*/
     bulkInsert(params: BulkInsertParams): Promise<void>;
-    copyFrom(opts: CopyFromOpts): import("pg-copy-streams").CopyStreamQuery;
+    copyFromInlineDumpStream(opts: CopyFromOpts): import("pg-copy-streams").CopyStreamQuery;
+    formatNullableToInlineDump(nullable: any): any;
+    copyFromArrayStream(opts: CopyFromOpts): import("pg-copy-streams").CopyStreamQuery;
 }
 declare var queryResult: pg.QueryResult;
 export interface Result {

@@ -72,8 +72,7 @@ describe('pg-promise-strict common tests', function(){
             };
             return Promise.resolve().then(function(){
                 return client.query(
-                    'select 1 as one union select 2', 
-                    
+                    'select 1 as one union select 2'
                 ).execute();
             }).then(function(result){
                 expect(messages).to.eql([

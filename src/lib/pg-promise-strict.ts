@@ -8,7 +8,7 @@ import {from as copyFrom} from 'pg-copy-streams';
 import * as util from 'util';
 import * as likeAr from 'like-ar';
 import * as bestGlobals from 'best-globals';
-import {Stream} from 'stream';
+import {Stream, Transform} from 'stream';
 
 export var debug:{
     pool?:true|{
@@ -88,7 +88,7 @@ export type ConnectParams={
     port?:number
 }
 
-export type CopyFromOpts={stream:Stream, table:string,columns?:string[],done?:(err?:Error)=>void}
+export type CopyFromOpts={inStream:Stream, table:string,columns?:string[],done?:(err?:Error)=>void}
 export type BulkInsertParams={schema?:string,table:string,columns:string[],rows:[][], onerror?:(err:Error, row:[])=>void}
 
 /** TODO: any en opts */
@@ -150,7 +150,6 @@ export class Client{
             /* istanbul ignore next */
             throw new Error("pg-promise-strict: lack of Client._client");
         }
-        /** @type {pg.Client} */
         var client = this._client;
         var self = this;
         return new Promise(function(resolve, reject){
@@ -256,7 +255,6 @@ export class Client{
             return self.executeSentences(sentences);
         });
     }
-    /** @param {pgps.} params*/
     bulkInsert(params:BulkInsertParams):Promise<void>{
         var self = this;
         if(!this._client || !this.connected){
@@ -283,23 +281,59 @@ export class Client{
         };
         return insertOneRowAndContinueInserting(0);
     }
-    copyFrom(opts:CopyFromOpts){
+    copyFromInlineDumpStream(opts:CopyFromOpts){
         if(!this._client || !this.connected){
             /* istanbul ignore next */
             throw new Error('pg-promise-strict: atempt to copyFrom on not connected '+!this._client+','+!this.connected)
         }
-        var stream = this._client.query(copyFrom(`'COPY ${opts.table} ${opts.columns?`(${opts.columns.map(name=>quoteIdent(name)).join(',')})`:''} FROM STDIN`));
+        var stream = this._client.query(copyFrom(`COPY ${opts.table} ${opts.columns?`(${opts.columns.map(name=>quoteIdent(name)).join(',')})`:''} FROM STDIN`));
         if(opts.done){
             stream.on('error', opts.done);
             stream.on('end', opts.done);
+            stream.on('close', opts.done);
         }
-        if(opts.stream){
+        if(opts.inStream != null){
             if(opts.done){
-                opts.stream.on('error', opts.done);
+                opts.inStream.on('error', opts.done);
             }
-            opts.stream.pipe(stream);
+            opts.inStream.pipe(stream);
         }
         return stream;
+    }
+    formatNullableToInlineDump(nullable:any){
+        if(nullable==null){
+            return '\\N'
+        }else if(typeof nullable === "number" && isNaN(nullable)){
+            return '\\N'
+        }else{
+            return nullable.toString().replace(/(\r)|(\n)|(\t)|(\\)/g, 
+                function(_all:string,bsr:string,bsn:string,bst:string,bs:string){
+                    if(bsr) return '\\r';
+                    if(bsn) return '\\n';
+                    if(bst) return '\\t';
+                    if(bs) return '\\\\';
+                    throw new Error("formatNullableToInlineDump error parsing")
+                }
+            );
+        }
+    }
+    copyFromArrayStream(opts:CopyFromOpts){
+        var c = this;
+        var transform = new Transform({
+            writableObjectMode:true,
+            readableObjectMode:true,
+            transform(arrayChunk:any[], _encoding, next){
+                this.push(arrayChunk.map(x=>c.formatNullableToInlineDump(x)).join('\t')+'\n')
+                next();
+            },
+            flush(next){
+                this.push('\\.\n');
+                next();
+            }
+        });
+        var {inStream, ...rest} = opts;
+        inStream.pipe(transform);
+        return this.copyFromInlineDumpStream({inStream:transform, ...rest})
     }
 }
 
