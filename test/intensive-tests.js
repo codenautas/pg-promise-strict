@@ -10,7 +10,7 @@ var pg = require('..');
 var colors = require('colors'); 
 console.warn(pg.poolBalanceControl());
 var fs = require('fs');
-const { Transform, pipeline, Readable } = require('stream');
+const { Transform, Readable } = require('stream');
 const { LineSplitter, LineJoiner, EscapeCharsTransform, streamSignalsDone }  = require("line-splitter");
 // const { from } = require('pg-copy-streams');
 // var copyFrom = from;
@@ -105,7 +105,7 @@ describe('streams', function(){
                 }
             })
             var lineJoiner = new LineJoiner();
-            pipeline(fileStream,lineSplitter,escape,addEot,lineJoiner);
+            fileStream.pipe(lineSplitter).pipe(escape).pipe(addEot).pipe(lineJoiner);
             var ws=client.copyFromInlineDumpStream({table:'attributes', columns:['line'], inStream:lineJoiner});
             await streamSignalsDone(ws);
             var result = await client.query("SELECT * FROM attributes ORDER BY id DESC LIMIT 2").fetchAll();
