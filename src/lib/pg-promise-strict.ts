@@ -528,7 +528,7 @@ var pools:{
     [key:string]:pg.Pool
 } = {}
 
-export function connect(connectParameters:ConnectParams){
+export function connect(connectParameters:ConnectParams):Promise<Client>{
     if(allTypes){
         setAllTypes();
     }

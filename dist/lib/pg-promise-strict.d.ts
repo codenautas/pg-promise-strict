@@ -123,7 +123,7 @@ declare class Query {
 }
 export declare var allTypes: boolean;
 export declare function setAllTypes(): void;
-export declare function connect(connectParameters: ConnectParams): Promise<{}>;
+export declare function connect(connectParameters: ConnectParams): Promise<Client>;
 export declare function logLastError(message: string, messageType: string): void;
 export declare namespace logLastError {
     var inFileName: string;
