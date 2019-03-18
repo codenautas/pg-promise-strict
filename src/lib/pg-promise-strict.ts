@@ -88,7 +88,7 @@ export type ConnectParams={
     port?:number
 }
 
-export type CopyFromOpts={inStream:Stream, table:string,columns?:string[],done?:(err?:Error)=>void}
+export type CopyFromOpts={inStream:Stream, table:string,columns?:string[],done?:(err?:Error)=>void, with?:string}
 export type BulkInsertParams={schema?:string,table:string,columns:string[],rows:[][], onerror?:(err:Error, row:[])=>void}
 
 /** TODO: any en opts */
@@ -286,7 +286,7 @@ export class Client{
             /* istanbul ignore next */
             throw new Error('pg-promise-strict: atempt to copyFrom on not connected '+!this._client+','+!this.connected)
         }
-        var stream = this._client.query(copyFrom(`COPY ${opts.table} ${opts.columns?`(${opts.columns.map(name=>quoteIdent(name)).join(',')})`:''} FROM STDIN`));
+        var stream = this._client.query(copyFrom(`COPY ${opts.table} ${opts.columns?`(${opts.columns.map(name=>quoteIdent(name)).join(',')})`:''}${opts.with||''}  FROM STDIN`));
         if(opts.done){
             stream.on('error', opts.done);
             stream.on('end', opts.done);
