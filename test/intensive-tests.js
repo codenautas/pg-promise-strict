@@ -91,7 +91,7 @@ describe('streams', function(){
             var lineSplitter = new LineSplitter();
             var escape = new EscapeCharsTransform({
                 charsToEscape:',\\"\';', prefixChar:'\\'
-            });
+            }, 'lines');
             var addEot = new Transform({
                 objectMode:true,
                 transform(chunk,_,next){
