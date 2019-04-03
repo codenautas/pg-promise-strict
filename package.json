@@ -1,7 +1,7 @@
 {
   "name": "pg-promise-strict",
   "description": "postgresql with promises and strict types and returning size of results",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/pg-promise-strict",
@@ -47,6 +47,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
     "test": "mocha --reporter spec --bail --check-leaks test/",
     "test-real": "mocha --reporter spec --bail --check-leaks test/test-with-real-db.js",
     "test-intensive": "mocha --reporter spec --bail --check-leaks test/intensive-tests.js",
