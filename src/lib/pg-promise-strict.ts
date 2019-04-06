@@ -89,7 +89,7 @@ export type ConnectParams={
 }
 
 export type CopyFromOpts={inStream:Stream, table:string,columns?:string[],done?:(err?:Error)=>void, with?:string}
-export type BulkInsertParams={schema?:string,table:string,columns:string[],rows:[][], onerror?:(err:Error, row:[])=>void}
+export type BulkInsertParams={schema?:string,table:string,columns:string[],rows:any[][], onerror?:(err:Error, row:any[])=>void}
 
 /** TODO: any en opts */
 export class Client{
