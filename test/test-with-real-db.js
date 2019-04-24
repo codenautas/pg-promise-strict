@@ -30,11 +30,11 @@ describe('pg-promise-strict with real database', function(){
     ];
     describe('pool connections', function(){
         it('failed connection', function(){
-            var errConnParams = bestGlobals.changing(connectParams, {password: 'xxxx'})
+            var errConnParams = bestGlobals.changing(connectParams, {user:'unnex_user', password: 'xxxx'})
             return MiniTools.readConfig([{db:errConnParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
             }).then(function(client){
-                if(process.env.TRAVIS){
+                if(process.env.TRAVIS && !"skip in TRAVIS"){
                     console.log('**************** MAY BE AN ERROR. I MUST STUDY MORE THIS ISSUE ************** ');
                     return client.query("SELECT 1").execute().then(function(result){
                         console.log('** SOMETHING IS WRONG IN TRAVIS WITH PG PASSs ***',result);
@@ -47,8 +47,8 @@ describe('pg-promise-strict with real database', function(){
                 }
             }).catch(function(err){
                 expect(err).to.be.a(Error);
-                expect(err.code).to.be('28P01');
-                expect(err.message).to.match(/(aut.*|pass.*){2}/);
+                expect(err.message).to.match(/not? exist/);
+                expect(err.code).to.be('28000');
             });
         });
         it('successful connection', function(done){
@@ -412,14 +412,14 @@ describe('pg-promise-strict with real database', function(){
                 this.timeout(5000);
                 pg.debug.Client=true;
                 MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
-                    client = new pg.Client("this_user@localhost:"+config.db.port+"/nonex");
+                    client = new pg.Client("posgresql://this_user@localhost:"+config.db.port+"/nonex");
                     expect(client).to.be.a(pg.Client);
                     expect(client._client).to.be.a(pg0.Client);
                     client.connect().then(function(){
                         done(new Error("must raise error"));
                     }).catch(function(err){
                         if(config.db.port==5432){
-                            expect(err.message).to.match(/(aut.*|pass.*){2}|database.*does not exist/);
+                            expect(err.message).to.match(/not? exist/);
                         }else{
                             expect(err.message).to.match(/ECONNREFUSED.*5432/);
                         }
