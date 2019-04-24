@@ -1,8 +1,5 @@
 "use strict";
 
-// // IN TRAVIS-CI ONLY TEST WITH REAL DB IN ONE VERSION 0.12
-// if(process.versions.node.substr(0,4)!=="0.12" && process.env.TRAVIS) return;
-
 // WHEN COVER with NO DB NO DB
 if(process.env.COVER==="ndb") return;
 
@@ -34,17 +31,7 @@ describe('pg-promise-strict with real database', function(){
             return MiniTools.readConfig([{db:errConnParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
             }).then(function(client){
-                if(process.env.TRAVIS && !"skip in TRAVIS"){
-                    console.log('**************** MAY BE AN ERROR. I MUST STUDY MORE THIS ISSUE ************** ');
-                    return client.query("SELECT 1").execute().then(function(result){
-                        console.log('** SOMETHING IS WRONG IN TRAVIS WITH PG PASSs ***',result);
-                        client.done();
-                    }).catch(function(err){
-                        console.log("ok. error detected when execute");
-                    });
-                }else{
-                    throw new Error('must raise error');
-                }
+                throw new Error('must raise error');
             }).catch(function(err){
                 expect(err).to.be.a(Error);
                 expect(err.message).to.match(/not? exist/);
