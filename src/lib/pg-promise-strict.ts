@@ -414,6 +414,8 @@ class Query{
     ):Promise<TR>{
         var q = this;
         return new Promise<TR>(function(resolve, reject){
+            var pendingRows=0;
+            var endMark:null|{result:pg.QueryResult}=null;
             q._query.on('error',function(err){
                 if(log){
                     // @ts-ignore EXTENDED ERROR
@@ -422,28 +424,37 @@ class Query{
                 reject(err);
             });
             // @ts-ignore .on('row') DOES NOT HAVE THE CORRECT TYPE!
-            q._query.on('row',function(row:{}, result:pg.QueryResult){
+            q._query.on('row',async function(row:{}, result:pg.QueryResult){
                 if(callbackForEachRow){
+                    pendingRows++;
                     if(log){
                         log('-- '+JSON.stringify(row), 'ROW');
                     }
-                    callbackForEachRow(row, result);
+                    await callbackForEachRow(row, result);
+                    --pendingRows;
+                    whenEnd();
                 }else{
                     // @ts-ignore addRow ommited DOES NOT HAVE THE CORRECT TYPE!
                     result.addRow(row);
                 }
             });
+            function whenEnd(){
+                if(endMark && !pendingRows){
+                    if(adapterCallback){
+                        adapterCallback(endMark.result, resolve, reject);
+                    }else{
+                        resolve();
+                    }
+                }
+            }
             q._query.on('end',function(result){
                 // TODO: VER SI ESTO ES NECESARIO
                 // result.client = q.client;
                 if(log){
                     log('-- '+JSON.stringify(result.rows), 'RESULT');
                 }
-                if(adapterCallback){
-                    adapterCallback(result, resolve, reject);
-                }else{
-                    resolve();
-                }
+                endMark={result};
+                whenEnd();
             });
         });
     };

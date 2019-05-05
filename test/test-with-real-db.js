@@ -34,8 +34,8 @@ describe('pg-promise-strict with real database', function(){
                 throw new Error('must raise error');
             }).catch(function(err){
                 expect(err).to.be.a(Error);
-                expect(err.message).to.match(/not? exist/);
-                expect(err.code).to.be('28000');
+                expect(err.message).to.match(/not? exist|autenti.*password/);
+                expect(err.code).to.match(/28000|28P01/);
             });
         });
         it('successful connection', function(done){
@@ -406,7 +406,7 @@ describe('pg-promise-strict with real database', function(){
                         done(new Error("must raise error"));
                     }).catch(function(err){
                         if(config.db.port==5432){
-                            expect(err.message).to.match(/not? exist/);
+                            expect(err.message).to.match(/autenti.*password|not? exist/);
                         }else{
                             expect(err.message).to.match(/ECONNREFUSED.*5432/);
                         }
@@ -431,5 +431,47 @@ describe('pg-promise-strict with real database', function(){
             });
         });
     });
+    describe("onRow async ensures", function(){
+        var client;
+        before(function(done){
+            pg.setAllTypes();
+            MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+                return pg.connect(config.db);
+            }).then(function(returnedClient){
+                // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
+                client = returnedClient;
+                done();
+            });
+        });
+        after(function(){
+            if(client){
+                client.done();
+            }
+        });
+        it("immediate row processing", async function(){
+            var adder=0;
+            await client.query('select num from generate_series(1,10) num').onRow(async function(row){
+                adder+=row.num;
+            });
+            expect(adder).to.eql(55)
+        })
+        it("wait for each row be processed", async function(){
+            var adder=0;
+            await client.query('select num from generate_series(1,10) num').onRow(async function(row){
+                await bestGlobals.sleep(100)
+                adder+=row.num;
+            });
+            expect(adder).to.eql(55)
+        })
+        it("do not wait for each row be processed", async function(){
+            var adder=0;
+            await client.query('select num from generate_series(1,10) num').onRow(function(row){
+                setTimeout(function(){
+                    adder+=row.num;
+                },100);
+            });
+            expect(adder).to.eql(0)
+        })
+    })
 });
 
