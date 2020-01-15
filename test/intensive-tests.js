@@ -16,15 +16,13 @@ const { LineSplitter, LineJoiner, EscapeCharsTransform, streamSignalsDone }  = r
 // var copyFrom = from;
 
 var miniTools = require('mini-tools');
+var {getConnectParams} = require('./helpers');
 
 describe('intensive tests', function(){
-    var connectParams = {
-        user: 'test_user',
-        password: 'test_pass',
-        database: 'test_db',
-        host: 'localhost',
-        port: 5432
-    }
+    var connectParams;
+    before(async function(){
+        connectParams = await getConnectParams();
+    });
     for(var iClient=1; iClient<=MAX_CLIENTS; iClient++){
         describe('pool connection '+iClient, function(){
             var client;
@@ -57,13 +55,10 @@ describe('intensive tests', function(){
 });
 
 describe('streams', function(){
-    var connectParams = {
-        user: 'test_user',
-        password: 'test_pass',
-        database: 'test_db',
-        host: 'localhost',
-        port: 5432
-    }
+    var connectParams;
+    before(async function(){
+        connectParams = await getConnectParams();
+    });
     describe('inserting from stream', function(){
         var client;
         before(function(done){

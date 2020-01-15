@@ -11,16 +11,15 @@ var bestGlobals = require('best-globals');
 var discrepances = require('discrepances');
 var MiniTools = require('mini-tools');
 var TypeStore = require('type-store');
+var {getConnectParams} = require('./helpers');
+
 console.warn(pg.poolBalanceControl());
 
 describe('pg-promise-strict with real database', function(){
-    var connectParams = {
-        user: 'test_user',
-        password: 'test_pass',
-        database: 'test_db',
-        host: 'localhost',
-        port: 5432
-    }
+    var connectParams;
+    before(async function(){
+        connectParams = await getConnectParams();
+    });
     var expectedTable1Data = [
         {id:1, text1:'one'},
         {id:2, text1:'two'},
@@ -405,10 +404,10 @@ describe('pg-promise-strict with real database', function(){
                     client.connect().then(function(){
                         done(new Error("must raise error"));
                     }).catch(function(err){
-                        if(config.db.port==5432){
+                        if(config.db.port==connectParams.port){
                             expect(err.message).to.match(/autenti.*password|not? exist/);
                         }else{
-                            expect(err.message).to.match(/ECONNREFUSED.*5432/);
+                            expect(err.message).to.match(/ECONNREFUSED/);
                         }
                         done();
                     }).catch(done).then(function(){

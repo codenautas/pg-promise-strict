@@ -1,0 +1,5 @@
+{
+    "globals":  ["json4allRegisteredTypes"],
+    "check-leaks": true,
+    "throw-deprecation": true
+}

@@ -8,15 +8,13 @@ var queryWithEmitter = require('./query-with-emitter.js');
 var bestGlobals = require('best-globals');
 
 var MiniTools = require('mini-tools');
+var {getConnectParams} = require('./helpers');
 
 describe('pg-promise-strict common tests', function(){
-    var connectParams = {
-        user: 'test_user',
-        password: 'test_pass',
-        database: 'test_db',
-        host: 'localhost',
-        port: 5432
-    }
+    var connectParams;
+    before(async function(){
+        connectParams = await getConnectParams();
+    });
     var client;
     var poolLog;
     before(function(done){

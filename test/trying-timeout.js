@@ -7,21 +7,23 @@ var bestGlobals = require('best-globals');
 var discrepances = require('discrepances');
 var miniTools = require('mini-tools');
 var TypeStore = require('type-store');
+
+var {getConnectParams} = require('./helpers');
+
 console.warn(pg.poolBalanceControl());
 
 // DOING skip
 describe.skip('trying timeouts', function(){
     // waiting for
     // https://github.com/brianc/node-postgres/issues/1860
-    var connectParams = {
-        user: 'test_user',
-        password: 'test_pass',
-        database: 'test_db',
-        host: 'localhost',
-        port: 5432,
-        releaseTimeout:{inactive: 800},
-        query_timeout: 2500
-    };
+    var connectParams = 
+    before(async function(){
+        connectParams = {
+            ...await getConnectParams(), 
+            releaseTimeout:{inactive: 800},
+            query_timeout: 2500
+        };
+    });
     it('cancel connect when timeout', async function(){
         var config = await miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'});
         var client = await pg.connect(config.db);
