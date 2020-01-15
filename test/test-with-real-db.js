@@ -122,20 +122,26 @@ describe('pg-promise-strict with real database', function(){
             this.timeout(5000);
             tipicalExecuteWay("create schema test_pgps;",done,'CREATE');
         });
-        function tipicalFail(textQuery,done,reason,code,msg,functionName){
-            client.query(textQuery)[functionName||"execute"]().then(function(result){
+        async function tipicalFail(textQuery,reason,code,msg,functionName,expectedErrorLog){
+            try{
+                console.log('functionName', functionName)
+                var result = await client.query(textQuery)[functionName||"execute"]();
                 console.log("EXPECT FAIL BUT OBTAINS",result);
-                done(new Error("Must fail because "+reason));
-            }).catch(function(err){
+                throw new Error("Must fail because "+reason);
+            }catch(err){
+                if(err.message.startsWith('Must fail')){
+                    throw err;
+                }
                 expect(err).to.be.a(Error);
                 expect(err.code).to.be(code);
                 expect(err).to.match(msg);
-                done();
-            }).catch(done).then(function(){
-            });
+            };
         }
-        it("failed call", function(done){
-            tipicalFail("create schema test_pgps;",done,"the schema exists",'42P06',/(exist.*|test_pgps.*){2}/);
+        it("failed call", function(){
+            return tipicalFail("create schema test_pgps;","the schema exists",'42P06',/(exist.*|test_pgps.*){2}/,
+                null,
+                "the schema ERROR!"
+            );
         });
         it("call a compound", function(done){
             tipicalExecuteWay(
@@ -158,8 +164,11 @@ describe('pg-promise-strict with real database', function(){
                 value:8
             },"fetchUniqueValue",[5])
         });
-        it("fail to query unique value", function(done){
-            tipicalFail("select 1, 2",done,"returns 2 columns","54U11!",/query expects.*one field.*and obtains 2/,"fetchUniqueValue")
+        it("fail to query unique value", function(){
+            return tipicalFail("select 1, 2","returns 2 columns","54U11!",/query expects.*one field.*and obtains 2/,
+                "fetchUniqueValue",
+                "este error"
+            )
         });
         it("query unique row", function(done){
             tipicalExecuteWay("select * from test_pgps.table1 order by id limit 1",done,"SELECT",{
@@ -176,8 +185,10 @@ describe('pg-promise-strict with real database', function(){
                 row:undefined
             },"fetchOneRowIfExists")
         });
-        it("fail to query unique row", function(done){
-            tipicalFail("select * from test_pgps.table1",done,"returns 2 rows","54011!",/query expects.*one row.*and obtains 2/,"fetchUniqueRow")
+        it("fail to query unique row", function(){
+            return tipicalFail("select * from test_pgps.table1","returns 2 rows","54011!",/query expects.*one row.*and obtains 2/,
+                "fetchUniqueRow"
+            )
         });
         it("query row by row", function(){
             var accumulate=[];
@@ -191,8 +202,10 @@ describe('pg-promise-strict with real database', function(){
                 expect(accumulate).to.eql(expectedTable1Data);
             });
         });
-        it("control not call query row by row without callback", function(done){
-            tipicalFail("select 1, 2",done,"no callback provide","39004!",/fetchRowByRow must receive a callback/,"fetchRowByRow")
+        it("control not call query row by row without callback", function(){
+            return tipicalFail("select 1, 2","no callback provide","39004!",/fetchRowByRow must receive a callback/,
+                "fetchRowByRow"
+            )
         });
         it("bulk insert", function(){
             return client.bulkInsert({
