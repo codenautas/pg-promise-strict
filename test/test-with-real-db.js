@@ -173,9 +173,9 @@ describe('pg-promise-strict with real database', function(){
             },"fetchUniqueValue",[5])
         });
         it("fail to query unique value", function(){
-            return tipicalFail("select 1 as one, $1 as b","returns 2 columns","54U11!",/query expects.*one field.*and obtains 2/,
+            return tipicalFail("select 1 as one, $1::text as b","returns 2 columns","54U11!",/query expects.*one field.*and obtains 2/,
                 "fetchUniqueValue",
-                   /PG-ERROR --ERROR! 54U11!, query expects one field and obtains 2(.|\s)*QUERY:(.|\s)*select 1 as one, 2 as b(.|\s)*RESULT:(.|\s)*\[\{"one":1,\s?"b":"2"\}\](.|\s)*QUERY-P:(.|\s)*select 1 as one, \$1 as b(.|\s)*QUERY-A(.|\s)*\[2\]/,
+                   /PG-ERROR --ERROR! 54U11!, query expects one field and obtains 2(.|\s)*QUERY:(.|\s)*select 1 as one, 2::text as b(.|\s)*RESULT:(.|\s)*\[\{"one":1,\s?"b":"2"\}\](.|\s)*QUERY-P:(.|\s)*select 1 as one, \$1::text as b(.|\s)*QUERY-A(.|\s)*\[2\]/,
                 [2]
             )
         });
