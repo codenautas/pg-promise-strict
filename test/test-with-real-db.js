@@ -13,7 +13,7 @@ var MiniTools = require('mini-tools');
 var TypeStore = require('type-store');
 var {getConnectParams} = require('./helpers');
 
-var fs = require('fs').promises;
+var fs = require('fs-extra');
 
 console.warn(pg.poolBalanceControl());
 
@@ -136,8 +136,8 @@ describe('pg-promise-strict with real database', function(){
                     throw err;
                 }
                 expect(err).to.be.a(Error);
-                expect(err.code).to.be(code);
                 expect(err).to.match(msg);
+                expect(err.code).to.be(code);
             }
             if(expectedErrorLog){
                 await pg.readyLog;
@@ -148,7 +148,7 @@ describe('pg-promise-strict with real database', function(){
         it("failed call", function(){
             return tipicalFail("create schema test_pgps;","the schema exists",'42P06',/(exist.*|test_pgps.*){2}/,
                 null,
-                /PG-ERROR --ERROR! 42P06.*«test_pgps»(.|\s)*-- QUERY(.|\s)*create schema test_pgps/m
+                /PG-ERROR --ERROR! 42P06.*test_pgps(.|\s)*-- QUERY(.|\s)*create schema test_pgps/m
             );
         });
         it("call a compound", function(done){
