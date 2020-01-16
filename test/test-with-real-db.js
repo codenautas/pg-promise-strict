@@ -13,6 +13,8 @@ var MiniTools = require('mini-tools');
 var TypeStore = require('type-store');
 var {getConnectParams} = require('./helpers');
 
+var fs = require('fs').promises;
+
 console.warn(pg.poolBalanceControl());
 
 describe('pg-promise-strict with real database', function(){
@@ -64,6 +66,8 @@ describe('pg-promise-strict with real database', function(){
         var poolLog;
         before(function(done){
             pg.setAllTypes();
+            pg.log = pg.logLastError;
+            pg.logLastError.inFileName='local-log-last-error.txt';
             MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
             }).then(function(returnedClient){
@@ -122,10 +126,9 @@ describe('pg-promise-strict with real database', function(){
             this.timeout(5000);
             tipicalExecuteWay("create schema test_pgps;",done,'CREATE');
         });
-        async function tipicalFail(textQuery,reason,code,msg,functionName,expectedErrorLog){
+        async function tipicalFail(textQuery,reason,code,msg,functionName,expectedErrorLog, params){
             try{
-                console.log('functionName', functionName)
-                var result = await client.query(textQuery)[functionName||"execute"]();
+                var result = await client.query(textQuery, params)[functionName||"execute"]();
                 console.log("EXPECT FAIL BUT OBTAINS",result);
                 throw new Error("Must fail because "+reason);
             }catch(err){
@@ -135,12 +138,17 @@ describe('pg-promise-strict with real database', function(){
                 expect(err).to.be.a(Error);
                 expect(err.code).to.be(code);
                 expect(err).to.match(msg);
-            };
+            }
+            if(expectedErrorLog){
+                await pg.readyLog;
+                var content = await fs.readFile('local-log-last-error.txt','utf-8');
+                expect(content).to.match(expectedErrorLog);
+            }
         }
         it("failed call", function(){
             return tipicalFail("create schema test_pgps;","the schema exists",'42P06',/(exist.*|test_pgps.*){2}/,
                 null,
-                "the schema ERROR!"
+                /PG-ERROR --ERROR! 42P06.*«test_pgps»(.|\s)*-- QUERY(.|\s)*create schema test_pgps/m
             );
         });
         it("call a compound", function(done){
@@ -165,9 +173,10 @@ describe('pg-promise-strict with real database', function(){
             },"fetchUniqueValue",[5])
         });
         it("fail to query unique value", function(){
-            return tipicalFail("select 1, 2","returns 2 columns","54U11!",/query expects.*one field.*and obtains 2/,
+            return tipicalFail("select 1 as one, $1 as b","returns 2 columns","54U11!",/query expects.*one field.*and obtains 2/,
                 "fetchUniqueValue",
-                "este error"
+                   /PG-ERROR --ERROR! 54U11!, query expects one field and obtains 2(.|\s)*QUERY:(.|\s)*select 1 as one, 2 as b(.|\s)*RESULT:(.|\s)*\[\{"one":1,\s?"b":"2"\}\](.|\s)*QUERY-P:(.|\s)*select 1 as one, \$1 as b(.|\s)*QUERY-A(.|\s)*\[2\]/,
+                [2]
             )
         });
         it("query unique row", function(done){

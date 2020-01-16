@@ -388,6 +388,19 @@ function buildQueryCounterAdapter(
 
 type Notice = string;
 
+function logErrorIfNeeded<T>(err:Error, code?:T):Error{
+    if(code != null){
+        // @ts-ignore EXTENDED ERROR
+        err.code=code;
+    }
+    if(log){
+        // @ts-ignore EXTENDED ERROR
+        log('--ERROR! '+err.code+', '+err.message, 'ERROR');
+    }
+    return err;
+}
+
+
 class Query{
     constructor(private _query:pg.Query, public client:Client, private _internalClient:pg.Client|pg.PoolClient){
     }
@@ -417,10 +430,6 @@ class Query{
             var pendingRows=0;
             var endMark:null|{result:pg.QueryResult}=null;
             q._query.on('error',function(err){
-                if(log){
-                    // @ts-ignore EXTENDED ERROR
-                    log('--ERROR! '+err.code+', '+err.message, 'ERROR');
-                }
                 reject(err);
             });
             // @ts-ignore .on('row') DOES NOT HAVE THE CORRECT TYPE!
@@ -456,25 +465,27 @@ class Query{
                 endMark={result};
                 whenEnd();
             });
+        }).catch(function(err){
+            throw logErrorIfNeeded(err);
         });
     };
     async fetchUniqueValue():Promise<ResultValue>  { 
         var {row, ...result} = await this.fetchUniqueRow();
         if(result.fields.length!==1){
-            var err=new Error('query expects one field and obtains '+result.fields.length);
-            // @ts-ignore EXTENDED ERROR
-            err.code='54U11!';
-            throw err;
+            throw logErrorIfNeeded(
+                new Error('query expects one field and obtains '+result.fields.length),
+                '54U11!'
+            );
         }
         return {value:row[result.fields[0].name], ...result};
     }
     fetchUniqueRow(acceptNoRows?:boolean):Promise<ResultOneRow> { 
         return this._execute(function(result:pg.QueryResult, resolve:(result:ResultOneRow)=>void, reject:(err:Error)=>void):void{
             if(result.rowCount!==1 && (!acceptNoRows || !!result.rowCount)){
-                var err=new Error('query expects one row and obtains '+result.rowCount);
-                // @ts-ignore EXTENDED ERROR
-                err.code='54011!';
-                reject(err);
+                reject(logErrorIfNeeded(
+                    new Error('query expects one row and obtains '+result.rowCount),
+                    '54011!'
+                ));
             }else{
                 var {rows, ...rest} = result;
                 resolve({row:rows[0], ...rest});
@@ -559,12 +570,12 @@ export function connect(connectParameters:ConnectParams):Promise<Client>{
     });
 };
 
-/* istanbul ignore next */
+export var readyLog = Promise.resolve();
+
+/* xxistanbul ignore next */
 export function logLastError(message:string, messageType:string):void{
     if(messageType){
         if(messageType=='ERROR'){
-            console.log('PG-ERROR pgPromiseStrict.logLastError.inFileName',logLastError.inFileName);
-            console.log('PG-ERROR',message);
             if(logLastError.inFileName){
                 var lines=['PG-ERROR '+message];
                 /*jshint forin:false */
@@ -573,7 +584,7 @@ export function logLastError(message:string, messageType:string):void{
                 }
                 /*jshint forin:true */
                 /*eslint guard-for-in: 0*/
-                fs.writeFile(logLastError.inFileName,lines.join('\n'));
+                readyLog = readyLog.then(_=>fs.writeFile(logLastError.inFileName,lines.join('\n')));
             }else{
                 /*jshint forin:false */
                 for(var attr2 in logLastError.receivedMessages){
