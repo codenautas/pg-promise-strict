@@ -89,7 +89,7 @@ export type ConnectParams={
 }
 
 export type CopyFromOpts={inStream:Stream, table:string,columns?:string[],done?:(err?:Error)=>void, with?:string}
-export type BulkInsertParams={schema?:string,table:string,columns:string[],rows:any[][], onerror?:(err:Error, row:any[])=>void}
+export type BulkInsertParams={schema?:string,table:string,columns:string[],rows:any[][], onerror?:(err:Error, row:any[])=>Promise<void>}
 
 /** TODO: any en opts */
 export class Client{
@@ -255,7 +255,7 @@ export class Client{
             return self.executeSentences(sentences);
         });
     }
-    bulkInsert(params:BulkInsertParams):Promise<void>{
+    async bulkInsert(params:BulkInsertParams):Promise<void>{
         var self = this;
         if(!this._client || !this.connected){
             /* istanbul ignore next */
@@ -265,35 +265,42 @@ export class Client{
             quoteIdent(params.table)+" ("+
             params.columns.map(quoteIdent).join(', ')+") VALUES ("+
             params.columns.map(function(_name:string, i_name:number){ return '$'+(i_name+1); })+")";
-        var insertOneRowAndContinueInserting = function insertOneRowAndContinueInserting(i_rows:number):Promise<void>{
-            if(i_rows<params.rows.length){
-                return self.query(sql, params.rows[i_rows]).execute().catch(function(err:Error){
-                    if(params.onerror){
-                        params.onerror(err, params.rows[i_rows]);
-                    }else{
-                        throw err;
-                    }
-                }).then(function(){
-                    return insertOneRowAndContinueInserting(i_rows+1);
-                });
+        var i_rows=0;
+        while(i_rows<params.rows.length){
+            try{
+                await self.query(sql, params.rows[i_rows]).execute();
+            }catch(err){
+                if(params.onerror){
+                    await params.onerror(err, params.rows[i_rows]);
+                }else{
+                    throw err;
+                }
             }
-            return Promise.resolve();
-        };
-        return insertOneRowAndContinueInserting(0);
+            i_rows++;
+        }
     }
     copyFromInlineDumpStream(opts:CopyFromOpts){
+        if(opts.done){
+            console.log("WARNING! copyFromInlineDumpStream opts.done func is experimental");
+        }
         if(!this._client || !this.connected){
             /* istanbul ignore next */
             throw new Error('pg-promise-strict: atempt to copyFrom on not connected '+!this._client+','+!this.connected)
         }
         var stream = this._client.query(copyFrom(`COPY ${opts.table} ${opts.columns?`(${opts.columns.map(name=>quoteIdent(name)).join(',')})`:''} FROM STDIN ${opts.with?'WITH '+opts.with:''}`));
+        /* istanbul ignore next skipping expermiental feature */
         if(opts.done){
+            /* istanbul ignore next skipping expermiental feature */
             stream.on('error', opts.done);
+            /* istanbul ignore next skipping expermiental feature */
             stream.on('end', opts.done);
+            /* istanbul ignore next skipping expermiental feature */
             stream.on('close', opts.done);
         }
         if(opts.inStream != null){
+            /* istanbul ignore next skipping expermiental feature */
             if(opts.done){
+                /* istanbul ignore next skipping expermiental feature */
                 opts.inStream.on('error', opts.done);
             }
             opts.inStream.pipe(stream);
@@ -312,6 +319,7 @@ export class Client{
                     if(bsn) return '\\n';
                     if(bst) return '\\t';
                     if(bs) return '\\\\';
+                    /* istanbul ignore next Esto es imposible que suceda */
                     throw new Error("formatNullableToInlineDump error parsing")
                 }
             );
@@ -560,6 +568,7 @@ export function connect(connectParameters:ConnectParams):Promise<Client>{
         pools[idConnectParameters] = pool;
         pool.connect(function(err, client, done){
             if(err){
+                console.log('xxxxxxxxxxxxxxxxxxxxx NO PASA!!!!!')
                 reject(err);
             }else{
                 resolve(new Client(null, client, done /*, DOING {

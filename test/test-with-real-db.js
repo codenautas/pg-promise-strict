@@ -60,6 +60,15 @@ describe('pg-promise-strict with real database', function(){
                 pg.debug.Client=false;
             });
         });
+        it('controls double done()', async function(){
+            pg.debug.Client=true;
+            pg.debug.pool=true;
+            var config = await MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'});
+            var client = await pg.connect(config.db);
+            client.done();
+            pg.debug.Client=false;
+            expect(()=>client.done()).to.throwException(/already done/);
+        });
     });
     describe('call queries', function(){
         var client;
@@ -264,7 +273,7 @@ describe('pg-promise-strict with real database', function(){
                 expect(result.row.sum_id).to.eql(11002397);
             });
         });
-        it("bulk insert", function(){
+        it("throws error in bulk insert", function(){
             return client.bulkInsert({
                 table: "table3", 
                 columns: ['id', 'text1'],
@@ -391,6 +400,35 @@ describe('pg-promise-strict with real database', function(){
                 }
             }
         })
+        it("recovers from error in bulk insert", async function(){
+            var rejectedRows=[];
+            await client.query('DELETE FROM test_pgps.table3;').execute();
+            await client.bulkInsert({
+                schema: "test_pgps",
+                table: "table3", 
+                columns: ['id3', 'num3'],
+                rows: [
+                    [3, 3],
+                    [3, 33],
+                    [4, 4],
+                ],
+                onerror:function(err, row){
+                    rejectedRows.push(row);
+                }
+            });
+            var insertedRows=await client.query('SELECT id3, num3 FROM test_pgps.table3 ORDER BY id3;').fetchAll();
+            expect([
+                insertedRows.rows,
+                rejectedRows
+            ]).to.eql([
+                [
+                    {id3:3, num3:3},
+                    {id3:4, num3:4},
+                ],[
+                    [3, 33]
+                ]
+            ]);
+        });
         it("mus not connect client from pool",function(){
             expect(function(){
                 client.connect();

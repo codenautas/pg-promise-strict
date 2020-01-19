@@ -159,15 +159,6 @@ $ npm test
 ```
 
 
-Then you can also check coverage separadly: with only real db or with no-db (with mock functions).
-
-
-```js
-$ npm run-script test-cov-odb
-$ npm run-script test-cov-ndb
-```
-
-
 ## License
 
 

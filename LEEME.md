@@ -31,7 +31,7 @@ también disponible en:
 pg-strict-promise implementa una versión con Promise/A+ de la librería PG.
  * Permite indicar qué tipo de resultado se espera (si una sola fila, un solo valor, etc.) y algunos [agregados](docs/agregados.md) más
  * Trata de parecerse a PG, con los mismos nombres, los mismos parámetros y que devuelven lo mismo, reemplazando los *callbacks* con promesas.
- * Con pruebas que cubren el 100% del código. ***Revisándolo***
+ * Con pruebas que cubren el 100% del código
  * Escrito 100% en typescript
  * No se reimplementa nada de lo que PG ya implementa
 
@@ -252,22 +252,6 @@ $ cd pg-promise-strict
 $ npm install
 $ psql --file test/create_db.sql
 $ npm test
-```
-
-<!--lang:es-->
-
-Luego se puede verificar la covertura de código probarndo por separado los test con conexion a la base de datos (odb) 
-o sin conexión (ndb, usando funciones sustitutas *mock functions* en vez de llamadas reales). 
-
-<!--lang:en--]
-
-Then you can also check coverage separadly: with only real db or with no-db (with mock functions). 
-
-[!--lang:*-->
-
-```js
-$ npm run-script test-cov-odb
-$ npm run-script test-cov-ndb
 ```
 
 <!--lang:es-->
