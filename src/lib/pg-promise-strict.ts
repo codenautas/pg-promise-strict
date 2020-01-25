@@ -490,10 +490,10 @@ class Query{
     fetchUniqueRow(acceptNoRows?:boolean):Promise<ResultOneRow> { 
         return this._execute(function(result:pg.QueryResult, resolve:(result:ResultOneRow)=>void, reject:(err:Error)=>void):void{
             if(result.rowCount!==1 && (!acceptNoRows || !!result.rowCount)){
-                reject(logErrorIfNeeded(
-                    new Error('query expects one row and obtains '+result.rowCount),
-                    '54011!'
-                ));
+                var err = new Error('query expects one row and obtains '+result.rowCount);
+                //@ts-ignore err.code
+                err.code = '54011!'
+                reject(err);
             }else{
                 var {rows, ...rest} = result;
                 resolve({row:rows[0], ...rest});

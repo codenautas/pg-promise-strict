@@ -1,3 +1,2 @@
-test:
-  connectParams:
-    port: 54312
+db:
+  port: 54312

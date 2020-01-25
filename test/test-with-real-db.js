@@ -151,7 +151,11 @@ describe('pg-promise-strict with real database', function(){
             if(expectedErrorLog){
                 await pg.readyLog;
                 var content = await fs.readFile('local-log-last-error.txt','utf-8');
-                expect(content).to.match(expectedErrorLog);
+                if(expectedErrorLog instanceof RegExp){
+                    expect(content).to.match(expectedErrorLog);
+                }else{
+                    expect(content).to.eql(expectedErrorLog);
+                }
             }
         }
         it("failed call", function(){
@@ -205,7 +209,8 @@ describe('pg-promise-strict with real database', function(){
         });
         it("fail to query unique row", function(){
             return tipicalFail("select * from test_pgps.table1","returns 2 rows","54011!",/query expects.*one row.*and obtains 2/,
-                "fetchUniqueRow"
+                "fetchUniqueRow",
+                `PG-ERROR --ERROR! 54011!, query expects one row and obtains 2\n------- ------:\n------\n------- QUERY:\nselect * from test_pgps.table1;\n------- RESULT:\n-- [{"id":1,"text1":"one"},{"id":2,"text1":"two"}]`,
             )
         });
         it("query row by row", function(){
