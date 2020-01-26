@@ -45,7 +45,7 @@ describe('pg-promise-strict common tests', function(){
                 var resultExpected="ERROR! 42601, "+err.message;
                 console.log(messages);
                 expect(messages).to.eql([
-                    '------',
+                    '-----------------------',
                     '`select $1, $2, $3, $4, $5, illegal syntax here, $6\n`',
                     '-- [1,"one\'s",true,null,'+JSON.stringify(bestGlobals.date.iso('2019-01-05'))+',"lit"]',
                     "select 1, 'one\'\'s', true, null, '2019-01-05', illegal syntax here, 'lit';",
@@ -55,7 +55,7 @@ describe('pg-promise-strict common tests', function(){
                 return client.query("select 'exit', 0/0 as inf").execute().catch(function(err){
                     var resultExpected="ERROR! 22012, "+err.message;
                     expect(messages).to.eql([
-                        '------',
+                        '-----------------------',
                         "select 'exit', 0/0 as inf;",
                         '--'+resultExpected
                     ]);
@@ -74,7 +74,7 @@ describe('pg-promise-strict common tests', function(){
                 ).execute();
             }).then(function(result){
                 expect(messages).to.eql([
-                    ["------","------"],
+                    ["------","-----------------------"],
                     ["QUERY","select 1 as one union select 2;"],
                     ["RESULT","-- [{\"one\":1},{\"one\":2}]"]
                 ]);
@@ -92,7 +92,7 @@ describe('pg-promise-strict common tests', function(){
                 ).onRow(function(){});
             }).then(function(result){
                 expect(messages).to.eql([
-                    ["------","------"],
+                    ["------","-----------------------"],
                     ["QUERY","select 1 as one union select 2;"],
                     ["ROW","-- {\"one\":1}"],
                     ["ROW","-- {\"one\":2}"],

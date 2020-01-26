@@ -10,6 +10,74 @@ import * as likeAr from 'like-ar';
 import * as bestGlobals from 'best-globals';
 import {Stream, Transform} from 'stream';
 
+const MESSAGES_SEPARATOR_TYPE='------';
+const MESSAGES_SEPARATOR='-----------------------';
+
+export var messages = {
+    attemptTobulkInsertOnNotConnected:"pg-promise-strict: atempt to bulkInsert on not connected",
+    attemptTocopyFromOnNotConnected:"pg-promise-strict: atempt to copyFrom on not connected",
+    attemptToExecuteSentencesOnNotConnected:"pg-promise-strict: atempt to executeSentences on not connected",
+    attemptToExecuteSqlScriptOnNotConnected:"pg-promise-strict: atempt to executeSqlScript on not connected",
+    clientAlreadyDone:"pg-promise-strict: client already done",
+    clientConenctMustNotReceiveParams:"client.connect must no receive parameters, it returns a Promise",
+    copyFromInlineDumpStreamOptsDoneExperimental:"WARNING! copyFromInlineDumpStream opts.done func is experimental",
+    fetchRowByRowMustReceiveCallback:"fetchRowByRow must receive a callback that executes for each row",
+    formatNullableToInlineDumpErrorParsing:"formatNullableToInlineDump error parsing",
+    insaneName:"insane name",
+    lackOfClient:"pg-promise-strict: lack of Client._client",
+    mustNotConnectClientFromPool:"pg-promise-strict: Must not connect client from pool",
+    mustNotEndClientFromPool:"pg-promise-strict: Must not end client from pool",
+    nullInQuoteLiteral:"null in quoteLiteral",
+    obtains1:"obtains $1",
+    obtainsNone:"obtains none",
+    queryExpectsOneFieldAnd1:"query expects one field and $1",
+    queryExpectsOneRowAnd1:"query expects one row and $1",
+    queryMustNotBeCatched:"pg-promise-strict: Query must not be awaited nor catched",
+    queryMustNotBeThened:"pg-promise-strict: Query must not be awaited nor thened",
+    queryNotConnected:"pg-promise-strict: query not connected",
+    unbalancedConnection:"pgPromiseStrict.debug.pool unbalanced connection",
+}
+
+export var i18n:{
+    messages:{
+        en:typeof messages,
+        [k:string]:Partial<typeof messages>
+    }
+} = {
+    messages:{
+        en:messages,
+        es:{
+            attemptTobulkInsertOnNotConnected:"pg-promise-strict: intento de bulkInsert en un cliente sin conexion",
+            attemptTocopyFromOnNotConnected:"pg-promise-strict: intento de copyFrom en un cliente sin conexion",
+            attemptToExecuteSentencesOnNotConnected:"pg-promise-strict: intento de executeSentences en un cliente sin conexion",
+            attemptToExecuteSqlScriptOnNotConnected:"pg-promise-strict: intento de executeSqlScript en un cliente sin conexion",
+            clientAlreadyDone:"pg-promise-strict: el cliente ya fue terminado",
+            clientConenctMustNotReceiveParams:"pg-promise-strict: client.connect no debe recibir parametetros, devuelve una Promesa",
+            copyFromInlineDumpStreamOptsDoneExperimental:"WARNING! copyFromInlineDumpStream opts.done es experimental",
+            fetchRowByRowMustReceiveCallback:"fetchRowByRow debe recibir una funcion callback para ejecutar en cada registro",
+            formatNullableToInlineDumpErrorParsing:"error al parsear en formatNullableToInlineDump",
+            insaneName:"nombre invalido para objeto sql, debe ser solo letras, numeros o rayas empezando por una letra",
+            lackOfClient:"pg-promise-strict: falta Client._client",
+            mustNotConnectClientFromPool:"pg-promise-strict: No se puede conectar un 'Client' de un 'pool'",
+            mustNotEndClientFromPool:"pg-promise-strict: no debe terminar el client desde un 'pool'",
+            nullInQuoteLiteral:"la funcion quoteLiteral no debe recibir null",
+            obtains1:"se obtuvieron $1",
+            obtainsNone:"no se obtuvo ninguno",
+            queryExpectsOneFieldAnd1:"se esperaba obtener un solo valor (columna o campo) y $1",
+            queryExpectsOneRowAnd1:"se esperaba obtener un registro y $1",
+            queryMustNotBeCatched:"pg-promise-strict: Query no puede ser usada con await o catch",
+            queryMustNotBeThened:"pg-promise-strict: Query no puede ser usada con await o then",
+            queryNotConnected:"pg-promise-strict: 'query' no conectada",
+        }
+    }
+}
+
+export function setLang(lang:string){
+    if(lang in i18n.messages){
+        messages = {...i18n.messages.en, ...i18n.messages[lang]};
+    }
+}
+
 export var debug:{
     pool?:true|{
         [key:string]:{ count:number, client:(pg.Client|pg.PoolClient)&{secretKey:string}}
@@ -27,7 +95,7 @@ export var log:(message:string, type:string)=>void=noLog;
 
 export function quoteIdent(name:string){
     if(typeof name!=="string"){
-        throw new Error("insane name");
+        throw new Error(messages.insaneName);
     }
     return '"'+name.replace(/"/g, '""')+'"';
 };
@@ -60,7 +128,7 @@ export function quoteNullable(anyValue:null|AnyQuoteable){
 
 export function quoteLiteral(anyValue:AnyQuoteable){
     if(anyValue==null){
-        throw new Error("null in quoteLiteral");
+        throw new Error(messages.nullInQuoteLiteral);
     }
     return quoteNullable(anyValue);
 };
@@ -141,14 +209,14 @@ export class Client{
     }
     connect(){
         if(this.fromPool){
-            throw new Error("pg-promise-strict: Must not connect client from pool")
+            throw new Error(messages.mustNotConnectClientFromPool)
         }
         if(arguments.length){
-            return Promise.reject(new Error('client.connect must no receive parameters, it returns a Promise'));
+            return Promise.reject(new Error(messages.clientConenctMustNotReceiveParams));
         }
         if(!this._client){
             /* istanbul ignore next */
-            throw new Error("pg-promise-strict: lack of Client._client");
+            throw new Error(messages.lackOfClient);
         }
         var client = this._client;
         var self = this;
@@ -166,18 +234,18 @@ export class Client{
     end(){
         if(this.fromPool){
             /* istanbul ignore next */
-            throw new Error("pg-promise-strict: Must not end client from pool")
+            throw new Error(messages.mustNotEndClientFromPool)
         }
         if(this._client instanceof pg.Client){
             this._client.end();
         }else{
             /* istanbul ignore next */
-            throw new Error("pg-promise-strict: lack of Client._client");
+            throw new Error(messages.lackOfClient);
         }
     };
     done(){
         if(!this._client){
-            throw new Error("pg-promise-strict client already done");
+            throw new Error(messages.clientAlreadyDone);
         }
         if(debug.pool){
             // @ts-ignore DEBUGGING
@@ -194,7 +262,7 @@ export class Client{
     query():Query{
         if(!this.connected || !this._client){
             /* istanbul ignore next */
-            throw new Error("pg-promise-strict: query in not connected")
+            throw new Error(messages.queryNotConnected)
         }
         this.connected.lastOperationTimestamp = new Date().getTime();
         var queryArguments = Array.prototype.slice.call(arguments);
@@ -210,8 +278,8 @@ export class Client{
         }
         if(log){
             var sql=queryText;
-            log('------','------');
-            if(queryValues){
+            log(MESSAGES_SEPARATOR, MESSAGES_SEPARATOR_TYPE);
+            if(queryValues && queryValues.length){
                 log('`'+sql+'\n`','QUERY-P');
                 log('-- '+JSON.stringify(queryValues),'QUERY-A');
                 queryValues.forEach(function(value:any, i:number){
@@ -227,7 +295,7 @@ export class Client{
         var self = this;
         if(!this._client || !this.connected){
             /* istanbul ignore next */
-            throw new Error('pg-promise-strict: atempt to executeSentences on not connected '+!this._client+','+!this.connected)
+            throw new Error(messages.attemptToExecuteSentencesOnNotConnected+" "+!this._client+','+!this.connected)
         }
         var cdp:Promise<ResultCommand|void> = Promise.resolve();
         sentences.forEach(function(sentence){
@@ -236,8 +304,6 @@ export class Client{
                     return ;
                 }
                 return await self.query(sentence).execute().catch(function(err:Error){
-                    // console.log('ERROR',err);
-                    // console.log(sentence);
                     throw err;
                 });
             });
@@ -248,7 +314,7 @@ export class Client{
         var self=this;
         if(!this._client || !this.connected){
             /* istanbul ignore next */
-            throw new Error('pg-promise-strict: atempt to executeSqlScript on not connected '+!this._client+','+!this.connected)
+            throw new Error(messages.attemptToExecuteSqlScriptOnNotConnected+" "+!this._client+','+!this.connected)
         }
         return fs.readFile(fileName,'utf-8').then(function(content){
             var sentences = content.split(/\r?\n\r?\n/);
@@ -259,7 +325,7 @@ export class Client{
         var self = this;
         if(!this._client || !this.connected){
             /* istanbul ignore next */
-            throw new Error('pg-promise-strict: atempt to bulkInsert on not connected '+!this._client+','+!this.connected)
+            throw new Error(messages.attemptTobulkInsertOnNotConnected+" "+!this._client+','+!this.connected)
         }
         var sql = "INSERT INTO "+(params.schema?quoteIdent(params.schema)+'.':'')+
             quoteIdent(params.table)+" ("+
@@ -281,11 +347,11 @@ export class Client{
     }
     copyFromInlineDumpStream(opts:CopyFromOpts){
         if(opts.done){
-            console.log("WARNING! copyFromInlineDumpStream opts.done func is experimental");
+            console.log(messages.copyFromInlineDumpStreamOptsDoneExperimental);
         }
         if(!this._client || !this.connected){
             /* istanbul ignore next */
-            throw new Error('pg-promise-strict: atempt to copyFrom on not connected '+!this._client+','+!this.connected)
+            throw new Error(messages.attemptTocopyFromOnNotConnected+" "+!this._client+','+!this.connected)
         }
         var stream = this._client.query(copyFrom(`COPY ${opts.table} ${opts.columns?`(${opts.columns.map(name=>quoteIdent(name)).join(',')})`:''} FROM STDIN ${opts.with?'WITH '+opts.with:''}`));
         /* istanbul ignore next skipping expermiental feature */
@@ -320,7 +386,7 @@ export class Client{
                     if(bst) return '\\t';
                     if(bs) return '\\\\';
                     /* istanbul ignore next Esto es imposible que suceda */
-                    throw new Error("formatNullableToInlineDump error parsing")
+                    throw new Error(messages.formatNullableToInlineDumpErrorParsing)
                 }
             );
         }
@@ -408,6 +474,12 @@ function logErrorIfNeeded<T>(err:Error, code?:T):Error{
     return err;
 }
 
+function obtains(message:string, count:number):string{
+    return message.replace('$1',
+        count?messages.obtains1.replace('$1',count.toString()):messages.obtainsNone
+    );
+} 
+
 
 class Query{
     constructor(private _query:pg.Query, public client:Client, private _internalClient:pg.Client|pg.PoolClient){
@@ -477,20 +549,20 @@ class Query{
             throw logErrorIfNeeded(err);
         });
     };
-    async fetchUniqueValue():Promise<ResultValue>  { 
+    async fetchUniqueValue(errorMessage?:string):Promise<ResultValue>  { 
         var {row, ...result} = await this.fetchUniqueRow();
         if(result.fields.length!==1){
             throw logErrorIfNeeded(
-                new Error('query expects one field and obtains '+result.fields.length),
+                new Error(obtains(errorMessage||messages.queryExpectsOneFieldAnd1, result.fields.length)),
                 '54U11!'
             );
         }
         return {value:row[result.fields[0].name], ...result};
     }
-    fetchUniqueRow(acceptNoRows?:boolean):Promise<ResultOneRow> { 
+    fetchUniqueRow(errorMessage?:string,acceptNoRows?:boolean):Promise<ResultOneRow> { 
         return this._execute(function(result:pg.QueryResult, resolve:(result:ResultOneRow)=>void, reject:(err:Error)=>void):void{
             if(result.rowCount!==1 && (!acceptNoRows || !!result.rowCount)){
-                var err = new Error('query expects one row and obtains '+result.rowCount);
+                var err = new Error(obtains(errorMessage||messages.queryExpectsOneRowAnd1,result.rowCount));
                 //@ts-ignore err.code
                 err.code = '54011!'
                 reject(err);
@@ -500,8 +572,8 @@ class Query{
             }
         });
     }
-    fetchOneRowIfExists():Promise<ResultOneRow> { 
-        return this.fetchUniqueRow(true);
+    fetchOneRowIfExists(errorMessage?:string):Promise<ResultOneRow> { 
+        return this.fetchUniqueRow(errorMessage,true);
     }
     fetchAll():Promise<ResultRows>{
         return this._execute(function(result:pg.QueryResult, resolve:(result:ResultRows)=>void, _reject:(err:Error)=>void):void{
@@ -516,7 +588,7 @@ class Query{
     }
     async fetchRowByRow(cb:(row:{}, result:pg.QueryResult)=>Promise<void>):Promise<void>{ 
         if(!(cb instanceof Function)){
-            var err=new Error('fetchRowByRow must receive a callback that executes for each row');
+            var err=new Error(messages.fetchRowByRowMustReceiveCallback);
             // @ts-ignore EXTENDED ERROR
             err.code='39004!';
             return Promise.reject(err);
@@ -527,10 +599,10 @@ class Query{
         return this.fetchRowByRow(cb);
     }
     then(){
-        throw new Error('pg-promise-strict: Query must not be awaited nor thened')
+        throw new Error(messages.queryMustNotBeThened)
     }
     catch(){
-        throw new Error('pg-promise-strict: Query must not be awaited nor catched')
+        throw new Error(messages.queryMustNotBeCatched)
     }
 };
 
@@ -568,7 +640,6 @@ export function connect(connectParameters:ConnectParams):Promise<Client>{
         pools[idConnectParameters] = pool;
         pool.connect(function(err, client, done){
             if(err){
-                console.log('xxxxxxxxxxxxxxxxxxxxx NO PASA!!!!!')
                 reject(err);
             }else{
                 resolve(new Client(null, client, done /*, DOING {
@@ -604,6 +675,9 @@ export function logLastError(message:string, messageType:string):void{
             }
             logLastError.receivedMessages = {};
         }else{
+            if(messageType==MESSAGES_SEPARATOR_TYPE){
+                logLastError.receivedMessages = {};
+            }
             logLastError.receivedMessages[messageType] = message;
         }
     }
@@ -619,7 +693,7 @@ export function poolBalanceControl(){
     if(typeof debug.pool === "object"){
         likeAr(debug.pool).forEach(function(pool){
             if(pool.count){
-                rta.push('pgPromiseStrict.debug.pool unbalanced connection '+util.inspect(pool));
+                rta.push(messages.unbalancedConnection+' '+util.inspect(pool));
             }
         });
     }

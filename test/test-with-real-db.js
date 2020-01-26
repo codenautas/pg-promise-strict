@@ -112,7 +112,7 @@ describe('pg-promise-strict with real database', function(){
             return client.executeSqlScript("test/script-err-example.sql").then(function(result){
                 throw new Error('must throw an error');
             },function(err){
-                expect(err.code).to.eql('42601');;
+                expect(err.code).to.eql('42601');
             });
         });
         function tipicalExecuteWay(queryText,done,commandExpected,resultExpected,functionName,params){
@@ -188,7 +188,7 @@ describe('pg-promise-strict with real database', function(){
         it("fail to query unique value", function(){
             return tipicalFail("select 1 as one, $1::text as b","returns 2 columns","54U11!",/query expects.*one field.*and obtains 2/,
                 "fetchUniqueValue",
-                   /PG-ERROR --ERROR! 54U11!, query expects one field and obtains 2(.|\s)*QUERY:(.|\s)*select 1 as one, 2::text as b(.|\s)*RESULT:(.|\s)*\[\{"one":1,\s?"b":"2"\}\](.|\s)*QUERY-P:(.|\s)*select 1 as one, \$1::text as b(.|\s)*QUERY-A(.|\s)*\[2\]/,
+                /PG-ERROR --ERROR! 54U11!, query expects one field and obtains 2(.|\s)*QUERY-P:(.|\s)*select 1 as one, \$1::text as b(.|\s)*QUERY-A(.|\s)*\[2\](.|\s)*QUERY:(.|\s)*select 1 as one, 2::text as b(.|\s)*RESULT:(.|\s)*\[\{"one":1,\s?"b":"2"\}\]/,
                 [2]
             )
         });
@@ -210,7 +210,7 @@ describe('pg-promise-strict with real database', function(){
         it("fail to query unique row", function(){
             return tipicalFail("select * from test_pgps.table1","returns 2 rows","54011!",/query expects.*one row.*and obtains 2/,
                 "fetchUniqueRow",
-                `PG-ERROR --ERROR! 54011!, query expects one row and obtains 2\n------- ------:\n------\n------- QUERY:\nselect * from test_pgps.table1;\n------- RESULT:\n-- [{"id":1,"text1":"one"},{"id":2,"text1":"two"}]`,
+                `PG-ERROR --ERROR! 54011!, query expects one row and obtains 2\n------- ------:\n-----------------------\n------- QUERY:\nselect * from test_pgps.table1;\n------- RESULT:\n-- [{"id":1,"text1":"one"},{"id":2,"text1":"two"}]`,
             )
         });
         it("query row by row", function(){
@@ -228,6 +228,86 @@ describe('pg-promise-strict with real database', function(){
         it("control not call query row by row without callback", function(){
             return tipicalFail("select 1, 2","no callback provide","39004!",/fetchRowByRow must receive a callback/,
                 "fetchRowByRow"
+            )
+        });
+    });
+    describe('call queries with other languages', function(){
+        var client;
+        var poolLog;
+        before(function(done){
+            pg.setAllTypes();
+            pg.log = pg.logLastError;
+            pg.logLastError.inFileName='local-log-last-error.txt';
+            MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
+                return pg.connect(config.db);
+            }).then(function(returnedClient){
+                // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
+                client = returnedClient;
+                done();
+            });
+            pg.setLang('es');
+        });
+        after(function(){
+            if(client){
+                client.done();
+            }
+        });
+        async function tipicalFail(textQuery,reason,code,msg,functionName,expectedErrorLog, params, msg2send){
+            try{
+                var result = await client.query(textQuery, params)[functionName||"execute"](msg2send);
+                console.log("EXPECT FAIL BUT OBTAINS",result);
+                throw new Error("Must fail because "+reason);
+            }catch(err){
+                if(err.message.startsWith('Must fail')){
+                    throw err;
+                }
+                expect(err).to.be.a(Error);
+                expect(err).to.match(msg);
+                expect(err.code).to.be(code);
+            }
+            if(expectedErrorLog){
+                await pg.readyLog;
+                var content = await fs.readFile('local-log-last-error.txt','utf-8');
+                if(expectedErrorLog instanceof RegExp){
+                    expect(content).to.match(expectedErrorLog);
+                }else{
+                    expect(content).to.eql(expectedErrorLog);
+                }
+            }
+        }
+        it("fail to query unique value", function(){
+            return tipicalFail("select 1 as one, $1::text as b","returns 2 columns","54U11!",
+                /se esperaba obtener un solo valor .* y se obtuvieron 2/,
+                "fetchUniqueValue",
+                'PG-ERROR --ERROR! 54U11!, se esperaba obtener un solo valor (columna o campo) y se obtuvieron 2\n------- ------:\n-----------------------\n------- QUERY-P:\n`select 1 as one, $1::text as b\n`\n------- QUERY-A:\n-- [2]\n------- QUERY:\nselect 1 as one, 2::text as b;\n------- RESULT:\n-- [{"one":1,"b":"2"}]',
+                [2]
+            )
+        });
+        it("fail to query unique value with custom message", function(){
+            return tipicalFail("select 1 as one, $1::text as b","returns 2 columns","54U11!",
+                /Solo un parametro puede leerse y se obtuvieron 2/,
+                "fetchUniqueValue",
+                'PG-ERROR --ERROR! 54U11!, Solo un parametro puede leerse y se obtuvieron 2\n------- ------:\n-----------------------\n------- QUERY-P:\n`select 1 as one, $1::text as b\n`\n------- QUERY-A:\n-- [2]\n------- QUERY:\nselect 1 as one, 2::text as b;\n------- RESULT:\n-- [{"one":1,"b":"2"}]',
+                [2],
+                "Solo un parametro puede leerse y $1"
+            )
+        });
+        it("fail to query unique row", function(){
+            return tipicalFail("select * from test_pgps.table1","returns 2 rows","54011!",
+                /debe haber un solo registro en la tabla de test/,
+                "fetchUniqueRow",
+                `PG-ERROR --ERROR! 54011!, debe haber un solo registro en la tabla de test\n------- ------:\n-----------------------\n------- QUERY:\nselect * from test_pgps.table1;\n------- RESULT:\n-- [{"id":1,"text1":"one"},{"id":2,"text1":"two"}]`,
+                [],
+                "debe haber un solo registro en la tabla de test"
+            )
+        });
+        it("fail to query one row if exists", function(){
+            return tipicalFail("select * from test_pgps.table1","returns 2 rows","54011!",
+                /demasiados registros se obtuvieron 2/,
+                "fetchOneRowIfExists",
+                `PG-ERROR --ERROR! 54011!, demasiados registros se obtuvieron 2\n------- ------:\n-----------------------\n------- QUERY:\nselect * from test_pgps.table1;\n------- RESULT:\n-- [{"id":1,"text1":"one"},{"id":2,"text1":"two"}]`,
+                [],
+                "demasiados registros $1"
             )
         });
         it("bulk insert", function(){
@@ -278,168 +358,7 @@ describe('pg-promise-strict with real database', function(){
                 expect(result.row.sum_id).to.eql(11002397);
             });
         });
-        it("throws error in bulk insert", function(){
-            return client.bulkInsert({
-                table: "table3", 
-                columns: ['id', 'text1'],
-                rows: [
-                    [3, 'three'],
-                ]
-            }).then(function(){
-                throw new Error('must throw error');
-            }, function(err){
-                expect(err.code).to.eql('42P01');
-            });
-        });
-        it("inserting dates", function(done){
-            tipicalExecuteWay("insert into test_pgps.table3 (id3, dat3) values (1,'1999-12-31') returning dat3, big3;",done,"INSERT",{
-                rows:[{
-                    dat3: bestGlobals.date.iso("1999-12-31"),
-                    big3: null
-                }]
-            })
-        });
-        it("inserting big bigint", function(done){
-            var bigIntData="123456789012345678";
-            tipicalExecuteWay("insert into test_pgps.table3 (id3, big3) values (2,$1) returning big3::text as big4,dat3;",done,"INSERT",{
-                rows:[{
-                    big4: bigIntData,
-                    dat3: null
-                }]
-            },null, [new TypeStore.class.Big(bigIntData)])
-            // },null, [bigIntData])
-        });
-        it("inserting medium bigint", function(done){
-            var bigIntData="123456789012341";
-            tipicalExecuteWay("insert into test_pgps.table3 (id3, big3) values (3,$1) returning big3,dat3;",done,"INSERT",{
-                rows:[{
-                    big3: Number(bigIntData),
-                    dat3: null
-                }]
-            },null, [Number(bigIntData)])
-        });
-        it("query reading notices in execute", async function(){
-            var accumulate=[];
-            await client.query('SET client_min_messages TO NOTICE').execute();
-            return client.query({
-                text:`
-                do language plpgsql
-                $$
-                begin
-                  raise notice 'notice 1';
-                  raise notice 'notice 2';
-                  drop function if exists function_with_notice(text);
-                  create function function_with_notice(p_value text) returns text 
-                    language plpgsql
-                  as
-                  $body$
-                  begin
-                    raise notice 'notice inside 1 %',p_value;
-                    raise notice 'notice inside 2 %',p_value;
-                    return p_value;
-                  end;
-                  $body$;
-                end;
-                $$;
-                `,
-            }).onNotice(function(notice){
-                accumulate.push(notice.message);
-            }).execute().then(function(){
-                expect(accumulate.slice(0,2)).to.eql([
-                    "notice 1", "notice 2"
-                ]);
-            });
-        });
-        it("query reading notices with value", function(){
-            var accumulate=[];
-            return client.query("select function_with_notice($1);",['valor']).onNotice(function(notice){
-                accumulate.push(notice.message);
-            }).fetchUniqueValue().then(function(result){
-                expect(result.value).to.eql("valor");
-                expect(accumulate).to.eql([
-                    "notice inside 1 valor", "notice inside 2 valor"
-                ]);
-            }).then(function(){
-                var accumulate2=[];
-                return client.query("select function_with_notice($1);",['other']).onNotice(function(notice){
-                    accumulate2.push(notice.message);
-                }).fetchUniqueValue().then(function(result){
-                    expect(result.value).to.eql("other");
-                    expect(accumulate2).to.eql([
-                        "notice inside 1 other", "notice inside 2 other"
-                    ]);
-                    expect(accumulate).to.eql([
-                        "notice inside 1 valor", "notice inside 2 valor"
-                    ]);
-                });
-            })
-        });
-        it('rejects waiting query', async function(){
-            var errObtained;
-            try{
-                var result = await client.query("select 1");
-                console.log('AND THE ANSWER IS...',result)
-            }catch(err){
-                errObtained=err;
-            }finally{
-                if(!errObtained){
-                    throw new Error("error expected");
-                }
-                if(!/Query must not be awaited/.test(errObtained.message)){
-                    throw new Error("bad error obtained: "+errObtained.message);
-                }
-            }
-        })
-        it('rejects catching query', async function(){
-            var errObtained;
-            try{
-                client.query("select 1").catch();
-            }catch(err){
-                errObtained=err;
-            }finally{
-                if(!errObtained){
-                    throw new Error("error expected");
-                }
-                if(!/Query must not be awaited/.test(errObtained.message)){
-                    throw new Error("bad error obtained: "+errObtained.message);
-                }
-            }
-        })
-        it("recovers from error in bulk insert", async function(){
-            var rejectedRows=[];
-            await client.query('DELETE FROM test_pgps.table3;').execute();
-            await client.bulkInsert({
-                schema: "test_pgps",
-                table: "table3", 
-                columns: ['id3', 'num3'],
-                rows: [
-                    [3, 3],
-                    [3, 33],
-                    [4, 4],
-                ],
-                onerror:function(err, row){
-                    rejectedRows.push(row);
-                }
-            });
-            var insertedRows=await client.query('SELECT id3, num3 FROM test_pgps.table3 ORDER BY id3;').fetchAll();
-            expect([
-                insertedRows.rows,
-                rejectedRows
-            ]).to.eql([
-                [
-                    {id3:3, num3:3},
-                    {id3:4, num3:4},
-                ],[
-                    [3, 33]
-                ]
-            ]);
-        });
-        it("mus not connect client from pool",function(){
-            expect(function(){
-                client.connect();
-            }).throwException();
-        })
-    });
+    })
     describe('pool-less connections', function(){
         describe('call queries', function(){
             var client;
@@ -448,6 +367,7 @@ describe('pg-promise-strict with real database', function(){
                     client = new pg.Client(config.db);
                     done();
                 });
+                pg.setLang('en');
             });
             it("successful query", function(done){
                 client.connect().then(function(){
