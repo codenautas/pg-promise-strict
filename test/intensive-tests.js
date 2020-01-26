@@ -10,6 +10,7 @@ var pg = require('..');
 var colors = require('colors'); 
 console.warn(pg.poolBalanceControl());
 var fs = require('fs');
+var Path = require('path');
 const { Transform, Readable } = require('stream');
 const { LineSplitter, LineJoiner, EscapeCharsTransform, streamSignalsDone }  = require("line-splitter");
 // const { from } = require('pg-copy-streams');
@@ -21,6 +22,7 @@ var {getConnectParams} = require('./helpers');
 describe('intensive tests', function(){
     var connectParams;
     before(async function(){
+        pg.log=pg.noLog;
         connectParams = await getConnectParams();
     });
     for(var iClient=1; iClient<=MAX_CLIENTS; iClient++){
@@ -57,6 +59,7 @@ describe('intensive tests', function(){
 describe('streams', function(){
     var connectParams;
     before(async function(){
+        pg.log=pg.logLastError;
         connectParams = await getConnectParams();
     });
     describe('inserting from stream', function(){
@@ -71,7 +74,37 @@ describe('streams', function(){
         after(function(){
             client.done();
         });
-        it('reading fixture', async function(){
+        it('reading fixture with WITH', async function(){
+            this.timeout(5000)
+            await client.query(`
+                DROP TABLE IF EXISTS attributes2;
+            `).execute();
+            await client.query(`
+                CREATE TABLE attributes2(
+                    attr text,
+                    dom text,
+                    description text, 
+                    opts text
+                );
+            `).execute();
+            await client.copyFromFile({table:'attributes2', filename:Path.join(process.cwd(),'test/fixtures/many-sep-lines.txt'), with:` CSV DELIMITER ';' HEADER`});
+            var result = await client.query("SELECT * FROM attributes2 ORDER BY attr DESC LIMIT 2").fetchAll();
+            expect(result.rows).to.eql([
+                {
+                    "attr": "wrap",
+                    "description": "How the value of the form control is to be wrapped for form submission",
+                    "dom": "textarea",
+                    "opts": "\"soft\"; \"hard\"",
+                },
+                {
+                    "attr": "width",
+                    "description": "Horizontal dimension",
+                    "dom": "canvas; embed; iframe; img; input; object; video",
+                    "opts": "Valid non-negative integer",
+                }
+            ])
+        });
+        it('reading fixture with pipeline', async function(){
             this.timeout(5000)
             await client.query(`
                 DROP TABLE IF EXISTS attributes;

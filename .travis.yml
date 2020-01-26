@@ -7,9 +7,10 @@ node_js:
 matrix:
   fast_finish: true
 script: "npm run-script test-ci"
-after_script: "npm install coveralls@2.10.0 && cat ./coverage/lcov.info | coveralls"
+after_script: "npm install coveralls@2.11.8 && cat ./coverage/lcov.info | coveralls"
 addons:
   postgresql: "9.6"
 before_script:
   - psql -c 'create user test_user password $$test_pass$$;' -U postgres
+  - psql -c 'grant pg_read_server_files to test_user;' -U postgres
   - psql -c 'create database test_db owner test_user;' -U postgres

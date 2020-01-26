@@ -8,6 +8,7 @@
   "main": "dist/lib/pg-promise-strict.js",
   "types": "dist/lib/pg-promise-strict.d.ts",
   "files": [
+    "dist",
     "dist/lib"
   ],
   "contributors": [
@@ -30,7 +31,7 @@
     "@types/pg-copy-streams": "~1.2.1",
     "colors": "~1.4.0",
     "expect.js": "~0.3.1",
-    "nyc": "~15.0.0",
+    "nyc": "~13.3.0",
     "mocha": "~7.0.0",
     "source-map-support": "~0.5.16",
     "ts-node": "~8.6.2",
@@ -54,9 +55,8 @@
     "test-intensive": "mocha --reporter spec --bail --check-leaks test/intensive-tests.js",
     "test-common": "mocha --reporter spec --bail --check-leaks test/common-tests.js",
     "try-t": "mocha --reporter spec --bail --check-leaks test/trying-timeout.js",
-    "test-ci": "nyc node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
-    "test-cov2": "nyc node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
-    "test-cov": "node node_modules/nyc/bin/nyc node_modules/mocha/bin/_mocha --exit --check-leaks test/",
+    "test-ci": "node node_modules/nyc/bin/nyc --reporter=lcov --reporter=text-lcov node_modules/mocha/bin/_mocha --exit --check-leaks test/*.js",
+    "test-cov": "node node_modules/nyc/bin/nyc node_modules/mocha/bin/_mocha --exit --check-leaks test/*.js",
     "start": "node examples/use-examples.js"
   },
   "nyc": {
@@ -65,12 +65,16 @@
     "functions": 95,
     "branches": 95,
     "extension": [
-      ".js"
+      ".js",
+      ".ts"
     ],
-    "exclude": [
-      "**/*.d.ts",
+    "x-exclude": [
+      "**/*.d.ts"
+    ],
+    "z-exclude": [
       "src/test",
-      "test"
+      "test",
+      "coverage"
     ],
     "include": [
       "dist/**/*.js"

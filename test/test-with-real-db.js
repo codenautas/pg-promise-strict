@@ -39,6 +39,15 @@ describe('pg-promise-strict with real database', function(){
                 expect(err.code).to.match(/28000|28P01/);
             });
         });
+        it('failed connection within pool', async function(){
+            var client = await pg.connect(connectParams);
+            try{
+                client.connect(connectParams);
+                throw new Error('must throw error')
+            }catch(err){
+                expect(err.message).to.eql(pg.messages.mustNotConnectClientFromPool);
+            }
+        });
         it('successful connection', function(done){
             pg.debug.Client=true;
             pg.debug.pool=true;
@@ -92,7 +101,7 @@ describe('pg-promise-strict with real database', function(){
         });
         it("successful query that doesn't return rows", function(done){
             pg.debug.Query=true;
-            client.query("drop schema if exists test_pgps cascade;").execute().then(function(result){
+            client.query({text:"drop schema if exists test_pgps cascade;"}).execute().then(function(result){
                 expect(result.command).to.be("DROP");
                 expect(result.rowCount).to.not.be.ok();
                 done();
@@ -213,6 +222,12 @@ describe('pg-promise-strict with real database', function(){
                 `PG-ERROR --ERROR! 54011!, query expects one row and obtains 2\n------- ------:\n-----------------------\n------- QUERY:\nselect * from test_pgps.table1;\n------- RESULT:\n-- [{"id":1,"text1":"one"},{"id":2,"text1":"two"}]`,
             )
         });
+        it("fail to query unique row and obtains none", function(){
+            return tipicalFail("select * from test_pgps.table1 where false","returns 0 rows","54011!",/query expects.*one row.*and obtains none/,
+                "fetchUniqueRow",
+                `PG-ERROR --ERROR! 54011!, query expects one row and obtains none\n------- ------:\n-----------------------\n------- QUERY:\nselect * from test_pgps.table1;\n------- RESULT:\n-- [{"id":1,"text1":"one"},{"id":2,"text1":"two"}]`,
+            )
+        });
         it("query row by row", function(){
             var accumulate=[];
             return client.query({
@@ -310,8 +325,8 @@ describe('pg-promise-strict with real database', function(){
                 "demasiados registros $1"
             )
         });
-        it("bulk insert", function(){
-            return client.bulkInsert({
+        it("bulk insert", async function(){
+            await client.bulkInsert({
                 schema: "test_pgps", 
                 table: "table1", 
                 columns: ['id', 'text1'],
@@ -352,11 +367,46 @@ describe('pg-promise-strict with real database', function(){
                     [1000000, 'one million'],
                     [10000000, 'ten million'],               
                 ]
-            }).then(function(){
-                return client.query("select sum(id) as sum_id from test_pgps.table1").fetchUniqueRow();
-            }).then(function(result){
-                expect(result.row.sum_id).to.eql(11002397);
             });
+            var result = await client.query("select sum(id) as sum_id from test_pgps.table1").fetchUniqueRow();
+            expect(result.row.sum_id).to.eql(11002397);
+        });
+        it("bulk insert with recovery", async function(){
+            var recovered = [];
+            await client.query("set search_path = test_pgps").execute();
+            await client.bulkInsert({
+                table: "table1", 
+                columns: ['id', 'text1'],
+                rows: [
+                    [1001, 'mil uno'],
+                    [1001, 'mil uno otra vez'],
+                ],
+                onerror:function(err, row){
+                    recovered.push(row);
+                }
+            });
+            var result = await client.query("select sum(id) as sum_id from test_pgps.table1 where id between 1001 and 1999").fetchUniqueRow();
+            expect(result.row.sum_id).to.eql(1001);
+            expect(recovered).to.eql([[1001, 'mil uno otra vez']]);
+        });
+        it("bulk insert with error", async function(){
+            var recovered = [];
+            await client.query("set search_path = test_pgps").execute();
+            try{
+                await client.bulkInsert({
+                    table: "table1", 
+                    columns: ['id', 'text1'],
+                    rows: [
+                        [2001, 'mil uno'],
+                        [2001, 'mil uno otra vez'],
+                    ],
+                });
+                throw new Error('must throw an error')
+            }catch(err){
+                expect(err.code).to.eql('23505');
+            }
+            var result = await client.query("select sum(id) as sum_id from test_pgps.table1 where id between 2001 and 2999").fetchUniqueRow();
+            expect(result.row.sum_id).to.eql(2001);
         });
     })
     describe('pool-less connections', function(){

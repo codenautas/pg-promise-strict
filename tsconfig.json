@@ -6,7 +6,7 @@
         "moduleResolution": "node",
         "lib":["ES2019"],
         "target": "ES2019",
-        "module": "umd",
+        "module": "none",
         "typeRoots" : ["node_modules/@types", "node_modules/types.d.ts/modules"],
         "noImplicitAny": true,
         "strict":true, 

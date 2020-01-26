@@ -89,7 +89,7 @@ export var defaults={
 };
 
 /* instanbul ignore next */
-function noLog(_message:string, _type:string){}
+export function noLog(_message:string, _type:string){}
 
 export var log:(message:string, type:string)=>void=noLog;
 
@@ -156,7 +156,10 @@ export type ConnectParams={
     port?:number
 }
 
-export type CopyFromOpts={inStream:Stream, table:string,columns?:string[],done?:(err?:Error)=>void, with?:string}
+export type CopyFromOptsCommon={table:string,columns?:string[],done?:(err?:Error)=>void, with?:string}
+export type CopyFromOptsFile={inStream?:undefined, filename:string}&CopyFromOptsCommon
+export type CopyFromOptsStream={inStream:Stream,filename?:undefined}&CopyFromOptsCommon
+export type CopyFromOpts=CopyFromOptsFile|CopyFromOptsStream
 export type BulkInsertParams={schema?:string,table:string,columns:string[],rows:any[][], onerror?:(err:Error, row:any[])=>Promise<void>}
 
 /** TODO: any en opts */
@@ -345,7 +348,8 @@ export class Client{
             i_rows++;
         }
     }
-    copyFromInlineDumpStream(opts:CopyFromOpts){
+    copyFromParseParams(opts:CopyFromOpts){
+        /* istanbul ignore next */
         if(opts.done){
             console.log(messages.copyFromInlineDumpStreamOptsDoneExperimental);
         }
@@ -353,7 +357,18 @@ export class Client{
             /* istanbul ignore next */
             throw new Error(messages.attemptTocopyFromOnNotConnected+" "+!this._client+','+!this.connected)
         }
-        var stream = this._client.query(copyFrom(`COPY ${opts.table} ${opts.columns?`(${opts.columns.map(name=>quoteIdent(name)).join(',')})`:''} FROM STDIN ${opts.with?'WITH '+opts.with:''}`));
+        var from = opts.inStream ? 'STDIN' : quoteLiteral(opts.filename);
+        var sql = `COPY ${opts.table} ${opts.columns?`(${opts.columns.map(name=>quoteIdent(name)).join(',')})`:''} FROM ${from} ${opts.with?'WITH '+opts.with:''}`;
+        console.log('xxxxxxxxxxxxxxxx',sql);
+        return {sql, _client:this._client};
+    }
+    async copyFromFile(opts:CopyFromOptsFile):Promise<ResultCommand>{
+        var {sql} = this.copyFromParseParams(opts);
+        return this.query(sql).execute();
+    }
+    copyFromInlineDumpStream(opts:CopyFromOptsStream){
+        var {sql, _client} = this.copyFromParseParams(opts);
+        var stream = _client.query(copyFrom(sql));
         /* istanbul ignore next skipping expermiental feature */
         if(opts.done){
             /* istanbul ignore next skipping expermiental feature */
@@ -363,7 +378,7 @@ export class Client{
             /* istanbul ignore next skipping expermiental feature */
             stream.on('close', opts.done);
         }
-        if(opts.inStream != null){
+        if(opts.inStream){
             /* istanbul ignore next skipping expermiental feature */
             if(opts.done){
                 /* istanbul ignore next skipping expermiental feature */
@@ -391,7 +406,7 @@ export class Client{
             );
         }
     }
-    copyFromArrayStream(opts:CopyFromOpts){
+    copyFromArrayStream(opts:CopyFromOptsStream){
         var c = this;
         var transform = new Transform({
             writableObjectMode:true,
