@@ -225,7 +225,7 @@ describe('pg-promise-strict with real database', function(){
         it("fail to query unique row and obtains none", function(){
             return tipicalFail("select * from test_pgps.table1 where false","returns 0 rows","54011!",/query expects.*one row.*and obtains none/,
                 "fetchUniqueRow",
-                `PG-ERROR --ERROR! 54011!, query expects one row and obtains none\n------- ------:\n-----------------------\n------- QUERY:\nselect * from test_pgps.table1;\n------- RESULT:\n-- [{"id":1,"text1":"one"},{"id":2,"text1":"two"}]`,
+                `PG-ERROR --ERROR! 54011!, query expects one row and obtains none\n------- ------:\n-----------------------\n------- QUERY:\nselect * from test_pgps.table1 where false;\n------- RESULT:\n-- []`,
             )
         });
         it("query row by row", function(){

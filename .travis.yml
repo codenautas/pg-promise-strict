@@ -12,4 +12,5 @@ addons:
   postgresql: "9.6"
 before_script:
   - psql -c 'create user test_user password $$test_pass$$;' -U postgres
+  - psql -c 'create user test_super superuser password $$super_pass$$;' -U postgres
   - psql -c 'create database test_db owner test_user;' -U postgres

@@ -359,7 +359,6 @@ export class Client{
         }
         var from = opts.inStream ? 'STDIN' : quoteLiteral(opts.filename);
         var sql = `COPY ${opts.table} ${opts.columns?`(${opts.columns.map(name=>quoteIdent(name)).join(',')})`:''} FROM ${from} ${opts.with?'WITH '+opts.with:''}`;
-        console.log('xxxxxxxxxxxxxxxx',sql);
         return {sql, _client:this._client};
     }
     async copyFromFile(opts:CopyFromOptsFile):Promise<ResultCommand>{

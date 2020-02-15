@@ -45,7 +45,6 @@ describe('intensive tests', function(){
                         p=p.then(function(){
                             return client.query("SELECT $1::integer c, $2::integer q, $3::integer i",[iClient, iQuery, iCicle]).fetchAll();
                         }).then(function(result){
-                            // console.log('xxxxxxxxxxxx',result);
                             expect(result.rows).to.eql([{c: iClient, q:iQuery, i:iCicle}]);
                         });
                     };  
@@ -64,18 +63,23 @@ describe('streams', function(){
     });
     describe('inserting from stream', function(){
         var client;
-        before(function(done){
-            miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
-                return pg.connect(config.db);
-            }).then(function(clientFromPool){
-                client=clientFromPool;
-            }).then(done).catch(done);
+        var client4file;
+        before(async function(){
+            var config = await miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'});
+            client = await pg.connect(config.db);
+            if(process.env.TRAVIS){
+                var config4file = {...config, username:'test_super', password:'super_pass'};
+                client4file = await pg.connect(config4file.db);
+            }else{
+                client4file=client;
+            }
         });
         after(function(){
             client.done();
         });
-        it('reading fixture with WITH', async function(){
-            this.timeout(5000)
+        it('reading fixture from file with WITH', async function(){
+            this.timeout(5000);
+            var client = client4file;
             await client.query(`
                 DROP TABLE IF EXISTS attributes2;
             `).execute();
