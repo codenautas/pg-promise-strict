@@ -69,7 +69,6 @@ describe('streams', function(){
             client = await pg.connect(config.db);
             if(process.env.TRAVIS){
                 var config4file = {...config, db:{...config.db, user:'test_super', password:'super_pass'}};
-                console.log('zzzzzzzzzzzzz', config4file);
                 client4file = await pg.connect(config4file.db);
             }else{
                 client4file=client;

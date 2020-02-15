@@ -187,7 +187,6 @@ export class Client{
                 cancelTimeout(self.timeoutController);
             }
             self.timeoutController = setInterval(function(){
-                // console.log('zzzzzzzzzzzzz',new Date().getTime() - self.lastOperationTimestamp, self.opts.releaseTimeout.inactive)
                 if(new Date().getTime() - self.lastOperationTimestamp  > self.opts.releaseTimeout.inactive
                 || new Date().getTime() - self.lastConnectionTimestamp > self.opts.releaseTimeout.connection
                 ){
