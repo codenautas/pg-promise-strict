@@ -35,7 +35,7 @@ describe('pg-promise-strict with real database', function(){
                 throw new Error('must raise error');
             }).catch(function(err){
                 expect(err).to.be.a(Error);
-                expect(err.message).to.match(/not? exist|autenti.*password|autenti.*fail/);
+                expect(err.message).to.match(/not? exist|auth?enti.*password|auth?enti.*fail/);
                 expect(err.code).to.match(/28000|28P01/);
             });
         });
@@ -440,7 +440,7 @@ describe('pg-promise-strict with real database', function(){
                         done(new Error("must raise error"));
                     }).catch(function(err){
                         if(config.db.port==connectParams.port){
-                            expect(err.message).to.match(/autenti.*password|not? exist|autenti.*fail/);
+                            expect(err.message).to.match(/auth?enti.*password|not? exist|auth?enti.*fail/);
                         }else{
                             expect(err.message).to.match(/ECONNREFUSED/);
                         }

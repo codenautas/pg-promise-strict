@@ -19,20 +19,20 @@
   ],
   "dependencies": {
     "fs-extra": "~8.1.0",
-    "pg": "~7.17.1",
+    "pg": "~7.18.1",
     "pg-copy-streams": "~2.2.2",
     "best-globals": "~0.10.23",
     "like-ar": "~0.2.19"
   },
   "devDependencies": {
-    "@types/node": "~13.5.0",
+    "@types/node": "~13.7.1",
     "@types/fs-extra": "~8.0.1",
     "@types/pg": "~7.14.1",
     "@types/pg-copy-streams": "~1.2.1",
     "colors": "~1.4.0",
     "expect.js": "~0.3.1",
     "nyc": "~13.3.0",
-    "mocha": "~7.0.0",
+    "mocha": "~7.0.1",
     "source-map-support": "~0.5.16",
     "ts-node": "~8.6.2",
     "typescript": "~3.7.5",
@@ -55,7 +55,7 @@
     "test-intensive": "mocha --reporter spec --bail --check-leaks test/intensive-tests.js",
     "test-common": "mocha --reporter spec --bail --check-leaks test/common-tests.js",
     "try-t": "mocha --reporter spec --bail --check-leaks test/trying-timeout.js",
-    "test-ci": "node node_modules/nyc/bin/nyc --reporter=lcov --reporter=text-lcov node_modules/mocha/bin/_mocha --exit --check-leaks test/*.js",
+    "test-ci": "node node_modules/nyc/bin/nyc --reporter=lcov node_modules/mocha/bin/_mocha --exit --check-leaks test/*.js",
     "test-cov": "node node_modules/nyc/bin/nyc node_modules/mocha/bin/_mocha --exit --check-leaks test/*.js",
     "start": "node examples/use-examples.js"
   },
