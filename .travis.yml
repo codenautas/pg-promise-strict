@@ -16,3 +16,4 @@ before_script:
   - psql -c 'create database test_db owner test_user;' -U postgres
   - chmod a+r test/fixtures/many-sep-lines.txt
   - chmod a+r /home/travis/build/codenautas/pg-promise-strict/test/fixtures/many-sep-lines.txt
+  - ls -cal

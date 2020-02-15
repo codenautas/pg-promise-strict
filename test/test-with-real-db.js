@@ -245,6 +245,24 @@ describe('pg-promise-strict with real database', function(){
                 "fetchRowByRow"
             )
         });
+        it('notices', async function(){
+            var messages = []
+            var consumerFunction=function(message){
+                messages.push(message)
+            }
+            await client.query(
+                `do $$
+                begin
+                    raise notice 'primer mensaje';
+                    raise notice 'second message';
+                end;$$`
+            ).onNotice(consumerFunction).execute();
+            console.log(messages)
+            expect(messages.map(notice=>notice.message)).to.eql([
+                "primer mensaje",
+                "second message"
+            ]);
+        })
     });
     describe('call queries with other languages', function(){
         var client;
