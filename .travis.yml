@@ -12,5 +12,4 @@ addons:
   postgresql: "9.6"
 before_script:
   - psql -c 'create user test_user password $$test_pass$$;' -U postgres
-  - psql -c 'grant pg_read_server_files to test_user;' -U postgres
   - psql -c 'create database test_db owner test_user;' -U postgres
