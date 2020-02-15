@@ -20,5 +20,7 @@ before_test:
   - PATH=C:\Program Files\PostgreSQL\9.3\bin\;%PATH%
   - psql -c "create user test_user password 'test_pass';"
   - psql -c "create database test_db owner test_user;"
+  - psql -c "create user test_super superuser password $$super_pass$$;"
+  - set TRAVIS=appveyor
 services: 
   - postgresql
