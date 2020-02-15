@@ -91,7 +91,7 @@ describe('streams', function(){
                     opts text
                 );
             `).execute();
-            await client.copyFromFile({table:'attributes2', filename:Path.join(process.cwd(),process.env.FILE4TEST||'test/fixtures/many-sep-lines.txt'), with:` CSV DELIMITER ';' HEADER`});
+            await client.copyFromFile({table:'attributes2', filename:process.env.FILE4TEST||Path.join(process.cwd(),'test/fixtures/many-sep-lines.txt'), with:` CSV DELIMITER ';' HEADER`});
             var result = await client.query("SELECT * FROM attributes2 ORDER BY attr DESC LIMIT 2").fetchAll();
             expect(result.rows).to.eql([
                 {
