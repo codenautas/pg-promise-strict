@@ -68,7 +68,8 @@ describe('streams', function(){
             var config = await miniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'});
             client = await pg.connect(config.db);
             if(process.env.TRAVIS){
-                var config4file = {...config, username:'test_super', password:'super_pass'};
+                var config4file = {...config, db:{...config.db, user:'test_super', password:'super_pass'}};
+                console.log('zzzzzzzzzzzzz', config4file);
                 client4file = await pg.connect(config4file.db);
             }else{
                 client4file=client;
