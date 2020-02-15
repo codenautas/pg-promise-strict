@@ -9,7 +9,7 @@ matrix:
 script: "npm run-script test-ci"
 after_script: "npm install coveralls@2.11.8 && cat ./coverage/lcov.info | coveralls"
 addons:
-  postgresql: "9.6"
+  postgresql: "11"
 before_script:
   - psql -c 'create user test_user password $$test_pass$$;' -U postgres
   - psql -c 'create user test_super superuser password $$super_pass$$;' -U postgres

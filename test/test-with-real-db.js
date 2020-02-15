@@ -257,7 +257,6 @@ describe('pg-promise-strict with real database', function(){
                     raise notice 'second message';
                 end;$$`
             ).onNotice(consumerFunction).execute();
-            console.log(messages)
             expect(messages.map(notice=>notice.message)).to.eql([
                 "primer mensaje",
                 "second message"
