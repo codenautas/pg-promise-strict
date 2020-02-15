@@ -250,6 +250,7 @@ describe('pg-promise-strict with real database', function(){
             var consumerFunction=function(message){
                 messages.push(message)
             }
+            await client.query('SET client_min_messages = NOTICE;').execute();
             await client.query(
                 `do $$
                 begin
