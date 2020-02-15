@@ -194,6 +194,11 @@ describe('pg-promise-strict with real database', function(){
                 value:8
             },"fetchUniqueValue",[5])
         });
+        it("query unique date", function(done){
+            tipicalExecuteWay("select '2020-02-14'::date",done,"SELECT",{
+                value:bestGlobals.date.ymd(2020,2,14)
+            },"fetchUniqueValue")
+        });
         it("fail to query unique value", function(){
             return tipicalFail("select 1 as one, $1::text as b","returns 2 columns","54U11!",/query expects.*one field.*and obtains 2/,
                 "fetchUniqueValue",
@@ -343,6 +348,22 @@ describe('pg-promise-strict with real database', function(){
                 "demasiados registros $1"
             )
         });
+        it("fail to then query", async function(){
+            try{
+                await client.query("select 1");
+                throw new Error('must throw an error');
+            }catch(err){
+                expect(err.message).to.match(/await.*then/)
+            }
+        })
+        it("fail to catch query", async function(){
+            try{
+                await client.query("select 2").catch(x=>x);
+                throw new Error('must throw an error');
+            }catch(err){
+                expect(err.message).to.match(/await.*catch/)
+            }
+        })
         it("bulk insert", async function(){
             await client.bulkInsert({
                 schema: "test_pgps", 

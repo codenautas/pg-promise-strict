@@ -397,6 +397,7 @@ export class Client{
                     if(bsr) return '\\r';
                     if(bsn) return '\\n';
                     if(bst) return '\\t';
+                    /* istanbul ignore else por la regexp es imposible que pase al else */
                     if(bs) return '\\\\';
                     /* istanbul ignore next Esto es imposible que suceda */
                     throw new Error(messages.formatNullableToInlineDumpErrorParsing)
@@ -681,6 +682,7 @@ export function logLastError(message:string, messageType:string):void{
             }else{
                 /*jshint forin:false */
                 for(var attr2 in logLastError.receivedMessages){
+                    /* istanbul ignore next */
                     console.log(attr2, logLastError.receivedMessages[attr2]);
                 }
                 /*jshint forin:true */
