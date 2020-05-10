@@ -133,6 +133,15 @@ export function quoteLiteral(anyValue:AnyQuoteable){
     return quoteNullable(anyValue);
 };
 
+export function json(sql:string, orderby:string){
+    return `COALESCE((SELECT jsonb_agg(to_jsonb(j.*) ORDER BY ${orderby}) from (${sql}) as j),'[]'::jsonb)`;
+    // return `(SELECT coalesce(jsonb_agg(to_jsonb(j.*) ORDER BY ${orderby}),'[]'::jsonb) from (${sql}) as j)`
+}
+
+export function jsono(sql:string, indexedby:string){
+    return `COALESCE((SELECT jsonb_object_agg(${indexedby},to_jsonb(j.*)) from (${sql}) as j),'{}'::jsonb)`
+}
+
 export function adaptParameterTypes(parameters?:any[]){
     // @ts-ignore 
     if(parameters==null){

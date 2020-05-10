@@ -62,6 +62,8 @@ export declare type AnyQuoteable = string | number | Date | {
 };
 export declare function quoteNullable(anyValue: null | AnyQuoteable): string;
 export declare function quoteLiteral(anyValue: AnyQuoteable): string;
+export declare function json(sql: string, orderby: string): string;
+export declare function jsono(sql: string, indexedby: string): string;
 export declare function adaptParameterTypes(parameters?: any[]): any[] | null;
 export declare var easy: boolean;
 export declare type ConnectParams = {
