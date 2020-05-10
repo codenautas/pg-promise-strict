@@ -171,6 +171,24 @@ export type CopyFromOptsStream={inStream:Stream,filename?:undefined}&CopyFromOpt
 export type CopyFromOpts=CopyFromOptsFile|CopyFromOptsStream
 export type BulkInsertParams={schema?:string,table:string,columns:string[],rows:any[][], onerror?:(err:Error, row:any[])=>Promise<void>}
 
+export type Column = {data_type:string};
+
+export class InformationSchemaReader{
+    constructor(private client:Client){
+    }
+    async column(table_schema:string, table_name:string, column_name:string):Promise<Column|null>{
+        var result = await this.client.query(`
+            select * 
+                from information_schema.columns
+                where table_schema=$1
+                    and table_name=$2
+                    and column_name=$3;
+        `,[table_schema, table_name, column_name]).fetchOneRowIfExists(); 
+        console.log('*******************',arguments,result.row, result.row||null)
+        return (result.row || null) as Column|null;
+    }
+}
+
 /** TODO: any en opts */
 export class Client{
     private connected:null|{
@@ -186,6 +204,7 @@ export class Client{
         }
     }
     private _client:(pg.Client|pg.PoolClient)&{secretKey:string}|null;
+    private _informationSchema:InformationSchemaReader|null=null;
     constructor(connOpts:ConnectParams|null, client:(pg.Client|pg.PoolClient), private _done:()=>void, _opts?:any){
         this._client = client as (pg.Client|pg.PoolClient)&{secretKey:string};
         if(connOpts==null){
@@ -302,6 +321,9 @@ export class Client{
         var returnedQuery = this._client.query(new pg.Query(queryArguments[0], queryArguments[1]));
         return new Query(returnedQuery, this, this._client);
     };
+    get informationSchema():InformationSchemaReader{
+        return this._informationSchema || new InformationSchemaReader(this);
+    }
     async executeSentences(sentences:string[]){
         var self = this;
         if(!this._client || !this.connected){

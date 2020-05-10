@@ -95,6 +95,14 @@ export declare type BulkInsertParams = {
     rows: any[][];
     onerror?: (err: Error, row: any[]) => Promise<void>;
 };
+export declare type Column = {
+    data_type: string;
+};
+export declare class InformationSchemaReader {
+    private client;
+    constructor(client: Client);
+    column(table_schema: string, table_name: string, column_name: string): Promise<Column | null>;
+}
 /** TODO: any en opts */
 export declare class Client {
     private _done;
@@ -102,6 +110,7 @@ export declare class Client {
     private fromPool;
     private postConnect;
     private _client;
+    private _informationSchema;
     constructor(connOpts: ConnectParams | null, client: (pg.Client | pg.PoolClient), _done: () => void, _opts?: any);
     connect(): Promise<unknown>;
     end(): void;
@@ -112,6 +121,7 @@ export declare class Client {
         text: string;
         values: any[];
     }): Query;
+    get informationSchema(): InformationSchemaReader;
     executeSentences(sentences: string[]): Promise<void | ResultCommand>;
     executeSqlScript(fileName: string): Promise<void | ResultCommand>;
     bulkInsert(params: BulkInsertParams): Promise<void>;

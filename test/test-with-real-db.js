@@ -268,6 +268,33 @@ describe('pg-promise-strict with real database', function(){
                 "second message"
             ]);
         })
+        it('get json', async function(){
+            var sql='select id,text1 from test_pgps.table1';
+            var result = await client.query(`
+                select ${pg.json(sql,'text1')} as arr, 
+                    ${pg.jsono(sql,'text1')} as obj
+            `).fetchUniqueRow();
+            expect(result.row).to.eql({
+                arr: [
+                {id: 1, text1: "one"},
+                {id: 2, text1: "two"}
+                ],
+                obj: {
+                one:{id: 1, text1: "one"},
+                two:{id: 2, text1: "two"}
+                }
+            });
+        })
+        describe('information_schema', function(){
+            it('find a column', async function(){
+                var info = await client.informationSchema.column('test_pgps','table2','text2');
+                expect(info.data_type).to.eql('text');
+            })
+            it('not find a column', async function(){
+                var info = await client.informationSchema.column('test_pgps','table2','text77');
+                expect(info).to.eql(null);
+            });
+        });
     });
     describe('call queries with other languages', function(){
         var client;
