@@ -276,12 +276,12 @@ describe('pg-promise-strict with real database', function(){
             `).fetchUniqueRow();
             expect(result.row).to.eql({
                 arr: [
-                {id: 1, text1: "one"},
-                {id: 2, text1: "two"}
+                    {id: 1, text1: "one"},
+                    {id: 2, text1: "two"}
                 ],
                 obj: {
-                one:{id: 1, text1: "one"},
-                two:{id: 2, text1: "two"}
+                    one:{id: 1, text1: "one"},
+                    two:{id: 2, text1: "two"}
                 }
             });
         })

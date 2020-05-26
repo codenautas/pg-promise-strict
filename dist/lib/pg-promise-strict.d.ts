@@ -114,7 +114,7 @@ export declare class Client {
     constructor(connOpts: ConnectParams | null, client: (pg.Client | pg.PoolClient), _done: () => void, _opts?: any);
     connect(): Promise<unknown>;
     end(): void;
-    done(): any;
+    done(): void;
     query(sql: string): Query;
     query(sql: string, params: any[]): Query;
     query(sqlObject: {
