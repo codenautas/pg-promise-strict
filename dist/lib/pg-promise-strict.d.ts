@@ -62,8 +62,13 @@ export declare type AnyQuoteable = string | number | Date | {
 };
 export declare function quoteNullable(anyValue: null | AnyQuoteable): string;
 export declare function quoteLiteral(anyValue: AnyQuoteable): string;
-export declare function json(sql: string, orderby: string): string;
-export declare function jsono(sql: string, indexedby: string): string;
+export declare const param3rd4sql: (exprOrWithoutkeyOrKeys?: string | true | string[] | undefined, base?: string | undefined, keys?: string | string[] | undefined) => string;
+export declare function json(sql: string, orderby: string, expr: string): string;
+export declare function json(sql: string, orderby: string, keys: string[]): string;
+export declare function json(sql: string, orderby: string, withoutKeys: true): string;
+export declare function jsono(sql: string, indexedby: string, expr: string): string;
+export declare function jsono(sql: string, indexedby: string, keys: string[]): string;
+export declare function jsono(sql: string, indexedby: string, withoutKeys: true): string;
 export declare function adaptParameterTypes(parameters?: any[]): any[] | null;
 export declare var easy: boolean;
 export declare type ConnectParams = {

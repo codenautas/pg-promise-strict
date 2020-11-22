@@ -285,6 +285,28 @@ describe('pg-promise-strict with real database', function(){
                 }
             });
         })
+        it('get json 3rd param', async function(){
+            var sql=`select id,text1,'x' as equis from test_pgps.table1`;
+            var result = await client.query(`
+                select ${pg.json(sql,'text1',true)} as arr, 
+                    ${pg.json(sql,'text1','text1,id,equis'.split(','))} as arr2, 
+                    ${pg.jsono(sql,'text1','id')} as obj
+            `).fetchUniqueRow();
+            expect(result.row).to.eql({
+                arr: [
+                    {id: 1, equis:'x'},
+                    {id: 2, equis:'x'}
+                ],
+                arr2: [
+                    {id: 1, text1: "one", equis:'x'},
+                    {id: 2, text1: "two", equis:'x'}
+                ],
+                obj: {
+                    one:1,
+                    two:2
+                }
+            });
+        })
         describe('information_schema', function(){
             it('find a column', async function(){
                 var info = await client.informationSchema.column('test_pgps','table2','text2');

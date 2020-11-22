@@ -4,6 +4,8 @@ create database test_db owner test_user;
 create schema test_pgps;
 alter schema test_pgps owner to test_user;
 
+grant pg_read_server_files to test_user;
+
 create table test_pgps.table1(
   id integer primary key,
   text1 text
