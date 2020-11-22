@@ -146,6 +146,7 @@ export const param3rd4sql=(exprOrWithoutkeyOrKeys?:string|true|string[], base?:s
 export function json(sql:string, orderby:string,expr:string):string;
 export function json(sql:string, orderby:string,keys:string[]):string;
 export function json(sql:string, orderby:string,withoutKeys:true):string;
+export function json(sql:string, orderby:string):string;
 export function json(sql:string, orderby:string,exprOrWithoutkeyOrKeys?:string|true|string[]){
     return `COALESCE((SELECT jsonb_agg(${param3rd4sql(exprOrWithoutkeyOrKeys,'j.*',orderby)} ORDER BY ${orderby}) from (${sql}) as j),'[]'::jsonb)`;
     // return `(SELECT coalesce(jsonb_agg(to_jsonb(j.*) ORDER BY ${orderby}),'[]'::jsonb) from (${sql}) as j)`
@@ -154,6 +155,7 @@ export function json(sql:string, orderby:string,exprOrWithoutkeyOrKeys?:string|t
 export function jsono(sql:string, indexedby:string,expr:string):string;
 export function jsono(sql:string, indexedby:string,keys:string[]):string;
 export function jsono(sql:string, indexedby:string,withoutKeys:true):string;
+export function jsono(sql:string, indexedby:string):string;
 export function jsono(sql:string, indexedby:string,exprOrWithoutkeyOrKeys?:string|true|string[]){
     return `COALESCE((SELECT jsonb_object_agg(${indexedby},${param3rd4sql(exprOrWithoutkeyOrKeys,'j.*',indexedby)}) from (${sql}) as j),'{}'::jsonb)`
 }
