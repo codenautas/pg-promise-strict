@@ -223,7 +223,9 @@ export class Client{
     }
     private _client:(pg.Client|pg.PoolClient)&{secretKey:string}|null;
     private _informationSchema:InformationSchemaReader|null=null;
-    constructor(connOpts:ConnectParams|null, client:(pg.Client|pg.PoolClient), private _done:()=>void, _opts?:any){
+    constructor(connOpts:ConnectParams)
+    constructor(connOpts:null, client:(pg.Client|pg.PoolClient), _done:()=>void, _opts?:any)
+    constructor(connOpts:ConnectParams|null, client?:(pg.Client|pg.PoolClient), private _done?:()=>void, _opts?:any){
         this._client = client as (pg.Client|pg.PoolClient)&{secretKey:string};
         if(connOpts==null){
             this.fromPool=true;
@@ -595,7 +597,7 @@ class Query{
                     if(adapterCallback){
                         adapterCallback(endMark.result, resolve, reject);
                     }else{
-                        resolve();
+                        resolve(endMark.result as unknown as TR);
                     }
                 }
             }

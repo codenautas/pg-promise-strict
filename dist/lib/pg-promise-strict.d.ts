@@ -66,9 +66,11 @@ export declare const param3rd4sql: (exprOrWithoutkeyOrKeys?: string | true | str
 export declare function json(sql: string, orderby: string, expr: string): string;
 export declare function json(sql: string, orderby: string, keys: string[]): string;
 export declare function json(sql: string, orderby: string, withoutKeys: true): string;
+export declare function json(sql: string, orderby: string): string;
 export declare function jsono(sql: string, indexedby: string, expr: string): string;
 export declare function jsono(sql: string, indexedby: string, keys: string[]): string;
 export declare function jsono(sql: string, indexedby: string, withoutKeys: true): string;
+export declare function jsono(sql: string, indexedby: string): string;
 export declare function adaptParameterTypes(parameters?: any[]): any[] | null;
 export declare var easy: boolean;
 export declare type ConnectParams = {
@@ -132,11 +134,9 @@ export declare class Client {
     bulkInsert(params: BulkInsertParams): Promise<void>;
     copyFromParseParams(opts: CopyFromOpts): {
         sql: string;
-        _client: (pg.Client & {
+        _client: (pg.Client | pg.PoolClient) & {
             secretKey: string;
-        }) | (pg.PoolClient & {
-            secretKey: string;
-        });
+        };
     };
     copyFromFile(opts: CopyFromOptsFile): Promise<ResultCommand>;
     copyFromInlineDumpStream(opts: CopyFromOptsStream): import("pg-copy-streams").CopyStreamQuery;
