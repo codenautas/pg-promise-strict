@@ -112,13 +112,14 @@ export declare class InformationSchemaReader {
 }
 /** TODO: any en opts */
 export declare class Client {
-    private _done;
+    private _done?;
     private connected;
     private fromPool;
     private postConnect;
     private _client;
     private _informationSchema;
-    constructor(connOpts: ConnectParams | null, client: (pg.Client | pg.PoolClient), _done: () => void, _opts?: any);
+    constructor(connOpts: ConnectParams);
+    constructor(connOpts: null, client: (pg.Client | pg.PoolClient), _done: () => void, _opts?: any);
     connect(): Promise<unknown>;
     end(): void;
     done(): void;

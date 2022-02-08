@@ -8,6 +8,7 @@ import {from as copyFrom} from 'pg-copy-streams';
 import * as util from 'util';
 import * as likeAr from 'like-ar';
 import * as bestGlobals from 'best-globals';
+import { unexpected } from 'cast-error';
 import {Stream, Transform} from 'stream';
 
 const MESSAGES_SEPARATOR_TYPE='------';
@@ -389,10 +390,11 @@ export class Client{
             try{
                 await self.query(sql, params.rows[i_rows]).execute();
             }catch(err){
+                var error = unexpected(err);
                 if(params.onerror){
-                    await params.onerror(err, params.rows[i_rows]);
+                    await params.onerror(error, params.rows[i_rows]);
                 }else{
-                    throw err;
+                    throw error;
                 }
             }
             i_rows++;

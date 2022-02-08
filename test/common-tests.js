@@ -17,18 +17,19 @@ describe('pg-promise-strict common tests', function(){
     });
     var client;
     var poolLog;
-    before(function(done){
+    before(async function(){
+        this.timeout(5000)
         pg.allTypes=true;
-        MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
-            return pg.connect(config.db);
-        }).then(function(returnedClient){
-            // if(pg.poolBalanceControl().length>0) done(new Error("There are UNEXPECTED unbalanced conections"));
-            client = returnedClient;
-            done();
-        });
+        var config = await MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'})
+        console.log('config',config)
+        var returnedClient = await pg.connect(config.db);
+        console.log('conectado!')
+        client = returnedClient;
     });
     after(function(){
-        client.done();
+        console.log('en el after')
+        if(client) client.done();
+        console.log('salio del after')
     });
     describe('internal controls', function(){
         it('control the log in error',function(){

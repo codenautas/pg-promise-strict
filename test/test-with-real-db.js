@@ -521,7 +521,7 @@ describe('pg-promise-strict with real database', function(){
                 this.timeout(5000);
                 pg.debug.Client=true;
                 MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
-                    client = new pg.Client("posgresql://this_user@localhost:"+config.db.port+"/nonex");
+                    client = new pg.Client("posgresql://this_user:this_pass@localhost:"+config.db.port+"/nonex");
                     expect(client).to.be.a(pg.Client);
                     expect(client._client).to.be.a(pg0.Client);
                     client.connect().then(function(){
