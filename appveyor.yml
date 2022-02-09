@@ -11,7 +11,7 @@ build: off
 test_script:
   - node --version
   - npm --version
-  - npm run test-ci
+  - npm test
 version: "{build}"
 before_test:
   - SET PGUSER=postgres
