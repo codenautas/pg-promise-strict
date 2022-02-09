@@ -53,13 +53,13 @@ jobs:
         apt-get install --yes postgresql-client
     - name: Install DB
       run: |
-        psql -c 'create user test_user password $$test_pass$$;' -U postgres
-        psql -c 'create user test_super superuser password $$super_pass$$;' -U postgres
-        psql -c 'create database test_db owner test_user;' -U postgres
+        psql -d postgresql://postgres@localhost/postgres -c 'create user test_user password $$test_pass$$;' 
+        psql -d postgresql://postgres@localhost/postgres -c 'create user test_super superuser password $$super_pass$$;'
+        psql -d postgresql://postgres@localhost/postgres -c 'create database test_db owner test_user;'
         chmod -v a+r test/fixtures/many-sep-lines.txt
-        chmod -v a+r /home/travis/build/codenautas/pg-promise-strict/test/fixtures/many-sep-lines.txt
+        chmod -v a+r test/fixtures/many-sep-lines.txt
         export FILE4TEST=`mktemp`
-        cp /home/travis/build/codenautas/pg-promise-strict/test/fixtures/many-sep-lines.txt $FILE4TEST
+        cp test/fixtures/many-sep-lines.txt $FILE4TEST
         chmod -v a+r $FILE4TEST
         ls -cal
     - run: npm ci
