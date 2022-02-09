@@ -50,6 +50,7 @@ jobs:
         psql -d postgresql://postgres:postgres@localhost/postgres -c 'create user test_user password $$test_pass$$;' 
         psql -d postgresql://postgres:postgres@localhost/postgres -c 'create user test_super superuser password $$super_pass$$;'
         psql -d postgresql://postgres:postgres@localhost/postgres -c 'create database test_db owner test_user;'
+        psql -d postgresql://postgres:postgres@localhost/postgres -c 'grant pg_read_server_files to test_user;'
         chmod -v a+r test/fixtures/many-sep-lines.txt
         chmod -v a+r test/fixtures/many-sep-lines.txt
         export FILE4TEST=`mktemp`
