@@ -1,0 +1,59 @@
+on: ["push", "pull_request"]
+
+name: Test Coveralls
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: postgres        
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_PORT: 5432
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5        
+    
+    steps:
+
+    - uses: actions/checkout@v1
+
+    - name: Use Node.js 14.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 14.x
+
+    - name: Install DB
+      run: |
+        pwd
+        psql -d postgresql://postgres:postgres@localhost/postgres -c 'create user test_user password $$test_pass$$;' 
+        psql -d postgresql://postgres:postgres@localhost/postgres -c 'create user test_super superuser password $$super_pass$$;'
+        psql -d postgresql://postgres:postgres@localhost/postgres -c 'create database test_db owner test_user;'
+        psql -d postgresql://postgres:postgres@localhost/postgres -c 'grant pg_read_server_files to test_user;'
+        chmod -v a+r test/fixtures/many-sep-lines.txt
+        chmod -v a+r /home/runner/work/pg-promise-strict/pg-promise-strict/test/fixtures/many-sep-lines.txt
+        export FILE4TEST=`mktemp`
+        cp /home/runner/work/pg-promise-strict/pg-promise-strict/test/fixtures/many-sep-lines.txt $FILE4TEST
+        chmod -v a+r $FILE4TEST
+        ls -cal
+
+    - name: npm install, make test-coverage
+      run: |
+        npm ci
+        npm run test
+
+    - name: Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
