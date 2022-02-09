@@ -13,10 +13,10 @@ postgresql with promises and strict types and returning size of results
 ![stable](https://img.shields.io/badge/stability-stable-brightgreen.svg)
 [![npm-version](https://img.shields.io/npm/v/pg-promise-strict.svg)](https://npmjs.org/package/pg-promise-strict)
 [![downloads](https://img.shields.io/npm/dm/pg-promise-strict.svg)](https://npmjs.org/package/pg-promise-strict)
-[![linux](https://img.shields.io/travis/codenautas/pg-promise-strict/master.svg)](https://travis-ci.org/codenautas/pg-promise-strict)
+[![build](https://github.com/codenautas/pg-promise-strict/actions/workflows/node.js.yml/badge.svg)](https://github.com/codenautas/pg-promise-strict/actions/workflows/node.js.yml)
 [![windows](https://ci.appveyor.com/api/projects/status/github/codenautas/pg-promise-strict?svg=true)](https://ci.appveyor.com/project/codenautas/pg-promise-strict)
 [![coverage](https://img.shields.io/coveralls/codenautas/pg-promise-strict/master.svg)](https://coveralls.io/r/codenautas/pg-promise-strict)
-[![dependencies](https://img.shields.io/david/codenautas/pg-promise-strict.svg)](https://david-dm.org/codenautas/pg-promise-strict)
+[![outdated-deps](https://img.shields.io/github/issues-search/codenautas/pg-promise-strict?color=9cf&label=outdated-deps&query=is%3Apr%20author%3Aapp%2Fdependabot%20is%3Aopen)](https://github.com/codenautas/pg-promise-strict/pulls/app%2Fdependabot)
 
 <!--multilang buttons-->
 

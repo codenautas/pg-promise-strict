@@ -265,8 +265,8 @@ export class Client{
         if(arguments.length){
             return Promise.reject(new Error(messages.clientConenctMustNotReceiveParams));
         }
+        /* istanbul ignore next */
         if(!this._client){
-            /* istanbul ignore next */
             throw new Error(messages.lackOfClient);
         }
         var client = this._client;
@@ -283,14 +283,14 @@ export class Client{
         });
     };
     end(){
+        /* istanbul ignore next */
         if(this.fromPool){
-            /* istanbul ignore next */
             throw new Error(messages.mustNotEndClientFromPool)
         }
+        /* istanbul ignore else */
         if(this._client instanceof pg.Client){
             this._client.end();
         }else{
-            /* istanbul ignore next */
             throw new Error(messages.lackOfClient);
         }
     };
@@ -311,8 +311,8 @@ export class Client{
     query(sql:string, params:any[]):Query
     query(sqlObject:{text:string, values:any[]}):Query
     query():Query{
+        /* istanbul ignore next */
         if(!this.connected || !this._client){
-            /* istanbul ignore next */
             throw new Error(messages.queryNotConnected)
         }
         this.connected.lastOperationTimestamp = new Date().getTime();
@@ -327,6 +327,7 @@ export class Client{
             queryValues = adaptParameterTypes(queryArguments[0].values||null);
             queryArguments[0].values = queryValues;
         }
+        /* istanbul ignore else */
         if(log){
             var sql=queryText;
             log(MESSAGES_SEPARATOR, MESSAGES_SEPARATOR_TYPE);
@@ -347,8 +348,8 @@ export class Client{
     }
     async executeSentences(sentences:string[]){
         var self = this;
+        /* istanbul ignore next */
         if(!this._client || !this.connected){
-            /* istanbul ignore next */
             throw new Error(messages.attemptToExecuteSentencesOnNotConnected+" "+!this._client+','+!this.connected)
         }
         var cdp:Promise<ResultCommand|void> = Promise.resolve();
@@ -366,8 +367,8 @@ export class Client{
     }
     async executeSqlScript(fileName:string){
         var self=this;
+        /* istanbul ignore next */
         if(!this._client || !this.connected){
-            /* istanbul ignore next */
             throw new Error(messages.attemptToExecuteSqlScriptOnNotConnected+" "+!this._client+','+!this.connected)
         }
         return fs.readFile(fileName,'utf-8').then(function(content){
@@ -405,8 +406,8 @@ export class Client{
         if(opts.done){
             console.log(messages.copyFromInlineDumpStreamOptsDoneExperimental);
         }
+        /* istanbul ignore next */
         if(!this._client || !this.connected){
-            /* istanbul ignore next */
             throw new Error(messages.attemptTocopyFromOnNotConnected+" "+!this._client+','+!this.connected)
         }
         var from = opts.inStream ? 'STDIN' : quoteLiteral(opts.filename);
@@ -429,6 +430,7 @@ export class Client{
             /* istanbul ignore next skipping expermiental feature */
             stream.on('close', opts.done);
         }
+        /* istanbul ignore else */
         if(opts.inStream){
             /* istanbul ignore next skipping expermiental feature */
             if(opts.done){
@@ -721,8 +723,10 @@ export var readyLog = Promise.resolve();
 
 /* xxistanbul ignore next */
 export function logLastError(message:string, messageType:string):void{
+    /* istanbul ignore else */
     if(messageType){
         if(messageType=='ERROR'){
+            /* istanbul ignore else */
             if(logLastError.inFileName){
                 var lines=['PG-ERROR '+message];
                 /*jshint forin:false */

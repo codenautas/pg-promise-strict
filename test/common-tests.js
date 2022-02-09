@@ -124,6 +124,7 @@ describe('pg-promise-strict common tests', function(){
             expect(pg.quoteNullable(7)).to.eql("'7'");
             expect(pg.quoteNullable(null)).to.eql("null");
             expect(pg.quoteNullable(true)).to.eql("'true'");
+            expect(()=>pg.quoteNullable(pg.quoteNullable)).to.throwError(/insane value/);
         });
     });
     describe('handle errors', function(){
