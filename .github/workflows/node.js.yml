@@ -3,6 +3,8 @@
 
 name: Node.js CI
 
+# siguiendo el ejemplo de https://docs.github.com/es/actions/using-containerized-services/creating-postgresql-service-containers
+
 on:
   push:
     branches: [ master ]
@@ -13,6 +15,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+
+    container: node:10.18-jessie
 
     strategy:
       matrix:
