@@ -18,6 +18,22 @@ jobs:
       matrix:
         node-version: [14.x, 16.x, 17.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: postgres        
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5        
 
     steps:
     - uses: actions/checkout@v2
@@ -26,6 +42,16 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+    - run:
+      - psql -c 'create user test_user password $$test_pass$$;' -U postgres
+      - psql -c 'create user test_super superuser password $$super_pass$$;' -U postgres
+      - psql -c 'create database test_db owner test_user;' -U postgres
+      - chmod -v a+r test/fixtures/many-sep-lines.txt
+      - chmod -v a+r /home/travis/build/codenautas/pg-promise-strict/test/fixtures/many-sep-lines.txt
+      - export FILE4TEST=`mktemp`
+      - cp /home/travis/build/codenautas/pg-promise-strict/test/fixtures/many-sep-lines.txt $FILE4TEST
+      - chmod -v a+r $FILE4TEST
+      - ls -cal
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
