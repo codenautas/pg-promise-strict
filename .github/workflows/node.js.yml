@@ -47,14 +47,15 @@ jobs:
         cache: 'npm'
     - name: Install DB
       run: |
+        pwd
         psql -d postgresql://postgres:postgres@localhost/postgres -c 'create user test_user password $$test_pass$$;' 
         psql -d postgresql://postgres:postgres@localhost/postgres -c 'create user test_super superuser password $$super_pass$$;'
         psql -d postgresql://postgres:postgres@localhost/postgres -c 'create database test_db owner test_user;'
         psql -d postgresql://postgres:postgres@localhost/postgres -c 'grant pg_read_server_files to test_user;'
         chmod -v a+r test/fixtures/many-sep-lines.txt
-        chmod -v a+r test/fixtures/many-sep-lines.txt
+        chmod -v a+r /home/runner/work/pg-promise-strict/pg-promise-strict/test/fixtures/many-sep-lines.txt
         export FILE4TEST=`mktemp`
-        cp test/fixtures/many-sep-lines.txt $FILE4TEST
+        cp /home/runner/work/pg-promise-strict/pg-promise-strict/test/fixtures/many-sep-lines.txt $FILE4TEST
         chmod -v a+r $FILE4TEST
         ls -cal
     - run: npm ci
