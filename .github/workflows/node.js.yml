@@ -47,10 +47,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - name: Install Postgres
-      run: |
-        apt-get update
-        apt-get install --yes postgresql-client
     - name: Install DB
       run: |
         psql -d postgresql://postgres@localhost/postgres -c 'create user test_user password $$test_pass$$;' 
