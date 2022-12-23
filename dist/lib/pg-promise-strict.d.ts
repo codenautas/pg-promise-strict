@@ -54,7 +54,7 @@ export declare var alsoLogRows: boolean;
 export declare var logExceptions: boolean;
 export declare function quoteIdent(name: string): string;
 export declare function quoteIdentList(objectNames: string[]): string;
-export declare type AnyQuoteable = string | number | Date | {
+export type AnyQuoteable = string | number | Date | {
     isRealDate: boolean;
     toYmd: () => string;
 } | {
@@ -75,36 +75,36 @@ export declare function jsono(sql: string, indexedby: string, withoutKeys: true)
 export declare function jsono(sql: string, indexedby: string): string;
 export declare function adaptParameterTypes(parameters?: any[]): any[] | null;
 export declare var easy: boolean;
-export declare type ConnectParams = {
+export type ConnectParams = {
     motor?: "postgres";
     database?: string;
     user?: string;
     password?: string;
     port?: number;
 };
-export declare type CopyFromOptsCommon = {
+export type CopyFromOptsCommon = {
     table: string;
     columns?: string[];
     done?: (err?: Error) => void;
     with?: string;
 };
-export declare type CopyFromOptsFile = {
+export type CopyFromOptsFile = {
     inStream?: undefined;
     filename: string;
 } & CopyFromOptsCommon;
-export declare type CopyFromOptsStream = {
+export type CopyFromOptsStream = {
     inStream: Stream;
     filename?: undefined;
 } & CopyFromOptsCommon;
-export declare type CopyFromOpts = CopyFromOptsFile | CopyFromOptsStream;
-export declare type BulkInsertParams = {
+export type CopyFromOpts = CopyFromOptsFile | CopyFromOptsStream;
+export type BulkInsertParams = {
     schema?: string;
     table: string;
     columns: string[];
     rows: any[][];
     onerror?: (err: Error, row: any[]) => Promise<void>;
 };
-export declare type Column = {
+export type Column = {
     data_type: string;
 };
 export declare class InformationSchemaReader {
@@ -173,8 +173,8 @@ export interface ResultRows extends Result {
 export interface ResultValue extends Result {
     value: any;
 }
-export declare type ResultGeneric = ResultValue | ResultRows | ResultOneRowIfExists | ResultOneRow | Result | ResultCommand;
-declare type Notice = string;
+export type ResultGeneric = ResultValue | ResultRows | ResultOneRowIfExists | ResultOneRow | Result | ResultCommand;
+type Notice = string;
 declare class Query {
     private _query;
     client: Client;
