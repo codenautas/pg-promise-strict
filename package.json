@@ -1,7 +1,7 @@
 {
   "name": "pg-promise-strict",
   "description": "postgresql with promises and strict types and returning size of results",
-  "version": "1.2.6",
+  "version": "1.2.9",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/pg-promise-strict",
@@ -18,29 +18,29 @@
     }
   ],
   "dependencies": {
-    "cast-error": "^0.1.0",
-    "fs-extra": "^10.0.0",
-    "pg": "^8.7.3",
-    "pg-copy-streams": "^6.0.2",
     "best-globals": "^1.0.3",
-    "like-ar": "^0.3.6"
+    "cast-error": "^0.1.0",
+    "fs-extra": "^11.1.0",
+    "like-ar": "^0.3.6",
+    "pg": "^8.8.0",
+    "pg-copy-streams": "^6.0.4"
   },
   "devDependencies": {
-    "@types/node": "^17.0.16",
     "@types/fs-extra": "^9.0.13",
-    "@types/pg": "^8.6.4",
+    "@types/node": "^18.11.17",
+    "@types/pg": "^8.6.6",
     "@types/pg-copy-streams": "^1.2.1",
     "colors": "^1.4.0",
-    "expect.js": "^0.3.1",
-    "nyc": "^15.1.0",
-    "mocha": "^9.2.0",
-    "source-map-support": "^0.5.21",
-    "ts-node": "^10.5.0",
-    "typescript": "^4.5.5",
     "discrepances": "^0.2.6",
+    "expect.js": "^0.3.1",
+    "line-splitter": "^0.8.0",
     "mini-tools": "^1.11.2",
+    "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
+    "source-map-support": "^0.5.21",
+    "ts-node": "^10.9.1",
     "type-store": "^0.2.41",
-    "line-splitter": "^0.8.0"
+    "typescript": "^4.9.4"
   },
   "optionalDependencies": {
     "type-store": "^0.2.41"

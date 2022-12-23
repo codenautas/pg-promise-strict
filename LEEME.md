@@ -7,7 +7,7 @@
 <!--lang:en--]
 postgresql with promises and strict types and returning size of results
 
-[!--lang:*-->
+[!--lang:*-->gNKZFQ-Kid60xqW_9zWwd4SD84QuaVuMhVYUxg
 
 <!-- cucardas -->
 ![stable](https://img.shields.io/badge/stability-stable-brightgreen.svg)

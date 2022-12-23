@@ -20,6 +20,7 @@ describe('pg-promise-strict common tests', function(){
     before(async function(){
         this.timeout(5000)
         pg.allTypes=true;
+        pg.alsoLogRows=true;
         var config = await MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'})
         console.log('config',config)
         var returnedClient = await pg.connect(config.db);

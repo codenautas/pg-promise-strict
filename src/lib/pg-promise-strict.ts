@@ -74,6 +74,7 @@ export var i18n:{
 }
 
 export function setLang(lang:string){
+    /* istanbul ignore else */
     if(lang in i18n.messages){
         messages = {...i18n.messages.en, ...i18n.messages[lang]};
     }
@@ -93,9 +94,14 @@ export var defaults={
 export function noLog(_message:string, _type:string){}
 
 export var log:(message:string, type:string)=>void=noLog;
+export var alsoLogRows = false;
+export var logExceptions = false;
 
 export function quoteIdent(name:string){
     if(typeof name!=="string"){
+        if(logExceptions){
+            console.error('Context for error',{name})
+        }
         throw new Error(messages.insaneName);
     }
     return '"'+name.replace(/"/g, '""')+'"';
@@ -125,6 +131,9 @@ export function quoteNullable(anyValue:null|AnyQuoteable){
         text = JSON.stringify(anyValue);
     }
     if(text==undefined){
+        if(logExceptions){
+            console.error('Context for error',{anyValue})
+        }
         throw new Error('quotableNull insane value: '+typeof anyValue)
     }
     return "'"+text.replace(/'/g,"''")+"'";
@@ -132,6 +141,9 @@ export function quoteNullable(anyValue:null|AnyQuoteable){
 
 export function quoteLiteral(anyValue:AnyQuoteable){
     if(anyValue==null){
+        if(logExceptions){
+            console.error('Context for error',{anyValue})
+        }
         throw new Error(messages.nullInQuoteLiteral);
     }
     return quoteNullable(anyValue);
@@ -322,7 +334,7 @@ export class Client{
         if(typeof queryArguments[0] === 'string'){
             queryText = queryArguments[0];
             queryValues = queryArguments[1] = adaptParameterTypes(queryArguments[1]||null);
-        }else if(queryArguments[0] instanceof Object){
+        }else /* istanbul ignore else */ if(queryArguments[0] instanceof Object){
             queryText = queryArguments[0].text;
             queryValues = adaptParameterTypes(queryArguments[0].values||null);
             queryArguments[0].values = queryValues;
@@ -378,8 +390,8 @@ export class Client{
     }
     async bulkInsert(params:BulkInsertParams):Promise<void>{
         var self = this;
+        /* istanbul ignore next */
         if(!this._client || !this.connected){
-            /* istanbul ignore next */
             throw new Error(messages.attemptTobulkInsertOnNotConnected+" "+!this._client+','+!this.connected)
         }
         var sql = "INSERT INTO "+(params.schema?quoteIdent(params.schema)+'.':'')+
@@ -395,6 +407,9 @@ export class Client{
                 if(params.onerror){
                     await params.onerror(error, params.rows[i_rows]);
                 }else{
+                    if(logExceptions){
+                        console.error('Context for error',{row: params.rows[i_rows]})
+                    }
                     throw error;
                 }
             }
@@ -455,6 +470,9 @@ export class Client{
                     /* istanbul ignore else por la regexp es imposible que pase al else */
                     if(bs) return '\\\\';
                     /* istanbul ignore next Esto es imposible que suceda */
+                    if(logExceptions){
+                        console.error('Context for error',{_all})
+                    }
                     throw new Error(messages.formatNullableToInlineDumpErrorParsing)
                 }
             );
@@ -536,6 +554,7 @@ function logErrorIfNeeded<T>(err:Error, code?:T):Error{
         // @ts-ignore EXTENDED ERROR
         err.code=code;
     }
+    /* istanbul ignore else */
     if(log){
         // @ts-ignore EXTENDED ERROR
         log('--ERROR! '+err.code+', '+err.message, 'ERROR');
@@ -556,7 +575,7 @@ class Query{
     onNotice(callbackNoticeConsumer:(notice:Notice)=>void):Query{
         var q = this;
         var noticeCallback=function(notice:Notice){
-            // @ts-ignore  DOES NOT HAVE THE CORRECT TYPE! LACKS of activeQuery
+            /* istanbul ignore else */ // @ts-ignore  DOES NOT HAVE THE CORRECT TYPE! LACKS of activeQuery
             if(q._internalClient.activeQuery==q._query){
                 callbackNoticeConsumer(notice);
             }
@@ -585,7 +604,8 @@ class Query{
             q._query.on('row',async function(row:{}, result:pg.QueryResult){
                 if(callbackForEachRow){
                     pendingRows++;
-                    if(log){
+                    /* istanbul ignore else */
+                    if(log && alsoLogRows){
                         log('-- '+JSON.stringify(row), 'ROW');
                     }
                     await callbackForEachRow(row, result);
@@ -608,7 +628,8 @@ class Query{
             q._query.on('end',function(result){
                 // TODO: VER SI ESTO ES NECESARIO
                 // result.client = q.client;
-                if(log){
+                /* istanbul ignore else */
+                if(log && alsoLogRows){
                     log('-- '+JSON.stringify(result.rows), 'RESULT');
                 }
                 endMark={result};
@@ -700,6 +721,7 @@ var pools:{
 } = {}
 
 export function connect(connectParameters:ConnectParams):Promise<Client>{
+    /* istanbul ignore else */
     if(allTypes){
         setAllTypes();
     }

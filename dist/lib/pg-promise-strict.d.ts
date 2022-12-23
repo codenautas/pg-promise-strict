@@ -50,6 +50,8 @@ export declare var defaults: {
 };
 export declare function noLog(_message: string, _type: string): void;
 export declare var log: (message: string, type: string) => void;
+export declare var alsoLogRows: boolean;
+export declare var logExceptions: boolean;
 export declare function quoteIdent(name: string): string;
 export declare function quoteIdentList(objectNames: string[]): string;
 export declare type AnyQuoteable = string | number | Date | {
@@ -62,7 +64,7 @@ export declare type AnyQuoteable = string | number | Date | {
 };
 export declare function quoteNullable(anyValue: null | AnyQuoteable): string;
 export declare function quoteLiteral(anyValue: AnyQuoteable): string;
-export declare const param3rd4sql: (exprOrWithoutkeyOrKeys?: string | true | string[] | undefined, base?: string | undefined, keys?: string | string[] | undefined) => string;
+export declare const param3rd4sql: (exprOrWithoutkeyOrKeys?: string | true | string[], base?: string, keys?: string | string[]) => string;
 export declare function json(sql: string, orderby: string, expr: string): string;
 export declare function json(sql: string, orderby: string, keys: string[]): string;
 export declare function json(sql: string, orderby: string, withoutKeys: true): string;

@@ -1,5 +1,6 @@
 create user test_user password 'test_pass';
 create database test_db owner test_user;
+\c test_db
 
 create schema test_pgps;
 alter schema test_pgps owner to test_user;
