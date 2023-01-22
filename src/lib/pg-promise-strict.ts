@@ -329,8 +329,8 @@ export class Client{
         }
         this.connected.lastOperationTimestamp = new Date().getTime();
         var queryArguments = Array.prototype.slice.call(arguments);
-        var queryText;
-        var queryValues=null;
+        var queryText:string;
+        var queryValues:null|any[]=null;
         if(typeof queryArguments[0] === 'string'){
             queryText = queryArguments[0];
             queryValues = queryArguments[1] = adaptParameterTypes(queryArguments[1]||null);
@@ -341,13 +341,17 @@ export class Client{
         }
         /* istanbul ignore else */
         if(log){
+            // @ts-ignore if no queryText, the value must be showed also
             var sql=queryText;
             log(MESSAGES_SEPARATOR, MESSAGES_SEPARATOR_TYPE);
             if(queryValues && queryValues.length){
                 log('`'+sql+'\n`','QUERY-P');
                 log('-- '+JSON.stringify(queryValues),'QUERY-A');
                 queryValues.forEach(function(value:any, i:number){
-                    sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'), typeof value == "number" || typeof value == "boolean"?value:quoteNullable(value));
+                    sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'), 
+                        // @ts-expect-error numbers and booleans can be used here also
+                        typeof value == "number" || typeof value == "boolean"?value:quoteNullable(value)
+                    );
                 });
             }
             log(sql+';','QUERY');

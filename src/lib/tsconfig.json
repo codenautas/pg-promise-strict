@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "inlineSourceMap": true,
+        "inlineSources": true,
+        "declaration": true,
+        "moduleResolution": "node",
+        "lib":["ES2022"],
+        "target": "ES2022",
+        "module": "none",
+        "typeRoots" : ["node_modules/@types", "node_modules/types.d.ts/modules"],
+        "noImplicitAny": true,
+        "strict":true, 
+        "alwaysStrict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
+        "noFallthroughCasesInSwitch": true,
+        "outDir": "../../dist/lib",
+        "skipLibCheck": true
+    }
+}
