@@ -1,7 +1,7 @@
 {
   "name": "pg-promise-strict",
   "description": "postgresql with promises and strict types and returning size of results",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/pg-promise-strict",
@@ -18,18 +18,18 @@
     }
   ],
   "dependencies": {
-    "best-globals": "^1.0.4",
+    "best-globals": "^1.1.0",
     "cast-error": "^0.1.0",
     "fs-extra": "^11.1.0",
     "like-ar": "^0.3.6",
-    "pg": "^8.8.0",
+    "pg": "^8.9.0",
     "pg-copy-streams": "^6.0.4"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.1",
-    "@types/node": "^18.11.18",
+    "@types/node": "^18.11.19",
     "@types/pg": "^8.6.6",
-    "@types/pg-copy-streams": "^1.2.1",
+    "@types/pg-copy-streams": "^1.2.2",
     "colors": "^1.4.0",
     "discrepances": "^0.2.6",
     "expect.js": "^0.3.1",
@@ -39,8 +39,8 @@
     "nyc": "^15.1.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.1",
-    "type-store": "^0.3.0",
-    "typescript": "^4.9.4"
+    "type-store": "^0.3.1",
+    "typescript": "^4.9.5"
   },
   "engines": {
     "node": ">= 14"
