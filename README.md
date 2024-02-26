@@ -50,7 +50,7 @@ var conOpts = {
 };
 
 pg.connect(conOpts).then(function(client){
-    return client.query('select * from table').execute().then(function(result){
+    return client.query('select * from table').fetchAll().then(function(result){
         for(var i=0; i<result.rowCount; i++){
             console.log('row',i,result.rows[i]);
         }

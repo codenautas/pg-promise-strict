@@ -7,7 +7,7 @@
 <!--lang:en--]
 postgresql with promises and strict types and returning size of results
 
-[!--lang:*-->gNKZFQ-Kid60xqW_9zWwd4SD84QuaVuMhVYUxg
+[!--lang:*-->
 
 <!-- cucardas -->
 ![stable](https://img.shields.io/badge/stability-stable-brightgreen.svg)
@@ -82,7 +82,7 @@ var conOpts = {
 };
 
 pg.connect(conOpts).then(function(client){
-    return client.query('select * from table').execute().then(function(result){
+    return client.query('select * from table').fetchAll().then(function(result){
         for(var i=0; i<result.rowCount; i++){
             console.log('row',i,result.rows[i]);
         }
