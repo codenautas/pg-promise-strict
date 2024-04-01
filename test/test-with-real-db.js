@@ -184,7 +184,7 @@ describe('pg-promise-strict with real database', function(){
                 "DO"
             )
         });
-        it("call multiple insert with returning clause", function(done){
+        it("call multiple insert", function(done){
             tipicalExecuteWay("insert into test_pgps.table1 values (1,'one'), (2,'two');",done,"INSERT",{
                 rowCount:2
             })
@@ -500,11 +500,10 @@ describe('pg-promise-strict with real database', function(){
     describe('pool-less connections', function(){
         describe('call queries', function(){
             var client;
-            before(function(done){
-                MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
-                    client = new pg.Client(config.db);
-                    done();
-                });
+            before(async function(){
+                this.timeout(10000);
+                var config = await MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'})
+                client = new pg.Client(config.db);
                 pg.setLang('en');
             });
             it("successful query", function(done){

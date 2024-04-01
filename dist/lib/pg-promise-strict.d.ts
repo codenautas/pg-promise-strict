@@ -121,7 +121,7 @@ export declare class Client {
     private _client;
     private _informationSchema;
     constructor(connOpts: ConnectParams);
-    constructor(connOpts: null, client: (pg.Client | pg.PoolClient), _done: () => void, _opts?: any);
+    constructor(connOpts: null, client: (pg.Client | pg.PoolClient | undefined), _done: () => void, _opts?: any);
     connect(): Promise<unknown>;
     end(): void;
     done(): void;
@@ -148,12 +148,12 @@ export declare class Client {
 }
 declare var queryResult: pg.QueryResult;
 export interface Result {
-    rowCount: number;
+    rowCount: number | null;
     fields: typeof queryResult.fields;
 }
 export interface ResultCommand {
     command: string;
-    rowCount: number;
+    rowCount: number | null;
 }
 export interface ResultOneRow extends Result {
     row: {
@@ -204,4 +204,5 @@ export declare namespace logLastError {
     };
 }
 export declare function poolBalanceControl(): string;
+export declare function shutdown(verbose: boolean): Promise<void>;
 export {};

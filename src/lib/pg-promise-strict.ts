@@ -215,7 +215,6 @@ export class InformationSchemaReader{
                     and table_name=$2
                     and column_name=$3;
         `,[table_schema, table_name, column_name]).fetchOneRowIfExists(); 
-        console.log('*******************',arguments,result.row, result.row||null)
         return (result.row || null) as Column|null;
     }
 }
@@ -237,10 +236,13 @@ export class Client{
     private _client:(pg.Client|pg.PoolClient)&{secretKey:string}|null;
     private _informationSchema:InformationSchemaReader|null=null;
     constructor(connOpts:ConnectParams)
-    constructor(connOpts:null, client:(pg.Client|pg.PoolClient), _done:()=>void, _opts?:any)
-    constructor(connOpts:ConnectParams|null, client?:(pg.Client|pg.PoolClient), private _done?:()=>void, _opts?:any){
+    constructor(connOpts:null, client:(pg.Client|pg.PoolClient|undefined), _done:()=>void, _opts?:any)
+    constructor(connOpts:ConnectParams|null, client?:(pg.Client|pg.PoolClient|undefined), private _done?:()=>void, _opts?:any){
         this._client = client as (pg.Client|pg.PoolClient)&{secretKey:string};
         if(connOpts==null){
+            if (client == undefined) {
+                throw new Error("Client.constructor: connOpts & client undefined")
+            }
             this.fromPool=true;
             this.postConnect();
             /* DOING
@@ -505,11 +507,11 @@ export class Client{
 var queryResult:pg.QueryResult;
 
 export interface Result{
-    rowCount:number
+    rowCount:number|null
     fields:typeof queryResult.fields
 }
 export interface ResultCommand{
-    command:string, rowCount:number
+    command:string, rowCount:number|null
 }
 export interface ResultOneRow extends Result{
     row:{[key:string]:any}
@@ -566,9 +568,9 @@ function logErrorIfNeeded<T>(err:Error, code?:T):Error{
     return err;
 }
 
-function obtains(message:string, count:number):string{
+function obtains(message:string, count:number|null):string{
     return message.replace('$1',
-        count?messages.obtains1.replace('$1',count.toString()):messages.obtainsNone
+        count?messages.obtains1.replace('$1',""+count):messages.obtainsNone
     );
 } 
 
@@ -797,6 +799,16 @@ export function poolBalanceControl(){
     }
     return rta.join('\n');
 };
+
+export async function shutdown(verbose:boolean){
+    var waitFor: Promise<void>[] = []
+    for (var pool of likeAr.iterator(pools)) {
+        waitFor.push(pool.end());
+    }
+    if (verbose) console.log('poolBalanceControl');
+    console.warn(poolBalanceControl());
+    await Promise.all(waitFor);
+}
 
 /* istanbul ignore next */
 process.on('exit',function(){
