@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import * as pg from 'pg';
 import { Stream } from 'stream';
 export declare var messages: {
