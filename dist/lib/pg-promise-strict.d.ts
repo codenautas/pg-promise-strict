@@ -131,7 +131,7 @@ export declare class Client {
         values: any[];
     }): Query;
     get informationSchema(): InformationSchemaReader;
-    executeSentences(sentences: string[]): Promise<void | ResultCommand>;
+    executeSentences(sentences: string[]): Promise<ResultCommand | void>;
     executeSqlScript(fileName: string): Promise<void | ResultCommand>;
     bulkInsert(params: BulkInsertParams): Promise<void>;
     copyFromParseParams(opts: CopyFromOpts): {

@@ -364,23 +364,16 @@ export class Client{
     get informationSchema():InformationSchemaReader{
         return this._informationSchema || new InformationSchemaReader(this);
     }
-    async executeSentences(sentences:string[]){
+    async executeSentences(sentences:string[]):Promise<ResultCommand|void>{
         var self = this;
         /* istanbul ignore next */
         if(!this._client || !this.connected){
             throw new Error(messages.attemptToExecuteSentencesOnNotConnected+" "+!this._client+','+!this.connected)
         }
-        var cdp:Promise<ResultCommand|void> = Promise.resolve();
-        sentences.forEach(function(sentence){
-            cdp = cdp.then(async function(){
-                if(!sentence.trim()){
-                    return ;
-                }
-                return await self.query(sentence).execute().catch(function(err:Error){
-                    throw err;
-                });
-            });
-        });
+        var cdp:ResultCommand|undefined;
+        for(var sentence of sentences){
+            cdp = await self.query(sentence).execute();
+        }
         return cdp;
     }
     async executeSqlScript(fileName:string){
