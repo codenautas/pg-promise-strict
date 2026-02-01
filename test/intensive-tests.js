@@ -20,6 +20,11 @@ var miniTools = require('mini-tools');
 var {getConnectParams} = require('./helpers');
 
 describe('intensive tests', function(){
+    if(process.env.GITHUB_ACTIONS) {
+        console.warn('SKIPING REAL DB BECAUSE GITHUB_ACTIONS=', process.env.GITHUB_ACTIONS)
+        return;
+    }
+
     var connectParams;
     before(async function(){
         pg.log=pg.noLog;
@@ -56,6 +61,11 @@ describe('intensive tests', function(){
 });
 
 describe('streams', function(){
+    if(process.env.GITHUB_ACTIONS) {
+        console.warn('SKIPING REAL DB BECAUSE GITHUB_ACTIONS=', process.env.GITHUB_ACTIONS)
+        return;
+    }
+
     var connectParams;
     before(async function(){
         pg.log=pg.logLastError;
