@@ -49,6 +49,7 @@
     "build": "tsc -p tsconfig.json",
     "prepare": "npm run build",
     "test": "tsc -p . && mocha --exit test/",
+    "test-cov": "tsc -p . && nyc mocha --exit test/",
     "test-real": "mocha --reporter spec --bail --check-leaks test/test-with-real-db.js",
     "test-intensive": "mocha --reporter spec --bail --check-leaks test/intensive-tests.js",
     "test-common": "mocha --reporter spec --bail --check-leaks test/common-tests.js",
