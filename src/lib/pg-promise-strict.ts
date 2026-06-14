@@ -174,7 +174,7 @@ export function jsono(sql:string, indexedby:string,exprOrWithoutkeyOrKeys?:strin
 }
 
 export function adaptParameterTypes(parameters?:any[]){
-    // @ts-ignore 
+    // @ts-ignore
     if(parameters==null){
         return null;
     }
@@ -209,12 +209,12 @@ export class InformationSchemaReader{
     }
     async column(table_schema:string, table_name:string, column_name:string):Promise<Column|null>{
         var result = await this.client.query(`
-            select * 
+            select *
                 from information_schema.columns
                 where table_schema=$1
                     and table_name=$2
                     and column_name=$3;
-        `,[table_schema, table_name, column_name]).fetchOneRowIfExists(); 
+        `,[table_schema, table_name, column_name]).fetchOneRowIfExists();
         return (result.row || null) as Column|null;
     }
 }
@@ -350,7 +350,7 @@ export class Client{
                 log('`'+sql+'\n`','QUERY-P');
                 log('-- '+JSON.stringify(queryValues),'QUERY-A');
                 queryValues.forEach(function(value:any, i:number){
-                    sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'), 
+                    sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'),
                         // @ts-expect-error numbers and booleans can be used here also
                         typeof value == "number" || typeof value == "boolean"?value:quoteNullable(value)
                     );
@@ -461,7 +461,7 @@ export class Client{
         }else if(typeof nullable === "number" && isNaN(nullable)){
             return '\\N'
         }else{
-            return nullable.toString().replace(/(\r)|(\n)|(\t)|(\\)/g, 
+            return nullable.toString().replace(/(\r)|(\n)|(\t)|(\\)/g,
                 function(_all:string,bsr:string,bsn:string,bst:string,bs:string){
                     if(bsr) return '\\r';
                     if(bsn) return '\\n';
@@ -523,12 +523,12 @@ export type ResultGeneric = ResultValue|ResultRows|ResultOneRowIfExists|ResultOn
 
 /*
 function buildQueryCounterAdapter(
-    minCountRow:number, 
-    maxCountRow:number, 
-    expectText:string, 
+    minCountRow:number,
+    maxCountRow:number,
+    expectText:string,
     callbackOtherControl?:(result:pg.QueryResult, resolve:(result:ResultGeneric)=>void, reject:(err:Error)=>void)=>void
 ){
-    return function queryCounterAdapter(result:pg.QueryResult, resolve:(result:ResultGeneric)=>void, reject:(err:Error)=>void){ 
+    return function queryCounterAdapter(result:pg.QueryResult, resolve:(result:ResultGeneric)=>void, reject:(err:Error)=>void){
         if(result.rows.length<minCountRow || result.rows.length>maxCountRow ){
             var err=new Error('query expects '+expectText+' and obtains '+result.rows.length+' rows');
             // @ts-ignore EXTENDED ERROR
@@ -565,7 +565,7 @@ function obtains(message:string, count:number|null):string{
     return message.replace('$1',
         count?messages.obtains1.replace('$1',""+count):messages.obtainsNone
     );
-} 
+}
 
 
 class Query{
@@ -590,7 +590,7 @@ class Query{
     };
     private _execute<TR extends ResultGeneric>(
         adapterCallback:null|((result:pg.QueryResult, resolve:(result:TR)=>void, reject:(err:Error)=>void)=>void),
-        callbackForEachRow?:(row:{}, result:pg.QueryResult)=>Promise<void>, 
+        callbackForEachRow?:(row:{}, result:pg.QueryResult)=>Promise<void>,
     ):Promise<TR>{
         var q = this;
         return new Promise<TR>(function(resolve, reject){
@@ -638,7 +638,7 @@ class Query{
             throw logErrorIfNeeded(err);
         });
     };
-    async fetchUniqueValue(errorMessage?:string):Promise<ResultValue>  { 
+    async fetchUniqueValue(errorMessage?:string):Promise<ResultValue>  {
         var {row, ...result} = await this.fetchUniqueRow();
         if(result.fields.length!==1){
             throw logErrorIfNeeded(
@@ -648,7 +648,7 @@ class Query{
         }
         return {value:row[result.fields[0].name], ...result};
     }
-    fetchUniqueRow(errorMessage?:string,acceptNoRows?:boolean):Promise<ResultOneRow> { 
+    fetchUniqueRow(errorMessage?:string,acceptNoRows?:boolean):Promise<ResultOneRow> {
         return this._execute(function(result:pg.QueryResult, resolve:(result:ResultOneRow)=>void, reject:(err:Error)=>void):void{
             if(result.rowCount!==1 && (!acceptNoRows || !!result.rowCount)){
                 var err = new Error(obtains(errorMessage||messages.queryExpectsOneRowAnd1,result.rowCount));
@@ -661,7 +661,7 @@ class Query{
             }
         });
     }
-    fetchOneRowIfExists(errorMessage?:string):Promise<ResultOneRow> { 
+    fetchOneRowIfExists(errorMessage?:string):Promise<ResultOneRow> {
         return this.fetchUniqueRow(errorMessage,true);
     }
     fetchAll():Promise<ResultRows>{
@@ -669,13 +669,13 @@ class Query{
             resolve(result);
         });
     }
-    execute():Promise<ResultCommand>{ 
+    execute():Promise<ResultCommand>{
         return this._execute(function(result:pg.QueryResult, resolve:(result:ResultCommand)=>void, _reject:(err:Error)=>void):void{
             var {rows, oid, fields, ...rest} = result;
             resolve(rest);
         });
     }
-    async fetchRowByRow(cb:(row:{}, result:pg.QueryResult)=>Promise<void>):Promise<void>{ 
+    async fetchRowByRow(cb:(row:{}, result:pg.QueryResult)=>Promise<void>):Promise<void>{
         if(!(cb instanceof Function)){
             var err=new Error(messages.fetchRowByRowMustReceiveCallback);
             // @ts-ignore EXTENDED ERROR
@@ -684,7 +684,7 @@ class Query{
         }
         await this._execute(null, cb);
     }
-    async onRow(cb:(row:{}, result:pg.QueryResult)=>Promise<void>):Promise<void>{ 
+    async onRow(cb:(row:{}, result:pg.QueryResult)=>Promise<void>):Promise<void>{
         return this.fetchRowByRow(cb);
     }
     then(){

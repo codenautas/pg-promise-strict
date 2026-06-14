@@ -1,0 +1,2 @@
+# Normalize to LF in the repo on commit; check out with the OS-native EOL.
+* text=auto

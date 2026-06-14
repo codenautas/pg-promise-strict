@@ -14,28 +14,28 @@
 
 idioma: ![castellano](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-es.png)
 también disponible en:
-[![inglés](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)](additions.md) - 
+[![inglés](https://raw.githubusercontent.com/codenautas/multilang/master/img/lang-en.png)](additions.md) -
 
 <!--lang:es-->
 
 Si bien el objetivo de ***pg-promise-strict*** es ser neutro respecto de la librería [pg](//npmjs.com/package/pg)
 es conveniente hacer algunos agregados que persiguen los siguientes objetivos:
-* indicar explícitamente (cuando *se sabe*) cuántas líneas se esperan en el resultado, 
+* indicar explícitamente (cuando *se sabe*) cuántas líneas se esperan en el resultado,
 para que en caso de no cumplirse se lance una excepción (porque estamos en una situación que *no se sabía que podía pasar*)
 * indicar explícitamente que se desean traer todas las líneas de una sola vez
-(en [pg](//npmjs.com/package/pg) eso es explícito al pasar un callback a la función query, 
-pero como el equivalente en pg-promise-strict es esperar una promesa con la función then, 
+(en [pg](//npmjs.com/package/pg) eso es explícito al pasar un callback a la función query,
+pero como el equivalente en pg-promise-strict es esperar una promesa con la función then,
 podría pasar desapersibido el hecho de que se está haciendo un `fetchAll`)
 
 <!--lang:en--]
 
 Although the purpose of ***pg-promise-strict*** is to be neutral about the library [pg](//npmjs.com/package/pg), it is convinient to do some
 addons to persue the following golds:
-* Explicit indication (when *it is known*) of how many rows are expected in the result, so that in case that this is not accomplished an exception 
+* Explicit indication (when *it is known*) of how many rows are expected in the result, so that in case that this is not accomplished an exception
 is thrown (because we are in a situation that *we didn´t know that could happen*)
 * Explicit indication of the desire that all the rows should be pulled at once (in[pg](//npmjs.com/package/pg) this is explicit when passing a callback to the
 to the function query, but as the equivalent in pg-promise-strict is to wait for a promise with the function then, it could go unnoticed the fact
-that a `fetchAll` is being done) 
+that a `fetchAll` is being done)
 
 Addings:
 * explicit indication of how many rows are expected in the result
@@ -80,15 +80,15 @@ client.connect().then(function(client){
 
 <!--lang:es-->
 
-Devuelve una cadena de promesas que 
+Devuelve una cadena de promesas que
 ejecutará en orden un arreglo de sentencias SQL.
-Si alguna sentencia da error interrumpe devolviendo la condición de error. 
+Si alguna sentencia da error interrumpe devolviendo la condición de error.
 
 <!--lang:en--]
 
-Returns a promise chain that will 
-execute an array of sql sentences. 
-If an error ocurrs it will reject the promise. 
+Returns a promise chain that will
+execute an array of sql sentences.
+If an error ocurrs it will reject the promise.
 
 [!--lang:*-->
 
@@ -110,17 +110,17 @@ client.executeSentences([
 <!--lang:es-->
 
 Devuelve una cadena de promesas que ejecutará un archivo con sentencias SQL.
-Utiliza `executeSentences` para la ejecución. 
+Utiliza `executeSentences` para la ejecución.
 
-**El separador de sentencias es la línea en blanco** 
+**El separador de sentencias es la línea en blanco**
 (de ese modo se pueden poner sentencias complejas que incluyan el ';')
 
 <!--lang:en--]
 
-Returns a promise chain that will execute a file with sql sentences. 
-Uses `executeSentences` for the task. 
+Returns a promise chain that will execute a file with sql sentences.
+Uses `executeSentences` for the task.
 
-**Blank line is the sentence separator** (to allow complex sentences). 
+**Blank line is the sentence separator** (to allow complex sentences).
 
 [!--lang:*-->
 
@@ -149,7 +149,7 @@ rows      | arreglo de registros (cada registro es un arreglo de valores)
 
 <!--lang:en--]
 
-Inserts a set of rows in a table. 
+Inserts a set of rows in a table.
 
 parámetro |uso
 ----------|----------------------------------

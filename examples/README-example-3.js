@@ -6,7 +6,7 @@ var pg = require('..');
 var conString = "postgres://test_user:test_pass@localhost:5432/test_db";
 
 var client = new pg.Client(conString);
- 
+
 client.connect().then(function(client){
     return client.query('SELECT NOW() AS "theTime"').execute();
 }).then(function(result){

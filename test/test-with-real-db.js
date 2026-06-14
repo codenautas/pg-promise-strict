@@ -6,7 +6,7 @@ if(process.env.COVER==="ndb") return;
 var expect = require('expect.js');
 var pg0 = require('pg');
 var pg = require('..');
-var colors = require('colors'); 
+var colors = require('colors');
 var bestGlobals = require('best-globals');
 var discrepances = require('discrepances');
 var MiniTools = require('mini-tools');
@@ -276,7 +276,7 @@ describe('pg-promise-strict with real database', function(){
         it('get json', async function(){
             var sql='select id,text1 from test_pgps.table1';
             var result = await client.query(`
-                select ${pg.json(sql,'text1')} as arr, 
+                select ${pg.json(sql,'text1')} as arr,
                     ${pg.jsono(sql,'text1')} as obj
             `).fetchUniqueRow();
             expect(result.row).to.eql({
@@ -293,8 +293,8 @@ describe('pg-promise-strict with real database', function(){
         it('get json 3rd param', async function(){
             var sql=`select id,text1,'x' as equis from test_pgps.table1`;
             var result = await client.query(`
-                select ${pg.json(sql,'text1',true)} as arr, 
-                    ${pg.json(sql,'text1','text1,id,equis'.split(','))} as arr2, 
+                select ${pg.json(sql,'text1',true)} as arr,
+                    ${pg.json(sql,'text1','text1,id,equis'.split(','))} as arr2,
                     ${pg.jsono(sql,'text1','id')} as obj
             `).fetchUniqueRow();
             expect(result.row).to.eql({
@@ -420,8 +420,8 @@ describe('pg-promise-strict with real database', function(){
         })
         it("bulk insert", async function(){
             await client.bulkInsert({
-                schema: "test_pgps", 
-                table: "table1", 
+                schema: "test_pgps",
+                table: "table1",
                 columns: ['id', 'text1'],
                 rows: [
                     [3, 'three'],
@@ -458,7 +458,7 @@ describe('pg-promise-strict with real database', function(){
                     [300, 'three hundred'],
                     [1000, 'one thousand'],
                     [1000000, 'one million'],
-                    [10000000, 'ten million'],               
+                    [10000000, 'ten million'],
                 ]
             });
             var result = await client.query("select sum(id) as sum_id from test_pgps.table1").fetchUniqueRow();
@@ -468,7 +468,7 @@ describe('pg-promise-strict with real database', function(){
             var recovered = [];
             await client.query("set search_path = test_pgps").execute();
             await client.bulkInsert({
-                table: "table1", 
+                table: "table1",
                 columns: ['id', 'text1'],
                 rows: [
                     [1001, 'mil uno'],
@@ -487,7 +487,7 @@ describe('pg-promise-strict with real database', function(){
             await client.query("set search_path = test_pgps").execute();
             try{
                 await client.bulkInsert({
-                    table: "table1", 
+                    table: "table1",
                     columns: ['id', 'text1'],
                     rows: [
                         [2001, 'mil uno'],
@@ -600,4 +600,3 @@ describe('pg-promise-strict with real database', function(){
         })
     })
 });
-

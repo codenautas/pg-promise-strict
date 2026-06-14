@@ -71,7 +71,7 @@ $ npm install pg-promise-strict
 
 [!--lang:*-->
 
-```js 
+```js
 var pg = require('pg-promise-strict');
 
 var conOpts = {
@@ -113,7 +113,7 @@ var pg = require('pg-promise-strict');
 
 var conString = "postgres://username:password@localhost/database";
 
-try{ 
+try{
     var client = await pg.connect(conString)
     var result = await client.query('SELECT $1::int AS number', ['1']).fetchAll();
     console.log(result.rows[0].number);
@@ -147,7 +147,7 @@ con conexión directa del cliente
 
 ### Example without connection pool
 
-Corresponds to calls to [PG](https://github.com/brianc/node-postgres#client-instance) 
+Corresponds to calls to [PG](https://github.com/brianc/node-postgres#client-instance)
 direct client instance
 
 [!--lang:*-->
@@ -174,22 +174,22 @@ try{
 
 ### Ejemplo procesando de a una fila a la vez
 
-Corresponde al ejemplo de llamada a [PG](https://github.com/brianc/node-postgres/wiki/Client#simple-query-without-callback).query 
+Corresponde al ejemplo de llamada a [PG](https://github.com/brianc/node-postgres/wiki/Client#simple-query-without-callback).query
 sin función callback. En la documentación de [PG](https://github.com/brianc/node-postgres/wiki/Client#parameters-1),
 [Brian C](https://github.com/brianc) dice *no especifique una function callback para consultas que devuelven grandes conjuntos de datos salvo que quiera que se acumule todo en memoria*
- 
+
 Esta es la manera de procesar fila por fila
 
 <!--lang:en--]
 
 ### Example with fetch row by row
 
-Corresponds to calls to [PG](https://github.com/brianc/node-postgres/wiki/Client#simple-query-without-callback).query 
-without callback. In [PG](https://github.com/brianc/node-postgres/wiki/Client#parameters-1) documentation 
+Corresponds to calls to [PG](https://github.com/brianc/node-postgres/wiki/Client#simple-query-without-callback).query
+without callback. In [PG](https://github.com/brianc/node-postgres/wiki/Client#parameters-1) documentation
 [Brian C](https://github.com/brianc) says *do not provide callback function for large result sets unless you're okay with loading the entire result set into memory*
- 
+
 This is the way for process data row by row
- 
+
 [!--lang:*-->
 
 ```js
@@ -203,8 +203,8 @@ console.log('ready.');
 
 <!--lang:es-->
 
-En el ejemplo se ve 
-  * la función que se llama en cada fila obtenida. 
+En el ejemplo se ve
+  * la función que se llama en cada fila obtenida.
   * el *await* que espera a que se hayan terminado de leer todas las líneas
 
 <!--lang:en--]
@@ -217,8 +217,8 @@ In this example you see:
 
 # Corriendo los ejemplos
 
-En la carpeta `examples` hay un script `create_db.sql` para crear la base de datos para lo ejemplos. 
-En esa carpeta también están los ejemplos levemente modificados. 
+En la carpeta `examples` hay un script `create_db.sql` para crear la base de datos para lo ejemplos.
+En esa carpeta también están los ejemplos levemente modificados.
 
 Los ejemplos que figuran en este `LEEME.md` son adaptaciones de los ejemplos de PG.
 
@@ -227,7 +227,7 @@ Los ejemplos que figuran en este `LEEME.md` son adaptaciones de los ejemplos de 
 # Running the examples
 
 In the `examples` directory the `create_db.sql` script can be used to create de test database.
-In the same directory there are the example slightly modified. 
+In the same directory there are the example slightly modified.
 
 [!--lang:es-->
 
@@ -241,15 +241,15 @@ poder crear el usuario *test_user* y la base *test_db*.
 
 # Running tests
 
-Clone the repository and install the developer dependencies in then normal way. 
+Clone the repository and install the developer dependencies in then normal way.
 You must provide a *postgresql-9.3* instalation for create a *test_db*.
 Then you can test pg-promise-strict
- 
+
 [!--lang:*-->
 
 ```sh
 $ git clone git://github.com/codenautas/pg-promise-strict.git pg-promise-strict
-$ cd pg-promise-strict 
+$ cd pg-promise-strict
 $ npm install
 $ psql --file test/create_db.sql
 $ npm test

@@ -48,7 +48,7 @@ describe('pg-promise-strict common tests', function(){
             };
             return Promise.resolve().then(function(){
                 return client.query(
-                    'select $1, $2, $3, $4, $5, illegal syntax here, $6', 
+                    'select $1, $2, $3, $4, $5, illegal syntax here, $6',
                     [1, "one's", true, null, bestGlobals.date.iso('2019-01-05'), {typeStore:true, toLiteral(){ return 'lit'}}]
                 ).execute();
             }).catch(function(err){
@@ -97,8 +97,8 @@ describe('pg-promise-strict common tests', function(){
             };
             return Promise.resolve().then(function(){
                 return client.query(
-                    'select 1 as one union select 2', 
-                    
+                    'select 1 as one union select 2',
+
                 ).onRow(function(){});
             }).then(function(result){
                 expect(messages).to.eql([

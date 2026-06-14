@@ -2,7 +2,7 @@
 
 var expect = require('expect.js');
 var pg = require('..');
-var colors = require('colors'); 
+var colors = require('colors');
 var bestGlobals = require('best-globals');
 var discrepances = require('discrepances');
 var miniTools = require('mini-tools');
@@ -16,10 +16,10 @@ console.warn(pg.poolBalanceControl());
 describe.skip('trying timeouts', function(){
     // waiting for
     // https://github.com/brianc/node-postgres/issues/1860
-    var connectParams = 
+    var connectParams =
     before(async function(){
         connectParams = {
-            ...await getConnectParams(), 
+            ...await getConnectParams(),
             releaseTimeout:{inactive: 800},
             query_timeout: 2500
         };
@@ -45,4 +45,3 @@ describe.skip('trying timeouts', function(){
         }
     });
 });
-

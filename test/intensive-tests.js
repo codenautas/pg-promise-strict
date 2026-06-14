@@ -7,7 +7,7 @@ var MAX_CICLES=24;
 var expect = require('expect.js');
 var pg0 = require('pg');
 var pg = require('..');
-var colors = require('colors'); 
+var colors = require('colors');
 console.warn(pg.poolBalanceControl());
 var fs = require('fs');
 var Path = require('path');
@@ -52,7 +52,7 @@ describe('intensive tests', function(){
                         }).then(function(result){
                             expect(result.rows).to.eql([{c: iClient, q:iQuery, i:iCicle}]);
                         });
-                    };  
+                    };
                     p.then(done).catch(done);
                 });
             }
@@ -98,7 +98,7 @@ describe('streams', function(){
                 CREATE TABLE attributes2(
                     attr text,
                     dom text,
-                    description text, 
+                    description text,
                     opts text
                 );
             `).execute();
@@ -126,7 +126,7 @@ describe('streams', function(){
             `).execute();
             await client.query(`
                 CREATE TABLE attributes(
-                    id serial primary key, 
+                    id serial primary key,
                     line text
                 );
             `).execute();
