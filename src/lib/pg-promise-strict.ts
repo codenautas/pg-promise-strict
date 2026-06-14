@@ -286,7 +286,7 @@ export class Client{
         var client = this._client;
         var self = this;
         return new Promise(function(resolve, reject){
-            client.connect(function(err){
+            client.connect(function(err:Error){
                 if(err){
                     reject(err);
                 }else{

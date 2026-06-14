@@ -1,0 +1,11 @@
+name: Build and test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  ci:
+    uses: codenautas/.github/.github/workflows/node-build-and-test.yaml@v1
