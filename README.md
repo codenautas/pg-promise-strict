@@ -3,7 +3,6 @@
 postgresql with promises and strict types and returning size of results
 
 
-![stable](https://img.shields.io/badge/stability-stable-blue.svg)
 [![npm-version](https://img.shields.io/npm/v/pg-promise-strict.svg)](https://npmjs.org/package/pg-promise-strict)
 [![downloads](https://img.shields.io/npm/dm/pg-promise-strict.svg)](https://npmjs.org/package/pg-promise-strict)
 [![linux](https://github.com/codenautas/pg-promise-strict/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/codenautas/pg-promise-strict/actions/workflows/build-and-test.yml)

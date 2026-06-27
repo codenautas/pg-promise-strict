@@ -1,25 +1,36 @@
+image: Visual Studio 2022
+
 environment:
   matrix:
-    - nodejs_version: "14"
-    - nodejs_version: "16"
+    - nodejs_version: "24"
+    - nodejs_version: "26"
+
 matrix:
   fast_finish: true
+
+cache:
+  - '%LOCALAPPDATA%\npm-cache -> package-lock.json'
+
 install:
-  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
-  - npm install
+  - ps: Install-Product node $env:nodejs_version x64
+  - npm ci
+
 build: off
+
 test_script:
   - node --version
   - npm --version
-  - npm test
+  - npm run test-ci
+
 version: "{build}"
 before_test:
   - SET PGUSER=postgres
   - SET PGPASSWORD=Password12!
-  - PATH=C:\Program Files\PostgreSQL\9.3\bin\;%PATH%
+  - PATH=C:\Program Files\PostgreSQL\16\bin\;%PATH%
   - psql -c "create user test_user password 'test_pass';"
   - psql -c "create database test_db owner test_user;"
   - psql -c "create user test_super superuser password $$super_pass$$;"
   - set TRAVIS=appveyor
 services:
-  - postgresql
+  - postgresql16
+

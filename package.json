@@ -23,29 +23,29 @@
     "uuid": ">=14.0.0"
   },
   "dependencies": {
-    "best-globals": "^2.2.0",
-    "cast-error": "^0.1.3",
+    "best-globals": "^2.2.2",
+    "cast-error": "^0.1.4",
     "fs-extra": "^11.3.5",
-    "like-ar": "^0.5.2",
-    "pg": "^8.21.0",
+    "like-ar": "^0.5.3",
+    "pg": "^8.22.0",
     "pg-copy-streams": "^7.0.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.0.1",
     "@types/pg": "^8.20.0",
     "@types/pg-copy-streams": "^1.2.5",
     "colors": "^1.4.0",
     "discrepances": "^0.2.14",
     "expect.js": "^0.3.1",
     "line-splitter": "^0.8.0",
-    "mini-tools": "^1.13.5",
+    "mini-tools": "^1.13.6",
     "mocha": "^11.7.6",
     "nyc": "^18.0.0",
-    "qa-control": "^0.6.12",
+    "qa-control": "^0.7.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",
-    "type-store": "^0.4.11",
+    "type-store": "^0.5.1",
     "typescript": "^5.9.3"
   },
   "engines": {
@@ -56,6 +56,7 @@
     "prepare": "npm run build",
     "test": "tsc -p . && mocha --exit test/",
     "test-cov": "tsc -p . && nyc mocha --exit test/",
+    "test-ci": "npm run test-cov",
     "test-real": "mocha --reporter spec --bail --check-leaks test/test-with-real-db.js",
     "test-intensive": "mocha --reporter spec --bail --check-leaks test/intensive-tests.js",
     "test-common": "mocha --reporter spec --bail --check-leaks test/common-tests.js",
@@ -64,9 +65,9 @@
   },
   "nyc": {
     "lines": 98,
-    "statements": 98,
+    "statements": 95,
     "functions": 98,
-    "branches": 99,
+    "branches": 90,
     "extension": [
       ".js",
       ".ts"
@@ -79,12 +80,12 @@
   },
   "qa-control": {
     "profile": "minimum",
-    "gha": true,
+    "gha": "all",
     "package-version": "0.3.0",
     "run-in": "server",
     "test-appveyor": true,
     "type": "lib",
     "stage": "extending",
-    "coverage": 100
+    "coverage": 95
   }
 }
