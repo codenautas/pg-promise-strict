@@ -697,20 +697,37 @@ class Query{
 
 export var allTypes=false;
 
-export function setAllTypes(){
+export async function setAllTypes(client?: Client){
     var TypeStore = require('type-store');
     var DATE_OID = 1082;
     pgTypes.setTypeParser(DATE_OID, function parseDate(val){
        return bestGlobals.date.iso(val);
     });
+    var waitForMe = Promise.resolve();
     likeAr(TypeStore.type).forEach(function(_typeDef, typeName){
         var typer = new TypeStore.type[typeName]();
         if(typer.pgSpecialParse){
-            (typer.pg_OIDS||[typer.pg_OID]).forEach(function(OID:number){
-                pgTypes.setTypeParser(OID, function(val){
-                    return typer.fromString(val);
+            if (client) {
+                var isGeo = typer.typeDbPg.match('^geography');
+                if (!typer.pg_OIDS && !typer.pg_OID && (typer.pg_TYPENAME || isGeo)) {
+                    waitForMe = waitForMe.then(async ()=>{
+                        var OID = (await client.query(`select $1::regtype::oid`,[typer.pg_TYPENAME]).fetchUniqueValue()).value;
+                        pgTypes.setTypeParser(OID, function(val){
+                            console.log('VALOR TRAIDO', val)
+                            if (isGeo) {
+                                val = ewkbHexAWktPoint(val)
+                            }
+                            return typer.fromString(val);
+                        });
+                    })
+                }
+            } else {
+                (typer.pg_OIDS||[typer.pg_OID]).forEach(function(OID:number){
+                    pgTypes.setTypeParser(OID, function(val){
+                        return typer.fromString(val);
+                    });
                 });
-            });
+            }
         }
     });
 };
@@ -807,3 +824,34 @@ export async function shutdown(verbose:boolean){
 process.on('exit',function(){
     console.warn(poolBalanceControl());
 });
+
+/* EWKB de PostGIS: [1 byte endian][4 bytes tipo+flags][4 bytes SRID si flag][x float64][y float64]
+   Solo admite Point 2D con SRID 4326, que es lo único que genera una columna gpoint. */
+
+const EWKB_FLAG_Z    = 0x80000000;
+const EWKB_FLAG_M    = 0x40000000;
+const EWKB_FLAG_SRID = 0x20000000;
+const EWKB_TIPO_POINT = 1;
+
+export function ewkbHexAWktPoint(hexEwkb: string): string {
+    var buf = Buffer.from(hexEwkb, 'hex');
+    if (buf.length < 5) throw new Error(`gpoint: EWKB too short: "${hexEwkb}"`);
+    var littleEndian = buf[0] === 1;
+    var leerUInt32  = (offset: number) => littleEndian ? buf.readUInt32LE(offset) : buf.readUInt32BE(offset);
+    var leerFloat64 = (offset: number) => littleEndian ? buf.readDoubleLE(offset) : buf.readDoubleBE(offset);
+    var tipoYFlags = leerUInt32(1);
+    var tipo = tipoYFlags & 0x1FFFFFFF;
+    if (tipo !== EWKB_TIPO_POINT) throw new Error(`gpoint: A point was expecte (1), but appears an EWKB ${tipo}`);
+    if (tipoYFlags & (EWKB_FLAG_Z | EWKB_FLAG_M)) throw new Error(`gpoint: dimensions Z and M are not admited`);
+    var offset = 5;
+    if (tipoYFlags & EWKB_FLAG_SRID) {
+        var srid = leerUInt32(offset);
+        if (srid !== 4326) throw new Error(`gpoint: expected SRID 4326, gotten: ${srid}`);
+        offset += 4;
+    }
+    if (buf.length < offset + 16) throw new Error(`gpoint: EWKB truncated: "${hexEwkb}"`);
+    var x = leerFloat64(offset);      // longitud
+    var y = leerFloat64(offset + 8);  // latitud
+    if (Number.isNaN(x) && Number.isNaN(y)) return 'POINT EMPTY'; // así representa PostGIS el punto vacío en WKB
+    return `POINT(${x} ${y})`;
+}
