@@ -20,7 +20,7 @@ var miniTools = require('mini-tools');
 var {getConnectParams} = require('./helpers');
 
 describe('intensive tests', function(){
-    if(process.env.GITHUB_ACTIONS) {
+    if(process.env.GITHUB_ACTIONS && false) {
         console.warn('SKIPING REAL DB BECAUSE GITHUB_ACTIONS=', process.env.GITHUB_ACTIONS)
         return;
     }
@@ -61,7 +61,7 @@ describe('intensive tests', function(){
 });
 
 describe('streams', function(){
-    if(process.env.GITHUB_ACTIONS) {
+    if(process.env.GITHUB_ACTIONS && false) {
         console.warn('SKIPING REAL DB BECAUSE GITHUB_ACTIONS=', process.env.GITHUB_ACTIONS)
         return;
     }
@@ -87,7 +87,7 @@ describe('streams', function(){
         after(function(){
             client.done();
         });
-        if(process.env.GITHUB_ACTION) it('reading fixture from file with WITH')
+        if(process.env.GITHUB_ACTIONS && false) it('reading fixture from file with WITH')
         else it('reading fixture from file with WITH', async function(){
             this.timeout(5000);
             var client = client4file;

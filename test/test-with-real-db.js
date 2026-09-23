@@ -18,7 +18,7 @@ var fs = require('fs-extra');
 console.warn(pg.poolBalanceControl());
 
 describe('pg-promise-strict with real database', function(){
-    if(process.env.GITHUB_ACTIONS) {
+    if(process.env.GITHUB_ACTIONS && false) {
         console.warn('SKIPING REAL DB BECAUSE GITHUB_ACTIONS=', process.env.GITHUB_ACTIONS)
         return;
     }

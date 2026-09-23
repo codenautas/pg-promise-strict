@@ -8,4 +8,6 @@ on:
 
 jobs:
   ci:
-    uses: codenautas/.github/.github/workflows/node-build-and-test.yaml@v1
+    uses: codenautas/.github/.github/workflows/node-build-and-test.yaml@main
+    with:
+      postgres: 'lts'
