@@ -10,4 +10,6 @@ jobs:
   ci:
     uses: codenautas/.github/.github/workflows/node-build-and-test.yaml@main
     with:
+      test_versions: '26.x 24.x'
+      coverage_version: '24.x'
       postgres: 'lts'
