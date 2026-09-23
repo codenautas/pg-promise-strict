@@ -26,6 +26,7 @@ describe('pg-promise-strict with real database', function(){
     var connectParams;
     before(async function(){
         connectParams = await getConnectParams();
+        pg.alsoLogRows=true;
     });
     var expectedTable1Data = [
         {id:1, text1:'one'},

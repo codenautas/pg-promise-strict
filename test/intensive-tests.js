@@ -87,7 +87,7 @@ describe('streams', function(){
         after(function(){
             client.done();
         });
-        if(process.env.GITHUB_ACTIONS && false) it('reading fixture from file with WITH')
+        if(process.env.GITHUB_ACTIONS) it('reading fixture from file with WITH')
         else it('reading fixture from file with WITH', async function(){
             this.timeout(5000);
             var client = client4file;

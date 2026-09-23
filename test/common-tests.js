@@ -14,7 +14,7 @@ describe('pg-promise-strict common tests', function(){
     it("is ok", function(){
         return true;
     })
-    if(process.env.GITHUB_ACTIONS) {
+    if(process.env.GITHUB_ACTIONS && false) {
         console.warn('SKIPING REAL DB BECAUSE GITHUB_ACTIONS=', process.env.GITHUB_ACTIONS)
         return;
     }
