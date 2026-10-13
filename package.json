@@ -23,29 +23,29 @@
     "uuid": ">=14.0.0"
   },
   "dependencies": {
-    "best-globals": "^2.2.2",
-    "cast-error": "^0.1.4",
-    "fs-extra": "^11.4.0",
-    "like-ar": "^0.5.3",
-    "pg": "^8.22.0",
+    "best-globals": "^2.2.3",
+    "cast-error": "^0.1.5",
+    "fs-extra": "^11.4.1",
+    "like-ar": "^0.5.4",
+    "pg": "^8.23.1",
     "pg-copy-streams": "^7.0.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
-    "@types/node": "^26.1.1",
-    "@types/pg": "^8.20.0",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
     "@types/pg-copy-streams": "^1.2.5",
     "colors": "^1.4.0",
-    "discrepances": "^0.2.14",
+    "discrepances": "^0.3.2",
     "expect.js": "^0.3.1",
-    "line-splitter": "^0.8.0",
-    "mini-tools": "^1.13.7",
-    "mocha": "^11.7.6",
+    "line-splitter": "^0.8.8",
+    "mini-tools": "^1.13.11",
+    "mocha": "^12.0.3",
     "nyc": "^18.0.0",
-    "qa-control": "^0.7.5",
+    "qa-control": "^0.12.2",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",
-    "type-store": "^0.6.0",
+    "type-store": "^0.6.3",
     "typescript": "^5.9.3"
   },
   "engines": {
@@ -81,11 +81,9 @@
   "qa-control": {
     "profile": "minimum",
     "gha": "all",
-    "package-version": "0.3.0",
     "run-in": "server",
     "test-appveyor": true,
     "type": "lib",
-    "stage": "extending",
     "coverage": 95
   }
 }

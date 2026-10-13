@@ -8,7 +8,6 @@ postgresql with promises and strict types and returning size of results
 [![linux](https://github.com/codenautas/pg-promise-strict/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/codenautas/pg-promise-strict/actions/workflows/build-and-test.yml)
 [![windows](https://ci.appveyor.com/api/projects/status/github/codenautas/pg-promise-strict?svg=true)](https://ci.appveyor.com/project/codenautas/pg-promise-strict)
 [![coverage](https://img.shields.io/coveralls/codenautas/pg-promise-strict/master.svg)](https://coveralls.io/r/codenautas/pg-promise-strict)
-[![security](https://socket.dev/api/badge/npm/package/pg-promise-strict)](https://socket.dev/npm/package/pg-promise-strict)
 [![qa-control](https://github.com/codenautas/pg-promise-strict/actions/workflows/qa-control.yml/badge.svg)](https://github.com/codenautas/pg-promise-strict/actions/workflows/qa-control.yml)
 
 
