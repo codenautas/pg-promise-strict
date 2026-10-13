@@ -80,7 +80,9 @@
   },
   "qa-control": {
     "profile": "minimum",
-    "gha": "all",
+    "gha": {
+      "postgres": "lts"
+    },
     "run-in": "server",
     "test-appveyor": true,
     "type": "lib",

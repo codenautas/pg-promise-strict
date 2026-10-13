@@ -22,5 +22,5 @@ jobs:
     with:
       node_version: '24.x'
       publish_without_testing: ${{ inputs.publish_without_testing == true }}
-      postgres: ''
+      postgres: 'lts'
       create-tag: ${{ github.event_name == 'workflow_dispatch' }}

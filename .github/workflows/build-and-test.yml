@@ -12,5 +12,5 @@ jobs:
     with:
       node_versions: ''
       skip_tests: false
-      postgres: ''
+      postgres: 'lts'
       coverage_version: ''
