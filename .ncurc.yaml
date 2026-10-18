@@ -1,0 +1,8 @@
+reject:
+  - react
+  - react-dom
+  - typescript
+  - eslint
+  - "@eslint/js"
+  - "@types/react"
+  - "@types/react-dom"
