@@ -105,11 +105,11 @@ export function quoteIdent(name:string){
         throw new Error(messages.insaneName);
     }
     return '"'+name.replace(/"/g, '""')+'"';
-};
+}
 
 export function quoteIdentList(objectNames:string[]){
     return objectNames.map(function(objectName){ return quoteIdent(objectName); }).join(',');
-};
+}
 
 export type AnyQuoteable = string|number|Date|{isRealDate:boolean, toYmd:()=>string}|{toPostgres:()=>string}|{toString:()=>string};
 export function quoteNullable(anyValue:null|AnyQuoteable){
@@ -130,14 +130,14 @@ export function quoteNullable(anyValue:null|AnyQuoteable){
     }else{
         text = JSON.stringify(anyValue);
     }
-    if(text==undefined){
+    if (text == null) {
         if(logExceptions){
             console.error('Context for error',{anyValue})
         }
         throw new Error('quotableNull insane value: '+typeof anyValue)
     }
     return "'"+text.replace(/'/g,"''")+"'";
-};
+}
 
 export function quoteLiteral(anyValue:AnyQuoteable){
     if(anyValue==null){
@@ -147,12 +147,12 @@ export function quoteLiteral(anyValue:AnyQuoteable){
         throw new Error(messages.nullInQuoteLiteral);
     }
     return quoteNullable(anyValue);
-};
+}
 
 export const param3rd4sql=(exprOrWithoutkeyOrKeys?:string|true|string[], base?:string, keys?:string|string[])=>
-    exprOrWithoutkeyOrKeys==true?`to_jsonb(${base}) - ${keys instanceof Array?keys:keys?.split(',').map(x=>quoteLiteral(x.trim()))}`:
-    exprOrWithoutkeyOrKeys==null?`to_jsonb(${base})`:
-    typeof exprOrWithoutkeyOrKeys == "string"?exprOrWithoutkeyOrKeys:
+    exprOrWithoutkeyOrKeys == true ? `to_jsonb(${base}) - ${keys instanceof Array?keys:keys?.split(',').map(x=>quoteLiteral(x.trim()))}` : // eslint-disable-line eqeqeq
+    exprOrWithoutkeyOrKeys == null ? `to_jsonb(${base})` :
+    typeof exprOrWithoutkeyOrKeys === "string"?exprOrWithoutkeyOrKeys:
     `to_jsonb(jsonb_build_object(${exprOrWithoutkeyOrKeys.map(name=>quoteLiteral(name)+', '+quoteIdent(name)).join(', ')}))`
     ;
 
@@ -173,7 +173,7 @@ export function jsono(sql:string, indexedby:string,exprOrWithoutkeyOrKeys?:strin
     return `COALESCE((SELECT jsonb_object_agg(${indexedby},${param3rd4sql(exprOrWithoutkeyOrKeys,'j.*',indexedby)}) from (${sql}) as j),'{}'::jsonb)`
 }
 
-export function adaptParameterTypes(parameters?:any[]){
+export function adaptParameterTypes(parameters?:any[]){ // eslint-disable-line @typescript-eslint/no-explicit-any
     // @ts-ignore
     if(parameters==null){
         return null;
@@ -184,7 +184,7 @@ export function adaptParameterTypes(parameters?:any[]){
         }
         return value;
     });
-};
+}
 
 export var easy:boolean=true; // deprecated!
 
@@ -200,7 +200,7 @@ export type CopyFromOptsCommon={table:string,columns?:string[],done?:(err?:Error
 export type CopyFromOptsFile={inStream?:undefined, filename:string}&CopyFromOptsCommon
 export type CopyFromOptsStream={inStream:Stream,filename?:undefined}&CopyFromOptsCommon
 export type CopyFromOpts=CopyFromOptsFile|CopyFromOptsStream
-export type BulkInsertParams={schema?:string,table:string,columns:string[],rows:any[][], onerror?:(err:Error, row:any[])=>Promise<void>}
+export type BulkInsertParams={schema?:string,table:string,columns:string[],rows:unknown[][], onerror?:(err:Error, row:any[])=>Promise<void>} // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export type Column = {data_type:string};
 
@@ -236,11 +236,11 @@ export class Client{
     private _client:(pg.Client|pg.PoolClient)&{secretKey:string}|null;
     private _informationSchema:InformationSchemaReader|null=null;
     constructor(connOpts:ConnectParams)
-    constructor(connOpts:null, client:(pg.Client|pg.PoolClient|undefined), _done:()=>void, _opts?:any)
-    constructor(connOpts:ConnectParams|null, client?:(pg.Client|pg.PoolClient|undefined), private _done?:()=>void, _opts?:any){
+    constructor(connOpts:null, client:(pg.Client|pg.PoolClient|undefined), _done:()=>void, _opts?:unknown)
+    constructor(connOpts:ConnectParams|null, client?:(pg.Client|pg.PoolClient|undefined), private _done?:()=>void, _opts?:unknown){
         this._client = client as (pg.Client|pg.PoolClient)&{secretKey:string};
         if(connOpts==null){
-            if (client == undefined) {
+            if (client == null) {
                 throw new Error("Client.constructor: connOpts & client undefined")
             }
             this.fromPool=true;
@@ -272,6 +272,7 @@ export class Client{
             this._client.secretKey = this._client.secretKey||'secret_'+Math.random();
         }
     }
+    // eslint-disable-next-line @typescript-eslint/promise-function-async -- must throw synchronously when misused (not reject)
     connect(){
         if(this.fromPool){
             throw new Error(messages.mustNotConnectClientFromPool)
@@ -295,19 +296,19 @@ export class Client{
                 }
             });
         });
-    };
-    end(){
+    }
+    async end(){
         /* istanbul ignore next */
         if(this.fromPool){
             throw new Error(messages.mustNotEndClientFromPool)
         }
         /* istanbul ignore else */
         if(this._client instanceof pg.Client){
-            this._client.end();
+            await this._client.end();
         }else{
             throw new Error(messages.lackOfClient);
         }
-    };
+    }
     done(){
         if(!this._client){
             throw new Error(messages.clientAlreadyDone);
@@ -322,8 +323,8 @@ export class Client{
         return this._done.apply(clientToDone, arguments);
     }
     query(sql:string):Query
-    query(sql:string, params:any[]):Query
-    query(sqlObject:{text:string, values:any[]}):Query
+    query(sql:string, params:unknown[]):Query
+    query(sqlObject:{text:string, values:unknown[]}):Query
     query():Query{
         /* istanbul ignore next */
         if(!this.connected || !this._client){
@@ -332,7 +333,7 @@ export class Client{
         this.connected.lastOperationTimestamp = new Date().getTime();
         var queryArguments = Array.prototype.slice.call(arguments);
         var queryText:string;
-        var queryValues:null|any[]=null;
+        var queryValues:null|unknown[]=null;
         if(typeof queryArguments[0] === 'string'){
             queryText = queryArguments[0];
             queryValues = queryArguments[1] = adaptParameterTypes(queryArguments[1]||null);
@@ -349,10 +350,10 @@ export class Client{
             if(queryValues && queryValues.length){
                 log('`'+sql+'\n`','QUERY-P');
                 log('-- '+JSON.stringify(queryValues),'QUERY-A');
-                queryValues.forEach(function(value:any, i:number){
+                queryValues.forEach(function(value:unknown, i:number){
                     sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'),
                         // @ts-expect-error numbers and booleans can be used here also
-                        typeof value == "number" || typeof value == "boolean"?value:quoteNullable(value)
+                        typeof value === "number" || typeof value === "boolean" ? value : quoteNullable(value)
                     );
                 });
             }
@@ -360,7 +361,7 @@ export class Client{
         }
         var returnedQuery = this._client.query(new pg.Query(queryArguments[0], queryArguments[1]));
         return new Query(returnedQuery, this, this._client);
-    };
+    }
     get informationSchema():InformationSchemaReader{
         return this._informationSchema || new InformationSchemaReader(this);
     }
@@ -382,7 +383,7 @@ export class Client{
         if(!this._client || !this.connected){
             throw new Error(messages.attemptToExecuteSqlScriptOnNotConnected+" "+!this._client+','+!this.connected)
         }
-        return fs.readFile(fileName,'utf-8').then(function(content){
+        return fs.readFile(fileName,'utf-8').then(async function(content){
             var sentences = content.split(/\r?\n\r?\n/);
             return self.executeSentences(sentences);
         });
@@ -455,7 +456,7 @@ export class Client{
         }
         return stream;
     }
-    formatNullableToInlineDump(nullable:any){
+    formatNullableToInlineDump(nullable:unknown){
         if(nullable==null){
             return '\\N'
         }else if(typeof nullable === "number" && isNaN(nullable)){
@@ -482,7 +483,7 @@ export class Client{
         var transform = new Transform({
             writableObjectMode:true,
             readableObjectMode:true,
-            transform(arrayChunk:any[], _encoding, next){
+            transform(arrayChunk:unknown[], _encoding, next){
                 this.push(arrayChunk.map(x=>c.formatNullableToInlineDump(x)).join('\t')+'\n')
                 next();
             },
@@ -507,16 +508,16 @@ export interface ResultCommand{
     command:string, rowCount:number|null
 }
 export interface ResultOneRow extends Result{
-    row:{[key:string]:any}
+    row:{[key:string]:any} // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 export interface ResultOneRowIfExists extends Result{
-    row?:{[key:string]:any}|null
+    row?:{[key:string]:any}|null // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 export interface ResultRows extends Result{
-    rows:{[key:string]:any}[]
+    rows:{[key:string]:any}[] // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 export interface ResultValue extends Result{
-    value:any
+    value: any // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 // export interface ResultGeneric extends ResultValue, ResultRows, ResultOneRowIfExists, ResultOneRow, Result{}
 export type ResultGeneric = ResultValue|ResultRows|ResultOneRowIfExists|ResultOneRow|Result|ResultCommand
@@ -575,7 +576,7 @@ class Query{
         var q = this;
         var noticeCallback=function(notice:Notice){
             /* istanbul ignore else */ // @ts-ignore  DOES NOT HAVE THE CORRECT TYPE! LACKS of activeQuery
-            if(q._internalClient.activeQuery==q._query){
+            if (q._internalClient.activeQuery === q._query) {
                 callbackNoticeConsumer(notice);
             }
         }
@@ -587,8 +588,8 @@ class Query{
         this._query.on('end',removeNoticeCallback);
         this._query.on('error',removeNoticeCallback);
         return this;
-    };
-    private _execute<TR extends ResultGeneric>(
+    }
+    private async _execute<TR extends ResultGeneric>(
         adapterCallback:null|((result:pg.QueryResult, resolve:(result:TR)=>void, reject:(err:Error)=>void)=>void),
         callbackForEachRow?:(row:{}, result:pg.QueryResult)=>Promise<void>,
     ):Promise<TR>{
@@ -600,16 +601,18 @@ class Query{
                 reject(err);
             });
             // @ts-ignore .on('row') DOES NOT HAVE THE CORRECT TYPE!
-            q._query.on('row',async function(row:{}, result:pg.QueryResult){
+            q._query.on('row',function(row:{}, result:pg.QueryResult){
                 if(callbackForEachRow){
                     pendingRows++;
                     /* istanbul ignore else */
                     if(log && alsoLogRows){
                         log('-- '+JSON.stringify(row), 'ROW');
                     }
-                    await callbackForEachRow(row, result);
-                    --pendingRows;
-                    whenEnd();
+                    // the executor runs synchronously (as the old async listener did) and also accepts non promise callbacks
+                    new Promise<void>(function(resolveRow){ resolveRow(callbackForEachRow(row, result)); }).then(_=>{
+                        --pendingRows;
+                        whenEnd();
+                    }, reject)
                 }else{
                     // @ts-ignore addRow ommited DOES NOT HAVE THE CORRECT TYPE!
                     result.addRow(row);
@@ -637,7 +640,7 @@ class Query{
         }).catch(function(err){
             throw logErrorIfNeeded(err);
         });
-    };
+    }
     async fetchUniqueValue(errorMessage?:string):Promise<ResultValue>  {
         var {row, ...result} = await this.fetchUniqueRow();
         if(result.fields.length!==1){
@@ -648,7 +651,7 @@ class Query{
         }
         return {value:row[result.fields[0].name], ...result};
     }
-    fetchUniqueRow(errorMessage?:string,acceptNoRows?:boolean):Promise<ResultOneRow> {
+    async fetchUniqueRow(errorMessage?:string,acceptNoRows?:boolean):Promise<ResultOneRow> {
         return this._execute(function(result:pg.QueryResult, resolve:(result:ResultOneRow)=>void, reject:(err:Error)=>void):void{
             if(result.rowCount!==1 && (!acceptNoRows || !!result.rowCount)){
                 var err = new Error(obtains(errorMessage||messages.queryExpectsOneRowAnd1,result.rowCount));
@@ -661,15 +664,15 @@ class Query{
             }
         });
     }
-    fetchOneRowIfExists(errorMessage?:string):Promise<ResultOneRow> {
+    async fetchOneRowIfExists(errorMessage?:string):Promise<ResultOneRow> {
         return this.fetchUniqueRow(errorMessage,true);
     }
-    fetchAll():Promise<ResultRows>{
+    async fetchAll():Promise<ResultRows>{
         return this._execute(function(result:pg.QueryResult, resolve:(result:ResultRows)=>void, _reject:(err:Error)=>void):void{
             resolve(result);
         });
     }
-    execute():Promise<ResultCommand>{
+    async execute():Promise<ResultCommand>{
         return this._execute(function(result:pg.QueryResult, resolve:(result:ResultCommand)=>void, _reject:(err:Error)=>void):void{
             var {rows, oid, fields, ...rest} = result;
             resolve(rest);
@@ -693,12 +696,12 @@ class Query{
     catch(){
         throw new Error(messages.queryMustNotBeCatched)
     }
-};
+}
 
 export var allTypes=false;
 
 export async function setAllTypes(client?: Client){
-    var TypeStore = require('type-store');
+    var TypeStore = require('type-store'); // eslint-disable-line global-require
     var DATE_OID = 1082;
     pgTypes.setTypeParser(DATE_OID, function parseDate(val){
        return bestGlobals.date.iso(val);
@@ -730,16 +733,17 @@ export async function setAllTypes(client?: Client){
             }
         }
     });
-};
+    return waitForMe;
+}
 
 var pools:{
     [key:string]:pg.Pool
 } = {}
 
-export function connect(connectParameters:ConnectParams):Promise<Client>{
+export async function connect(connectParameters:ConnectParams):Promise<Client>{
     /* istanbul ignore else */
     if(allTypes){
-        setAllTypes();
+        await setAllTypes();
     }
     return new Promise(function(resolve, reject){
         var idConnectParameters = JSON.stringify(connectParameters);
@@ -755,7 +759,7 @@ export function connect(connectParameters:ConnectParams):Promise<Client>{
             }
         });
     });
-};
+}
 
 export var readyLog = Promise.resolve();
 
@@ -763,29 +767,23 @@ export var readyLog = Promise.resolve();
 export function logLastError(message:string, messageType:string):void{
     /* istanbul ignore else */
     if(messageType){
-        if(messageType=='ERROR'){
+        if (messageType === 'ERROR') {
             /* istanbul ignore else */
             if(logLastError.inFileName){
                 var lines=['PG-ERROR '+message];
-                /*jshint forin:false */
                 for(var attr in logLastError.receivedMessages){
                     lines.push("------- "+attr+":\n"+logLastError.receivedMessages[attr]);
                 }
-                /*jshint forin:true */
-                /*eslint guard-for-in: 0*/
-                readyLog = readyLog.then(_=>fs.writeFile(logLastError.inFileName,lines.join('\n')));
+                readyLog = readyLog.then(async _ => fs.writeFile(logLastError.inFileName,lines.join('\n')));
             }else{
-                /*jshint forin:false */
                 for(var attr2 in logLastError.receivedMessages){
                     /* istanbul ignore next */
                     console.log(attr2, logLastError.receivedMessages[attr2]);
                 }
-                /*jshint forin:true */
-                /*eslint guard-for-in: 0*/
             }
             logLastError.receivedMessages = {};
-        }else{
-            if(messageType==MESSAGES_SEPARATOR_TYPE){
+        } else {
+            if (messageType === MESSAGES_SEPARATOR_TYPE) {
                 logLastError.receivedMessages = {};
             }
             logLastError.receivedMessages[messageType] = message;
@@ -808,7 +806,7 @@ export function poolBalanceControl(){
         });
     }
     return rta.join('\n');
-};
+}
 
 export async function shutdown(verbose:boolean){
     var waitFor: Promise<void>[] = []

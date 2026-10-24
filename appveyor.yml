@@ -15,7 +15,8 @@ install:
   - ps: Install-Product node $env:nodejs_version x64
   - npm ci
 
-build: off
+build_script:
+  - npm run build --if-present
 
 test_script:
   - node --version

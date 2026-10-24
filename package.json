@@ -24,9 +24,9 @@
   },
   "dependencies": {
     "best-globals": "^2.2.3",
-    "cast-error": "^0.1.6",
+    "cast-error": "^0.1.7",
     "fs-extra": "^11.4.1",
-    "like-ar": "^0.5.5",
+    "like-ar": "^0.5.6",
     "pg": "^8.23.1",
     "pg-copy-streams": "^7.0.0"
   },
@@ -39,14 +39,15 @@
     "discrepances": "^0.3.3",
     "expect.js": "^0.3.1",
     "line-splitter": "^0.8.8",
-    "mini-tools": "^1.13.12",
+    "mini-tools": "^1.13.14",
     "mocha": "^12.0.3",
     "nyc": "^18.0.0",
-    "qa-control": "^0.12.2",
+    "qa-control": "^0.14.2",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",
-    "type-store": "^0.6.3",
-    "typescript": "^5.9.3"
+    "type-store": "^0.6.5",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0"
   },
   "engines": {
     "node": ">= 14"
