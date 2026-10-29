@@ -1,10 +1,27 @@
 "use strict";
 
 const tseslint = require("typescript-eslint");
+const sonarjs = require("eslint-plugin-sonarjs");
+// eslint-plugin-unicorn is ESM only: require() returns the module namespace and the plugin is its default export
+const unicorn = require("eslint-plugin-unicorn").default;
 
 module.exports = [
     {
         ignores: ["dist/**", "examples/**", "test/**"]
+    },
+    {
+        // SonarQube rules (the ones silenced in the code)
+        plugins: { sonarjs, unicorn },
+        rules: {
+            "sonarjs/cognitive-complexity": 2,
+            "sonarjs/no-nested-conditional": 2,
+            "sonarjs/no-redundant-boolean": 2,
+            "sonarjs/prefer-promise-shorthand": 2,
+            "sonarjs/todo-tag": 2,
+            "unicorn/no-instanceof-builtins": 2,
+            "unicorn/no-thenable": 2,
+            "unicorn/no-this-assignment": 2
+        }
     },
     {
         languageOptions: {
@@ -38,6 +55,7 @@ module.exports = [
             "no-sparse-arrays": 2,
             "no-unexpected-multiline": 2,
             "no-unreachable": 2,
+            "no-await-in-loop": 2,
             "use-isnan": 2,
             "valid-typeof": 2,
 

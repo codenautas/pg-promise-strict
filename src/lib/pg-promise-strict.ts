@@ -5,11 +5,12 @@ import * as pg from 'pg';
 const pgTypes = pg.types;
 
 import {from as copyFrom} from 'pg-copy-streams';
-import * as util from 'util';
+import * as util from 'node:util';
 import * as likeAr from 'like-ar';
 import * as bestGlobals from 'best-globals';
 import { unexpected } from 'cast-error';
-import {Stream, Transform} from 'stream';
+import {Stream, Transform} from 'node:stream';
+import {randomUUID} from 'node:crypto';
 
 const MESSAGES_SEPARATOR_TYPE='------';
 const MESSAGES_SEPARATOR='-----------------------';
@@ -91,7 +92,7 @@ export var defaults={
 };
 
 /* instanbul ignore next */
-export function noLog(_message:string, _type:string){}
+export function noLog(_message:string, _type:string){ /* the default log does nothing */ }
 
 export var log:(message:string, type:string)=>void=noLog;
 export var alsoLogRows = false;
@@ -104,7 +105,7 @@ export function quoteIdent(name:string){
         }
         throw new Error(messages.insaneName);
     }
-    return '"'+name.replace(/"/g, '""')+'"';
+    return '"'+name.replaceAll('"', '""')+'"';
 }
 
 export function quoteIdentList(objectNames:string[]){
@@ -125,7 +126,7 @@ export function quoteNullable(anyValue:null|AnyQuoteable){
         text = anyValue.toYmd();
     }else if(anyValue instanceof Date){
         text = anyValue.toISOString();
-    }else if('toPostgres' in anyValue && anyValue.toPostgres instanceof Function){
+    }else if('toPostgres' in anyValue && anyValue.toPostgres instanceof Function){ // eslint-disable-line unicorn/no-instanceof-builtins
         text = anyValue.toPostgres();
     }else{
         text = JSON.stringify(anyValue);
@@ -136,7 +137,7 @@ export function quoteNullable(anyValue:null|AnyQuoteable){
         }
         throw new Error('quotableNull insane value: '+typeof anyValue)
     }
-    return "'"+text.replace(/'/g,"''")+"'";
+    return "'"+text.replaceAll("'","''")+"'";
 }
 
 export function quoteLiteral(anyValue:AnyQuoteable){
@@ -150,9 +151,9 @@ export function quoteLiteral(anyValue:AnyQuoteable){
 }
 
 export const param3rd4sql=(exprOrWithoutkeyOrKeys?:string|true|string[], base?:string, keys?:string|string[])=>
-    exprOrWithoutkeyOrKeys == true ? `to_jsonb(${base}) - ${keys instanceof Array?keys:keys?.split(',').map(x=>quoteLiteral(x.trim()))}` : // eslint-disable-line eqeqeq
-    exprOrWithoutkeyOrKeys == null ? `to_jsonb(${base})` :
-    typeof exprOrWithoutkeyOrKeys === "string"?exprOrWithoutkeyOrKeys:
+    exprOrWithoutkeyOrKeys == true ? `to_jsonb(${base}) - ${keys instanceof Array?keys:keys?.split(',').map(x=>quoteLiteral(x.trim()))}` : // eslint-disable-line eqeqeq, sonarjs/no-redundant-boolean, sonarjs/no-nested-conditional, unicorn/no-instanceof-builtins
+    exprOrWithoutkeyOrKeys == null ? `to_jsonb(${base})` : // eslint-disable-line sonarjs/no-nested-conditional
+    typeof exprOrWithoutkeyOrKeys === "string"?exprOrWithoutkeyOrKeys: // eslint-disable-line sonarjs/no-nested-conditional
     `to_jsonb(jsonb_build_object(${exprOrWithoutkeyOrKeys.map(name=>quoteLiteral(name)+', '+quoteIdent(name)).join(', ')}))`
     ;
 
@@ -179,7 +180,7 @@ export function adaptParameterTypes(parameters?:any[]){ // eslint-disable-line @
         return null;
     }
     return parameters.map(function(value){
-        if(value && value.typeStore){
+        if(value?.typeStore){
             return value.toLiteral();
         }
         return value;
@@ -205,7 +206,7 @@ export type BulkInsertParams={schema?:string,table:string,columns:string[],rows:
 export type Column = {data_type:string};
 
 export class InformationSchemaReader{
-    constructor(private client:Client){
+    constructor(private readonly client:Client){
     }
     async column(table_schema:string, table_name:string, column_name:string):Promise<Column|null>{
         var result = await this.client.query(`
@@ -219,6 +220,7 @@ export class InformationSchemaReader{
     }
 }
 
+// eslint-disable-next-line sonarjs/todo-tag
 /** TODO: any en opts */
 export class Client{
     private connected:null|{
@@ -227,17 +229,17 @@ export class Client{
     }=null;
     private fromPool:boolean=false;
     private postConnect(){
-        var nowTs=new Date().getTime();
+        var nowTs=Date.now();
         this.connected = {
             lastOperationTimestamp:nowTs,
             lastConnectionTimestamp:nowTs
         }
     }
     private _client:(pg.Client|pg.PoolClient)&{secretKey:string}|null;
-    private _informationSchema:InformationSchemaReader|null=null;
+    private readonly _informationSchema:InformationSchemaReader|null=null;
     constructor(connOpts:ConnectParams)
     constructor(connOpts:null, client:(pg.Client|pg.PoolClient|undefined), _done:()=>void, _opts?:unknown)
-    constructor(connOpts:ConnectParams|null, client?:(pg.Client|pg.PoolClient|undefined), private _done?:()=>void, _opts?:unknown){
+    constructor(connOpts:ConnectParams|null, client?:(pg.Client|pg.PoolClient|undefined), private readonly _done?:()=>void, _opts?:unknown){
         this._client = client as (pg.Client|pg.PoolClient)&{secretKey:string};
         if(connOpts==null){
             if (client == null) {
@@ -269,7 +271,7 @@ export class Client{
         }else{
             // pgPromiseStrict.log('new Client');
             this._client = new pg.Client(connOpts) as pg.Client&{secretKey:string};
-            this._client.secretKey = this._client.secretKey||'secret_'+Math.random();
+            this._client.secretKey = this._client.secretKey||'secret_'+randomUUID();
         }
     }
     // eslint-disable-next-line @typescript-eslint/promise-function-async -- must throw synchronously when misused (not reject)
@@ -285,7 +287,7 @@ export class Client{
             throw new Error(messages.lackOfClient);
         }
         var client = this._client;
-        var self = this;
+        var self = this; // eslint-disable-line unicorn/no-this-assignment
         return new Promise(function(resolve, reject){
             client.connect(function(err:Error){
                 if(err){
@@ -330,7 +332,7 @@ export class Client{
         if(!this.connected || !this._client){
             throw new Error(messages.queryNotConnected)
         }
-        this.connected.lastOperationTimestamp = new Date().getTime();
+        this.connected.lastOperationTimestamp = Date.now();
         var queryArguments = Array.prototype.slice.call(arguments);
         var queryText:string;
         var queryValues:null|unknown[]=null;
@@ -347,11 +349,11 @@ export class Client{
             // @ts-ignore if no queryText, the value must be showed also
             var sql=queryText;
             log(MESSAGES_SEPARATOR, MESSAGES_SEPARATOR_TYPE);
-            if(queryValues && queryValues.length){
+            if(queryValues?.length){
                 log('`'+sql+'\n`','QUERY-P');
                 log('-- '+JSON.stringify(queryValues),'QUERY-A');
                 queryValues.forEach(function(value:unknown, i:number){
-                    sql=sql.replace(new RegExp('\\$'+(i+1)+'\\b'),
+                    sql=sql.replace(new RegExp(String.raw`\$`+(i+1)+String.raw`\b`),
                         // @ts-expect-error numbers and booleans can be used here also
                         typeof value === "number" || typeof value === "boolean" ? value : quoteNullable(value)
                     );
@@ -366,19 +368,20 @@ export class Client{
         return this._informationSchema || new InformationSchemaReader(this);
     }
     async executeSentences(sentences:string[]):Promise<ResultCommand|void>{
-        var self = this;
+        var self = this; // eslint-disable-line unicorn/no-this-assignment
         /* istanbul ignore next */
         if(!this._client || !this.connected){
             throw new Error(messages.attemptToExecuteSentencesOnNotConnected+" "+!this._client+','+!this.connected)
         }
         var cdp:ResultCommand|undefined;
         for(var sentence of sentences){
-            cdp = await self.query(sentence).execute();
+            if(!sentence.trim()) continue;
+            cdp = await self.query(sentence).execute(); // eslint-disable-line no-await-in-loop -- the statements run in order
         }
         return cdp;
     }
     async executeSqlScript(fileName:string){
-        var self=this;
+        var self=this; // eslint-disable-line unicorn/no-this-assignment
         /* istanbul ignore next */
         if(!this._client || !this.connected){
             throw new Error(messages.attemptToExecuteSqlScriptOnNotConnected+" "+!this._client+','+!this.connected)
@@ -389,7 +392,7 @@ export class Client{
         });
     }
     async bulkInsert(params:BulkInsertParams):Promise<void>{
-        var self = this;
+        var self = this; // eslint-disable-line unicorn/no-this-assignment
         /* istanbul ignore next */
         if(!this._client || !this.connected){
             throw new Error(messages.attemptTobulkInsertOnNotConnected+" "+!this._client+','+!this.connected)
@@ -401,11 +404,11 @@ export class Client{
         var i_rows=0;
         while(i_rows<params.rows.length){
             try{
-                await self.query(sql, params.rows[i_rows]).execute();
+                await self.query(sql, params.rows[i_rows]).execute(); // eslint-disable-line no-await-in-loop -- the statements run in order
             }catch(err){
                 var error = unexpected(err);
                 if(params.onerror){
-                    await params.onerror(error, params.rows[i_rows]);
+                    await params.onerror(error, params.rows[i_rows]); // eslint-disable-line no-await-in-loop -- the statements run in order
                 }else{
                     if(logExceptions){
                         console.error('Context for error',{row: params.rows[i_rows]})
@@ -458,15 +461,15 @@ export class Client{
     }
     formatNullableToInlineDump(nullable:unknown){
         if(nullable==null){
-            return '\\N'
-        }else if(typeof nullable === "number" && isNaN(nullable)){
-            return '\\N'
+            return String.raw`\N`
+        }else if(typeof nullable === "number" && Number.isNaN(nullable)){
+            return String.raw`\N`
         }else{
             return nullable.toString().replace(/(\r)|(\n)|(\t)|(\\)/g,
                 function(_all:string,bsr:string,bsn:string,bst:string,bs:string){
-                    if(bsr) return '\\r';
-                    if(bsn) return '\\n';
-                    if(bst) return '\\t';
+                    if(bsr) return String.raw`\r`;
+                    if(bsn) return String.raw`\n`;
+                    if(bst) return String.raw`\t`;
                     /* istanbul ignore else por la regexp es imposible que pase al else */
                     if(bs) return '\\\\';
                     /* istanbul ignore next Esto es imposible que suceda */
@@ -479,7 +482,7 @@ export class Client{
         }
     }
     copyFromArrayStream(opts:CopyFromOptsStream){
-        var c = this;
+        var c = this; // eslint-disable-line unicorn/no-this-assignment
         var transform = new Transform({
             writableObjectMode:true,
             readableObjectMode:true,
@@ -570,10 +573,10 @@ function obtains(message:string, count:number|null):string{
 
 
 class Query{
-    constructor(private _query:pg.Query, public client:Client, private _internalClient:pg.Client|pg.PoolClient){
+    constructor(private readonly _query:pg.Query, public client:Client, private readonly _internalClient:pg.Client|pg.PoolClient){
     }
     onNotice(callbackNoticeConsumer:(notice:Notice)=>void):Query{
-        var q = this;
+        var q = this; // eslint-disable-line unicorn/no-this-assignment
         var noticeCallback=function(notice:Notice){
             /* istanbul ignore else */ // @ts-ignore  DOES NOT HAVE THE CORRECT TYPE! LACKS of activeQuery
             if (q._internalClient.activeQuery === q._query) {
@@ -593,7 +596,7 @@ class Query{
         adapterCallback:null|((result:pg.QueryResult, resolve:(result:TR)=>void, reject:(err:Error)=>void)=>void),
         callbackForEachRow?:(row:{}, result:pg.QueryResult)=>Promise<void>,
     ):Promise<TR>{
-        var q = this;
+        var q = this; // eslint-disable-line unicorn/no-this-assignment
         return new Promise<TR>(function(resolve, reject){
             var pendingRows=0;
             var endMark:null|{result:pg.QueryResult}=null;
@@ -609,7 +612,7 @@ class Query{
                         log('-- '+JSON.stringify(row), 'ROW');
                     }
                     // the executor runs synchronously (as the old async listener did) and also accepts non promise callbacks
-                    new Promise<void>(function(resolveRow){ resolveRow(callbackForEachRow(row, result)); }).then(_=>{
+                    new Promise<void>(function(resolveRow){ resolveRow(callbackForEachRow(row, result)); }).then(_=>{ // eslint-disable-line sonarjs/prefer-promise-shorthand
                         --pendingRows;
                         whenEnd();
                     }, reject)
@@ -628,6 +631,7 @@ class Query{
                 }
             }
             q._query.on('end',function(result){
+                // eslint-disable-next-line sonarjs/todo-tag
                 // TODO: VER SI ESTO ES NECESARIO
                 // result.client = q.client;
                 /* istanbul ignore else */
@@ -679,18 +683,18 @@ class Query{
         });
     }
     async fetchRowByRow(cb:(row:{}, result:pg.QueryResult)=>Promise<void>):Promise<void>{
-        if(!(cb instanceof Function)){
+        if(!(cb instanceof Function)){ // eslint-disable-line unicorn/no-instanceof-builtins
             var err=new Error(messages.fetchRowByRowMustReceiveCallback);
             // @ts-ignore EXTENDED ERROR
             err.code='39004!';
-            return Promise.reject(err);
+            throw err;
         }
         await this._execute(null, cb);
     }
     async onRow(cb:(row:{}, result:pg.QueryResult)=>Promise<void>):Promise<void>{
         return this.fetchRowByRow(cb);
     }
-    then(){
+    then(){ // eslint-disable-line unicorn/no-thenable -- it must throw when the query is awaited directly
         throw new Error(messages.queryMustNotBeThened)
     }
     catch(){
@@ -764,7 +768,7 @@ export async function connect(connectParameters:ConnectParams):Promise<Client>{
 export var readyLog = Promise.resolve();
 
 /* xxistanbul ignore next */
-export function logLastError(message:string, messageType:string):void{
+export function logLastError(message:string, messageType:string):void{ // eslint-disable-line sonarjs/cognitive-complexity
     /* istanbul ignore else */
     if(messageType){
         if (messageType === 'ERROR') {

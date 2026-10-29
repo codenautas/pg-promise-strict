@@ -32,3 +32,5 @@ local-*
 *-local.*
 
 .nyc_output
+
+.claude/
