@@ -15,7 +15,7 @@ import {randomUUID} from 'node:crypto';
 const MESSAGES_SEPARATOR_TYPE='------';
 const MESSAGES_SEPARATOR='-----------------------';
 
-export var messages = {
+var messages = {
     attemptTobulkInsertOnNotConnected:"pg-promise-strict: atempt to bulkInsert on not connected",
     attemptTocopyFromOnNotConnected:"pg-promise-strict: atempt to copyFrom on not connected",
     attemptToExecuteSentencesOnNotConnected:"pg-promise-strict: atempt to executeSentences on not connected",
@@ -40,7 +40,7 @@ export var messages = {
     unbalancedConnection:"pgPromiseStrict.debug.pool unbalanced connection",
 }
 
-export var i18n:{
+export const i18n:{
     messages:{
         en:typeof messages,
         [k:string]:Partial<typeof messages>
@@ -81,22 +81,22 @@ export function setLang(lang:string){
     }
 }
 
-export var debug:{
+var debug:{
     pool?:true|{
         [key:string]:{ count:number, client:(pg.Client|pg.PoolClient)&{secretKey:string}}
     }
 }={};
 
-export var defaults={
+var defaults={
     releaseTimeout:{inactive:60000, connection:600000}
 };
 
 /* instanbul ignore next */
 export function noLog(_message:string, _type:string){ /* the default log does nothing */ }
 
-export var log:(message:string, type:string)=>void=noLog;
-export var alsoLogRows = false;
-export var logExceptions = false;
+var log:(message:string, type:string)=>void=noLog;
+var alsoLogRows = false;
+var logExceptions = false;
 
 export function quoteIdent(name:string){
     if(typeof name!=="string"){
@@ -187,7 +187,7 @@ export function adaptParameterTypes(parameters?:any[]){ // eslint-disable-line @
     });
 }
 
-export var easy:boolean=true; // deprecated!
+var easy:boolean=true; // deprecated!
 
 export type ConnectParams={
     motor?:"postgres"
@@ -702,7 +702,7 @@ class Query{
     }
 }
 
-export var allTypes=false;
+var allTypes=false;
 
 export async function setAllTypes(client?: Client){
     var TypeStore = require('type-store'); // eslint-disable-line global-require
@@ -765,7 +765,7 @@ export async function connect(connectParameters:ConnectParams):Promise<Client>{
     });
 }
 
-export var readyLog = Promise.resolve();
+var readyLog = Promise.resolve();
 
 /* xxistanbul ignore next */
 export function logLastError(message:string, messageType:string):void{ // eslint-disable-line sonarjs/cognitive-complexity
@@ -857,3 +857,24 @@ export function ewkbHexAWktPoint(hexEwkb: string): string {
     if (Number.isNaN(x) && Number.isNaN(y)) return 'POINT EMPTY'; // así representa PostGIS el punto vacío en WKB
     return `POINT(${x} ${y})`;
 }
+
+export const options = {
+    get messages():typeof messages { return messages; },
+    set messages(value:typeof messages){ messages = value; },
+    get debug():typeof debug { return debug; },
+    set debug(value:typeof debug){ debug = value; },
+    get defaults():typeof defaults { return defaults; },
+    set defaults(value:typeof defaults){ defaults = value; },
+    get log():typeof log { return log; },
+    set log(value:typeof log){ log = value; },
+    get alsoLogRows():boolean { return alsoLogRows; },
+    set alsoLogRows(value:boolean){ alsoLogRows = value; },
+    get logExceptions():boolean { return logExceptions; },
+    set logExceptions(value:boolean){ logExceptions = value; },
+    get easy():boolean { return easy; },
+    set easy(value:boolean){ easy = value; },
+    get allTypes():boolean { return allTypes; },
+    set allTypes(value:boolean){ allTypes = value; },
+    get readyLog():Promise<void> { return readyLog; },
+    set readyLog(value:Promise<void>){ readyLog = value; },
+};

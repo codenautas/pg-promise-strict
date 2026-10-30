@@ -5,8 +5,8 @@
   "author": "Codenautas <codenautas@googlegroups.com>",
   "license": "MIT",
   "repository": "codenautas/pg-promise-strict",
-  "main": "dist/lib/pg-promise-strict.js",
-  "types": "dist/lib/pg-promise-strict.d.ts",
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
   "files": [
     "dist",
     "dist/lib"

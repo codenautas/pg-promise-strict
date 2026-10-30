@@ -26,7 +26,7 @@ describe('pg-promise-strict with real database', function(){
     var connectParams;
     before(async function(){
         connectParams = await getConnectParams();
-        pg.alsoLogRows=true;
+        pg.options.alsoLogRows=true;
     });
     var expectedTable1Data = [
         {id:1, text1:'one'},
@@ -51,12 +51,12 @@ describe('pg-promise-strict with real database', function(){
                 client.connect(connectParams);
                 throw new Error('must throw error')
             }catch(err){
-                expect(err.message).to.eql(pg.messages.mustNotConnectClientFromPool);
+                expect(err.message).to.eql(pg.options.messages.mustNotConnectClientFromPool);
             }
         });
         it('successful connection', function(done){
-            pg.debug.Client=true;
-            pg.debug.pool=true;
+            pg.options.debug.Client=true;
+            pg.options.debug.pool=true;
             MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
             }).then(function(client){
@@ -72,16 +72,16 @@ describe('pg-promise-strict with real database', function(){
                 console.log("create database test_db owner test_user;".cyan);
                 done(err);
             }).then(function(){
-                pg.debug.Client=false;
+                pg.options.debug.Client=false;
             });
         });
         it('controls double done()', async function(){
-            pg.debug.Client=true;
-            pg.debug.pool=true;
+            pg.options.debug.Client=true;
+            pg.options.debug.pool=true;
             var config = await MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'});
             var client = await pg.connect(config.db);
             client.done();
-            pg.debug.Client=false;
+            pg.options.debug.Client=false;
             expect(()=>client.done()).to.throwException(/already done/);
         });
     });
@@ -90,7 +90,7 @@ describe('pg-promise-strict with real database', function(){
         var poolLog;
         before(function(done){
             pg.setAllTypes();
-            pg.log = pg.logLastError;
+            pg.options.log = pg.logLastError;
             pg.logLastError.inFileName='local-log-last-error.txt';
             MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
@@ -112,7 +112,7 @@ describe('pg-promise-strict with real database', function(){
                 expect(result.rowCount).to.not.be.ok();
                 done();
             }).catch(done).then(function(){
-                pg.debug.Query=false;
+                pg.options.debug.Query=false;
             });
         });
         it("executeSqlScript succefull", function(){
@@ -120,7 +120,7 @@ describe('pg-promise-strict with real database', function(){
                 expect(result.command).to.be("SELECT");
                 expect(result.rows).to.eql(undefined);
             }).then(function(){
-                pg.debug.Query=false;
+                pg.options.debug.Query=false;
             });
         });
         it("executeSqlScript with error", function(){
@@ -143,7 +143,7 @@ describe('pg-promise-strict with real database', function(){
                 expect(result.command).to.be(commandExpected);
                 done();
             }).catch(done).then(function(){
-                pg.debug.Query=false;
+                pg.options.debug.Query=false;
             });
         }
         it("call execute directly", function(done){
@@ -164,7 +164,7 @@ describe('pg-promise-strict with real database', function(){
                 expect(err.code).to.be(code);
             }
             if(expectedErrorLog){
-                await pg.readyLog;
+                await pg.options.readyLog;
                 var content = await fs.readFile('local-log-last-error.txt','utf-8');
                 if(expectedErrorLog instanceof RegExp){
                     expect(content).to.match(expectedErrorLog);
@@ -329,7 +329,7 @@ describe('pg-promise-strict with real database', function(){
         var poolLog;
         before(function(done){
             pg.setAllTypes();
-            pg.log = pg.logLastError;
+            pg.options.log = pg.logLastError;
             pg.logLastError.inFileName='local-log-last-error.txt';
             MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                 return pg.connect(config.db);
@@ -359,7 +359,7 @@ describe('pg-promise-strict with real database', function(){
                 expect(err.code).to.be(code);
             }
             if(expectedErrorLog){
-                await pg.readyLog;
+                await pg.options.readyLog;
                 var content = await fs.readFile('local-log-last-error.txt','utf-8');
                 if(expectedErrorLog instanceof RegExp){
                     expect(content).to.match(expectedErrorLog);
@@ -524,7 +524,7 @@ describe('pg-promise-strict with real database', function(){
             });
             it("unsuccessful query", function(done){
                 this.timeout(5000);
-                pg.debug.Client=true;
+                pg.options.debug.Client=true;
                 MiniTools.readConfig([{db:connectParams}, 'local-config'], {whenNotExist:'ignore'}).then(function(config){
                     client = new pg.Client("posgresql://this_user:this_pass@localhost:"+config.db.port+"/nonex");
                     expect(client).to.be.a(pg.Client);
