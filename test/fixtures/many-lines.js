@@ -159,6 +159,6 @@ fs.writeFile('many-sep-lines.txt','attr;dom;description;opts'+[
 ].map(function(line){
     return line.map(function(col){
         var deli = /[;"]/.test(col)?'"':'';
-        return deli+col.replace(/"/g,'""')+deli;
+        return deli+col.replaceAll('"','""')+deli;
     }).join(';')
 }).join('\n'),'utf8');

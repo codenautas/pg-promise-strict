@@ -34,4 +34,7 @@ async function main(){
     }
 }
 
-main();
+main().catch(function(err){
+    console.log(err);
+    process.exitCode = 1;
+});

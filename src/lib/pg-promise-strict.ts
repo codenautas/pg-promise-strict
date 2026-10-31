@@ -386,10 +386,9 @@ export class Client{
         if(!this._client || !this.connected){
             throw new Error(messages.attemptToExecuteSqlScriptOnNotConnected+" "+!this._client+','+!this.connected)
         }
-        return fs.readFile(fileName,'utf-8').then(async function(content){
-            var sentences = content.split(/\r?\n\r?\n/);
-            return self.executeSentences(sentences);
-        });
+        var content = await fs.readFile(fileName,'utf-8');
+        var sentences = content.split(/\r?\n\r?\n/);
+        return self.executeSentences(sentences);
     }
     async bulkInsert(params:BulkInsertParams):Promise<void>{
         var self = this; // eslint-disable-line unicorn/no-this-assignment
@@ -778,7 +777,7 @@ export function logLastError(message:string, messageType:string):void{ // eslint
                 for(var attr in logLastError.receivedMessages){
                     lines.push("------- "+attr+":\n"+logLastError.receivedMessages[attr]);
                 }
-                readyLog = readyLog.then(async _ => fs.writeFile(logLastError.inFileName,lines.join('\n')));
+                readyLog = readyLog.then(async _ => { await fs.writeFile(logLastError.inFileName,lines.join('\n')); });
             }else{
                 for(var attr2 in logLastError.receivedMessages){
                     /* istanbul ignore next */

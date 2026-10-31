@@ -186,7 +186,7 @@ describe('streams', function(){
             var r = new Readable({objectMode:true});
             r.push(['one', 2, 3.3, true]);
             r.push(['uno', -2, 33.00003, false]);
-            r.push(['Один', 12, NaN, undefined]);
+            r.push(['Один', 12, Number.NaN, undefined]);
             r.push(['a\\.b\ttab\r\nLínea \\z cortada\\n\\N. tengo \\.\\\\N', 22, null, null]);
             r.push(['a\\.b\ttab\r\nLínea cortada\\n\\N. tengo \\.\\N', 23, null, null]);
             r.push(null);
